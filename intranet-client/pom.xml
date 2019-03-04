@@ -10,5 +10,12 @@
 
     <artifactId>intranet-client</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>priv.bigant.intranet</groupId>
+            <artifactId>intranet-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>
