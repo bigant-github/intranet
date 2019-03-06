@@ -1,12 +1,12 @@
 package priv.bigant.intranet.server;
 
 
-
 import priv.bigant.intrance.common.thread.SocketBean;
 import priv.bigant.intrance.common.thread.ThroughManager;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by GaoHan on 2018/5/22.
@@ -24,9 +24,10 @@ public class ThroughThread extends Thread {
     @Override
     public void run() {
         try {
+
             byte[] bytes = socketBean.readBytes();
             if (bytes != null && bytes.length > 0) {
-                String s = new String(bytes, "UTF-8").replace("\r\n", "");
+                String s = new String(bytes, StandardCharsets.UTF_8).replace("\r\n", "");
                 String domainName = s.split("-")[0];
                 //验证改域名是否已经注册
                 SocketBean socketBean = ThroughManager.get(domainName);
@@ -34,9 +35,9 @@ public class ThroughThread extends Thread {
                     this.socketBean.setDomainName(domainName);
                     ThroughManager.add(this.socketBean);
                     isClose = false;
-                    this.socketBean.write("10000-链接成功-45556\r\n".getBytes("UTF-8"));
+                    this.socketBean.write("10000-链接成功-45556\r\n".getBytes(StandardCharsets.UTF_8));
                 } else
-                    this.socketBean.write("10001-链接失败-45556\r\n".getBytes("UTF-8"));
+                    this.socketBean.write("10001-链接失败-45556\r\n".getBytes(StandardCharsets.UTF_8));
 
             }
         } catch (IOException e1) {

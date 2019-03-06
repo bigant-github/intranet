@@ -3,6 +3,7 @@ package priv.bigant.intrance.common.thread;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by GaoHan on 2018/5/25.
@@ -55,7 +56,7 @@ public class HttpResponseThread extends Thread {
         RequestSocketBean requestSocketBean = null;
         String key = null;
         try {
-            key = new String(socketBean.readBytes(), "UTF-8").replace("\r\n", "UTF-8");
+            key = new String(socketBean.readBytes(), StandardCharsets.UTF_8).replace("\r\n", "UTF-8");
             requestSocketBean = ThroughManager.getRequestThroughMap(key);
 
             SocketWrite.dataInteraction(requestSocketBean, socketBean);

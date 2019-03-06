@@ -1,9 +1,11 @@
 package priv.bigant.test;
 
-import priv.bigant.intranet.client.HttpResponseSocket;
+
+import priv.bigant.intranet.client.IntranetClient;
 
 public class ClientTest {
+
     public static void main(String[] args) {
-        new HttpResponseSocket(9999).run();
+        IntranetClient.start("localhost", 45678, "www.www.com", 8081);
     }
 }

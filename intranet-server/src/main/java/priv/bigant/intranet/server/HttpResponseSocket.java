@@ -1,4 +1,4 @@
-package priv.bigant.intranet.client;
+package priv.bigant.intranet.server;
 
 import priv.bigant.intrance.common.thread.HttpResponseThread;
 

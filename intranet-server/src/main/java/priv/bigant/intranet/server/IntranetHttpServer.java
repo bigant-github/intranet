@@ -1,8 +1,6 @@
 package priv.bigant.intranet.server;
 
 
-import priv.bigant.intrance.common.thread.HttpThread;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
