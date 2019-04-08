@@ -37,7 +37,6 @@ public class ThroughThread extends Thread {
                     this.socketBean.write("10000-链接成功-45556\r\n".getBytes(StandardCharsets.UTF_8));
                 } else
                     this.socketBean.write("10001-链接失败-45556\r\n".getBytes(StandardCharsets.UTF_8));
-
             }
         } catch (IOException e1) {
             e1.printStackTrace();

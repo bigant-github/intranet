@@ -41,8 +41,8 @@ public class RequestProcessor implements Runnable {
     private SocketInputStream input;
     private OutputStream output;
 
-    protected int contentLength;
-    String host;
+    private int contentLength;
+    private String host;
 
     private String protocol;
 
@@ -51,17 +51,12 @@ public class RequestProcessor implements Runnable {
         this.config = config;
     }
 
-    public RequestProcessor(Container container, Socket socket, Config config) {
-        this.container = container;
-        this.socket = socket;
-        this.config = config;
-    }
 
     public RequestProcessor(Socket socket) {
         this.socket = socket;
     }
 
-    private void process() {
+    protected void process() {
         boolean ok = true;
         // Construct and initialize the objects we will need
         try {
@@ -73,7 +68,6 @@ public class RequestProcessor implements Runnable {
 
         keepAlive = true;
 
-        while (ok && keepAlive) {
 
             /*try {
                 request.setStream(input);
@@ -86,39 +80,24 @@ public class RequestProcessor implements Runnable {
                 ok = false;
             }*/
 
-            // Parse the incoming request
-            try {
-                parseRequest(input);
-                if (!protocol.startsWith("HTTP/0"))
-                    parseHeaders(input);
-                if (http11) {
-                    // Sending a request acknowledge back to the client if
-                    // TODO
-                    ackRequest(output);
-                    // If the protocol is HTTP/1.1, chunking is allowed.
+        // Parse the incoming request
+        try {
+            parseRequest(input);
+            if (!protocol.startsWith("HTTP/0"))
+                parseHeaders(input);
+            if (http11) {
+                // Sending a request acknowledge back to the client if
+                // TODO
+                ackRequest(output);
+                // If the protocol is HTTP/1.1, chunking is allowed.
                     /*if (connector.isChunkingAllowed())
                         response.setAllowChunking(true);*/
-                }
-                container.invoke(this);
-            } catch (Exception e) {
-                LOGGER.error("", e);
-                /*try {
-                    ((HttpServletResponse) response.getResponse()).sendError(HttpServletResponse.SC_BAD_REQUEST);
-                } catch (Exception f) {
-                    ;
-                }*/
-                ok = false;
             }
-
+        } catch (Exception e) {
+            LOGGER.error("", e);
+            ok = false;
         }
 
-        try {
-            shutdown();
-        } catch (Throwable e) {
-            LOGGER.error("process.invoke", e);
-        }
-
-        socket = null;
     }
 
     public void shutdown() throws IOException {
@@ -289,4 +268,19 @@ public class RequestProcessor implements Runnable {
         return contentLength;
     }
 
+    public boolean isKeepAlive() {
+        return keepAlive;
+    }
+
+    public boolean isSendAck() {
+        return sendAck;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setInput(SocketInputStream input) {
+        this.input = input;
+    }
 }

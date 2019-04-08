@@ -7,12 +7,13 @@ public class ClientConfig extends Config {
     /**
      * 服务器端口
      */
-    private int port;
+    private int port = 45678;
 
     /**
      * 服务器地址
      */
     private String hostName;
+
     /**
      * 申请注册域名
      */

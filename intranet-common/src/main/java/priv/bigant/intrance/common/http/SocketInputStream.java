@@ -181,8 +181,7 @@ public class SocketInputStream extends InputStream {
             if (readCount >= maxRead) {
                 if ((2 * maxRead) <= HttpRequestLine.MAX_URI_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];
-                    System.arraycopy(requestLine.uri, 0, newBuffer, 0,
-                            maxRead);
+                    System.arraycopy(requestLine.uri, 0, newBuffer, 0, maxRead);
                     requestLine.uri = newBuffer;
                     maxRead = requestLine.uri.length;
                 } else {
@@ -222,8 +221,7 @@ public class SocketInputStream extends InputStream {
             if (readCount >= maxRead) {
                 if ((2 * maxRead) <= HttpRequestLine.MAX_PROTOCOL_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];
-                    System.arraycopy(requestLine.protocol, 0, newBuffer, 0,
-                            maxRead);
+                    System.arraycopy(requestLine.protocol, 0, newBuffer, 0, maxRead);
                     requestLine.protocol = newBuffer;
                     maxRead = requestLine.protocol.length;
                 } else {
@@ -252,6 +250,161 @@ public class SocketInputStream extends InputStream {
         }
 
         requestLine.protocolEnd = readCount;
+
+    }
+
+
+    /**
+     * Read the request line, and copies it to the given buffer. This function is meant to be used during the HTTP
+     * request header parsing. Do NOT attempt to read the request body using it.
+     *
+     * @param requestLine Request line object
+     * @throws IOException If an exception occurs during the underlying socket read operations, or if the given buffer
+     *                     is not big enough to accomodate the whole line.
+     */
+    public void readResponseLine(HttpResponseLine responseLine) throws IOException {
+
+        // Recycling check
+        if (responseLine.protocolEnd != 0)
+            responseLine.recycle();
+
+        // Checking for a blank line
+        int chr = 0;
+        do { // Skipping CR or LF
+            try {
+                chr = read();
+            } catch (IOException e) {
+                chr = -1;
+            }
+        } while ((chr == CR) || (chr == LF));
+
+        if (chr == -1)
+            throw new EOFException("requestStream.readline.error");
+        pos--;
+
+        // Reading the method name
+
+        int maxRead = responseLine.protocol.length;
+        int readStart = pos;
+        int readCount = 0;
+
+        boolean space = false;
+
+        while (!space) {
+            // if the buffer is full, extend it
+            if (readCount >= maxRead) {
+                if ((2 * maxRead) <= HttpRequestLine.MAX_METHOD_SIZE) {
+                    char[] newBuffer = new char[2 * maxRead];
+                    System.arraycopy(responseLine.protocol, 0, newBuffer, 0, maxRead);
+                    responseLine.protocol = newBuffer;
+                    maxRead = responseLine.protocol.length;
+                } else {
+                    throw new IOException("requestStream.readline.toolong");
+                }
+            }
+            // We're at the end of the internal buffer
+            if (pos >= count) {
+                int val = read();
+                if (val == -1) {
+                    throw new IOException("requestStream.readline.error");
+                }
+                pos = 0;
+                readStart = 0;
+            }
+            if (buf[pos] == SP) {
+                space = true;
+            }
+            responseLine.protocol[readCount] = (char) buf[pos];
+            readCount++;
+            pos++;
+        }
+
+        responseLine.protocolEnd = readCount - 1;
+
+        // Reading URI
+
+        maxRead = responseLine.code.length;
+        readStart = pos;
+        readCount = 0;
+
+        space = false;
+
+        boolean eol = false;
+
+        while (!space) {
+            // if the buffer is full, extend it
+            if (readCount >= maxRead) {
+                if ((2 * maxRead) <= HttpRequestLine.MAX_URI_SIZE) {
+                    char[] newBuffer = new char[2 * maxRead];
+                    System.arraycopy(responseLine.code, 0, newBuffer, 0, maxRead);
+                    responseLine.code = newBuffer;
+                    maxRead = responseLine.code.length;
+                } else {
+                    throw new IOException("requestStream.readline.toolong");
+                }
+            }
+            // We're at the end of the internal buffer
+            if (pos >= count) {
+                int val = read();
+                if (val == -1)
+                    throw new IOException("requestStream.readline.error");
+                pos = 0;
+                readStart = 0;
+            }
+            if (buf[pos] == SP) {
+                space = true;
+            } else if ((buf[pos] == CR) || (buf[pos] == LF)) {
+                // HTTP/0.9 style request
+                eol = true;
+                space = true;
+            }
+            responseLine.code[readCount] = (char) buf[pos];
+            readCount++;
+            pos++;
+        }
+
+        responseLine.codeEnd = readCount - 1;
+
+        // Reading protocol
+
+        maxRead = responseLine.status.length;
+        readStart = pos;
+        readCount = 0;
+
+        while (!eol) {
+            // if the buffer is full, extend it
+            if (readCount >= maxRead) {
+                if ((2 * maxRead) <= HttpRequestLine.MAX_PROTOCOL_SIZE) {
+                    char[] newBuffer = new char[2 * maxRead];
+                    System.arraycopy(responseLine.status, 0, newBuffer, 0, maxRead);
+                    responseLine.status = newBuffer;
+                    maxRead = responseLine.status.length;
+                } else {
+                    throw new IOException("requestStream.readline.toolong");
+                }
+            }
+            // We're at the end of the internal buffer
+            if (pos >= count) {
+                // Copying part (or all) of the internal buffer to the line
+                // buffer
+                int val = read();
+                if (val == -1)
+                    throw new IOException("requestStream.readline.error");
+                pos = 0;
+                readStart = 0;
+            }
+            if (buf[pos] == CR) {
+                // Skip CR.
+            } else if (buf[pos] == LF) {
+                eol = true;
+            } else {
+                responseLine.status[readCount] = (char) buf[pos];
+                readCount++;
+            }
+            pos++;
+        }
+
+        responseLine.statusEnd = readCount;
 
     }
 

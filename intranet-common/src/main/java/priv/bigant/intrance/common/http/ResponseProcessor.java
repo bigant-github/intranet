@@ -38,7 +38,7 @@ public class ResponseProcessor implements Runnable {
     private boolean sendAck = false;
     private Socket socket;
     private Config config;
-    private HttpRequestLine requestLine = new HttpRequestLine();
+    private HttpResponseLine responseLine = new HttpResponseLine();
     private SocketInputStream input;
     private OutputStream output;
 
@@ -62,51 +62,35 @@ public class ResponseProcessor implements Runnable {
         this.socket = socket;
     }
 
-    private void process() {
-        boolean ok = true;
+    protected void process() {
         // Construct and initialize the objects we will need
         try {
             input = new SocketInputStream(socket.getInputStream(), config.getBufferSize());
         } catch (Exception e) {
             LOGGER.error("process.create", e);
-            ok = false;
         }
 
-        keepAlive = true;
-
-        while (ok && keepAlive) {
-            try {
-                parseRequest(input);
-                if (!protocol.startsWith("HTTP/0"))
-                    parseHeaders(input);
-                if (http11) {
-                    // Sending a request acknowledge back to the client if
-                    // TODO
-                    ackRequest(output);
-                    // If the protocol is HTTP/1.1, chunking is allowed.
+        try {
+            parseRequest(input);
+            if (!protocol.startsWith("HTTP/0"))
+                parseHeaders(input);
+            if (http11) {
+                // Sending a request acknowledge back to the client if
+                // TODO
+                ackRequest(output);
+                // If the protocol is HTTP/1.1, chunking is allowed.
                     /*if (connector.isChunkingAllowed())
                         response.setAllowChunking(true);*/
-                }
-                //container.invoke(this, input);
-            } catch (Exception e) {
-                LOGGER.error("", e);
+            }
+            //container.invoke(this, input);
+        } catch (Exception e) {
+            LOGGER.error("", e);
                 /*try {
                     ((HttpServletResponse) response.getResponse()).sendError(HttpServletResponse.SC_BAD_REQUEST);
                 } catch (Exception f) {
                     ;
                 }*/
-                ok = false;
-            }
-
         }
-
-        try {
-            shutdown();
-        } catch (Throwable e) {
-            LOGGER.error("process.invoke", e);
-        }
-
-        socket = null;
     }
 
     public void shutdown() throws IOException {
@@ -231,9 +215,9 @@ public class ResponseProcessor implements Runnable {
     private void parseRequest(SocketInputStream input) throws IOException {
 
         // Parse the incoming request line
-        input.readRequestLine(requestLine);
+        input.readResponseLine(responseLine);
 
-        protocol = new String(requestLine.protocol, 0, requestLine.protocolEnd);
+        protocol = new String(responseLine.protocol, 0, responseLine.protocolEnd);
 
         //System.out.println(" Method:" + method + "_ Uri:" + uri
         //                   + "_ Protocol:" + protocol);
@@ -271,5 +255,13 @@ public class ResponseProcessor implements Runnable {
 
     public SocketInputStream getInput() {
         return input;
+    }
+
+    public int getContentLength() {
+        return contentLength;
+    }
+
+    public boolean isKeepAlive() {
+        return keepAlive;
     }
 }

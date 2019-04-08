@@ -9,7 +9,7 @@ public class ServerConfig extends Config {
     private int maximumPoolSize = 30;
     private int keepAliveTime = 1000;
 
-    private int intranetPort = 2270;
+    private int intranetPort = 45678;
 
     public int getIntranetPort() {
         return intranetPort;

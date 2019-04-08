@@ -22,16 +22,11 @@ final class HttpRequestLine {
 
 
     public HttpRequestLine() {
-
-        this(new char[INITIAL_METHOD_SIZE], 0, new char[INITIAL_URI_SIZE], 0,
-                new char[INITIAL_PROTOCOL_SIZE], 0);
-
+        this(new char[INITIAL_METHOD_SIZE], 0, new char[INITIAL_URI_SIZE], 0, new char[INITIAL_PROTOCOL_SIZE], 0);
     }
 
 
-    public HttpRequestLine(char[] method, int methodEnd,
-                           char[] uri, int uriEnd,
-                           char[] protocol, int protocolEnd) {
+    public HttpRequestLine(char[] method, int methodEnd, char[] uri, int uriEnd, char[] protocol, int protocolEnd) {
 
         this.method = method;
         this.methodEnd = methodEnd;

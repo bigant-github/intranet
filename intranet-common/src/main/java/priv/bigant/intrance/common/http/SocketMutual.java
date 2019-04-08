@@ -1,28 +1,21 @@
 package priv.bigant.intrance.common.http;
 
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Socket;
 
 public class SocketMutual {
 
-    private SocketInputStream socketInputStream;
-    private int contentLength;
-    private SocketBeanss socketBean;
-
-    public SocketMutual(SocketInputStream socketInputStream, SocketBeanss socketBean, int contentLength) {
-        this.socketInputStream = socketInputStream;
-        this.contentLength = contentLength;
-        this.socketBean = socketBean;
-    }
-
-    public void mutual() throws IOException {
-        OutputStream os = socketBean.getOs();
+    public static void mutual(SocketInputStream socketInputStream, int contentLength, Socket socket) throws IOException {
+        OutputStream os = socket.getOutputStream();
         os.write(socketInputStream.byteBuffer);
-
         byte[] bytes = new byte[contentLength];
         int by = socketInputStream.is.read(bytes);
-        os.write(by);
+        String s = new String(ArrayUtils.addAll(socketInputStream.byteBuffer, bytes), "UTF-8");
+        System.out.println(s);
+        os.write(bytes);
     }
-
 }

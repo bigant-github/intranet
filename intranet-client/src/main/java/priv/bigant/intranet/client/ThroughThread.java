@@ -24,7 +24,6 @@ public class ThroughThread extends Thread {
         this.port = port;
         this.domainName = domainName;
         this.thisPort = thisPort;
-
     }
 
     private int httpSocketPort;

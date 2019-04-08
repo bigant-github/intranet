@@ -2,6 +2,7 @@ package priv.bigant.intranet.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.http.HttpProcessor;
 import priv.bigant.intrance.common.http.RequestProcessor;
 
 import java.io.IOException;
@@ -33,8 +34,7 @@ public class ServerHttpConnector extends Thread {
                 Socket accept = serverSocket.accept();
                 if (serverSocket.getSoTimeout() > 0)
                     accept.setSoTimeout(serverConfig.getSocketTimeOut());
-                RequestProcessor serverHttpProcessor = new RequestProcessor(accept, serverConfig);
-                serverHttpProcessor.setContainer(serverContainer);
+                HttpProcessor serverHttpProcessor = new ServerHttpProcessor(accept, serverConfig);
                 executor.execute(serverHttpProcessor);
             } catch (IOException e) {
                 e.printStackTrace();
