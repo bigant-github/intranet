@@ -5,7 +5,7 @@ package priv.bigant.intrance.common.http;
  * HTTP header enum type.
  */
 
-final class HttpHeader {
+public final class HttpHeader {
 
 
     // -------------------------------------------------------------- Constants

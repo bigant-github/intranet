@@ -1,19 +1,21 @@
-package priv.bigant.intrance.common.http;
+package priv.bigant.test;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.exception.ServletException;
+import priv.bigant.intrance.common.http.*;
 import priv.bigant.intrance.common.thread.Config;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HttpProcessor implements Runnable {
+public class ResponseProcessor {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(HttpProcessor.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ResponseProcessor.class);
 
     private List<HttpHeader> httpHeaders = new ArrayList<>();
 
@@ -38,7 +40,6 @@ public class HttpProcessor implements Runnable {
     private boolean sendAck = false;
     private Socket socket;
     private Config config;
-    private HttpRequestLine requestLine = new HttpRequestLine();
     private SocketInputStream input;
     private OutputStream output;
 
@@ -47,26 +48,26 @@ public class HttpProcessor implements Runnable {
 
     private String protocol;
 
-    public HttpProcessor(Socket socket, Config config) {
+    public ResponseProcessor(Socket socket, Config config) {
         this.socket = socket;
         this.config = config;
     }
 
-    public HttpProcessor(Container container, Socket socket, Config config) {
+    public ResponseProcessor(Container container, Socket socket, Config config) {
         this.container = container;
         this.socket = socket;
         this.config = config;
     }
 
-    public HttpProcessor(Socket socket) {
+    public ResponseProcessor(Socket socket) {
         this.socket = socket;
     }
 
-    private void process() {
+    public void process(InputStream inputStream) {
         boolean ok = true;
         // Construct and initialize the objects we will need
         try {
-            input = new SocketInputStream(socket.getInputStream(), config.getBufferSize());
+            input = new SocketInputStream(inputStream, config.getBufferSize());
         } catch (Exception e) {
             LOGGER.error("process.create", e);
             ok = false;
@@ -75,23 +76,8 @@ public class HttpProcessor implements Runnable {
         keepAlive = true;
 
         while (ok && keepAlive) {
-
-            /*try {
-                request.setStream(input);
-                request.setResponse(response);
-                output = socket.getOutputStream();
-                response.setStream(output);
-                response.setRequest(request);
-            } catch (Exception e) {
-                LOGGER.error("process.create", e);
-                ok = false;
-            }*/
-
-            // Parse the incoming request
             try {
-                parseRequest(input);
-                if (!protocol.startsWith("HTTP/0"))
-                    parseHeaders(input);
+                parseHeaders(input);
                 if (http11) {
                     // Sending a request acknowledge back to the client if
                     // TODO
@@ -100,6 +86,7 @@ public class HttpProcessor implements Runnable {
                     /*if (connector.isChunkingAllowed())
                         response.setAllowChunking(true);*/
                 }
+                //container.invoke(this, input);
             } catch (Exception e) {
                 LOGGER.error("", e);
                 /*try {
@@ -233,60 +220,9 @@ public class HttpProcessor implements Runnable {
 
     }
 
-    /**
-     * Parse the incoming HTTP request and set the corresponding HTTP request properties.
-     *
-     * @param input The input stream attached to our socket
-     * @throws IOException      if an input/output error occurs
-     * @throws ServletException if a parsing error occurs
-     */
-    private void parseRequest(SocketInputStream input) throws IOException {
-
-        // Parse the incoming request line
-        input.readRequestLine(requestLine);
-
-        protocol = new String(requestLine.protocol, 0, requestLine.protocolEnd);
-
-        //System.out.println(" Method:" + method + "_ Uri:" + uri
-        //                   + "_ Protocol:" + protocol);
-
-        if (protocol.length() == 0)
-            protocol = "HTTP/0.9";
-
-        // Now check if the connection should be kept alive after parsing the
-        // request.
-        if (protocol.equals("HTTP/1.1")) {
-            http11 = true;
-            sendAck = false;
-        } else {
-            http11 = false;
-            sendAck = false;
-            // For HTTP/1.0, connection are not persistent by default,
-            // unless specified with a Connection: Keep-Alive header.
-            keepAlive = false;
-        }
-
-    }
-
     public void setContainer(Container container) {
         this.container = container;
     }
 
-    @Override
-    public void run() {
-        process();
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public SocketInputStream getInput() {
-        return input;
-    }
-
-    public int getContentLength() {
-        return contentLength;
-    }
 
 }

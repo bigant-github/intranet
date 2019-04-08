@@ -9,12 +9,13 @@ public class ServerBootstrap {
 
     public static void main(String[] args) {
         ServerConfig serverConfig = new ServerConfig();
-        serverConfig.setPort(7081);
+        serverConfig.setHttpPort(7082);
         serverConfig.setCorePoolSize(1);
         serverConfig.setKeepAliveTime(1000);
         serverConfig.setMaximumPoolSize(2);
         serverConfig.setSocketTimeOut(3000);
         new ServerHttpConnector(serverConfig).start();
+        new ServerIntranet(serverConfig).start();
     }
 
 }

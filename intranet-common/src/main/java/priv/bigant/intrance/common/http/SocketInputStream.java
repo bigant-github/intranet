@@ -1,5 +1,7 @@
 package priv.bigant.intrance.common.http;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,9 +11,7 @@ import java.io.InputStream;
  */
 public class SocketInputStream extends InputStream {
 
-
     // -------------------------------------------------------------- Constants
-
 
     /**
      * CR.
@@ -482,6 +482,11 @@ public class SocketInputStream extends InputStream {
 
     // ------------------------------------------------------ Protected Methods
 
+    /**
+     *
+     */
+    protected byte byteBuffer[] = new byte[0];
+
 
     /**
      * Fill the internal buffer using data from the undelying input stream.
@@ -492,8 +497,9 @@ public class SocketInputStream extends InputStream {
         int nRead = is.read(buf, 0, buf.length);
         if (nRead > 0) {
             count = nRead;
+            byte[] subarray = ArrayUtils.subarray(buf, 0, nRead);
+            byteBuffer = ArrayUtils.addAll(byteBuffer, subarray);
         }
     }
-
 
 }

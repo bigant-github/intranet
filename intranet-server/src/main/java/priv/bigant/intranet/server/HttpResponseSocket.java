@@ -16,7 +16,6 @@ public class HttpResponseSocket extends Thread {
         this.port = port;
     }
 
-
     @Override
     public void run() {
         ServerSocket serverSocket = null;

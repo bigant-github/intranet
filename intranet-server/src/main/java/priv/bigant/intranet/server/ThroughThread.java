@@ -24,7 +24,6 @@ public class ThroughThread extends Thread {
     @Override
     public void run() {
         try {
-
             byte[] bytes = socketBean.readBytes();
             if (bytes != null && bytes.length > 0) {
                 String s = new String(bytes, StandardCharsets.UTF_8).replace("\r\n", "");
@@ -57,7 +56,7 @@ public class ThroughThread extends Thread {
 
 
         InetAddress address = socket.getInetAddress();
-        System.out.println("新连接，客户端的IP：" + address.getHostAddress() + " ,端口：" + socket.getPort());
+        System.out.println("新连接，客户端的IP：" + address.getHostAddress() + " ,端口：" + socket.getHttpPort());
 
         try {
             //pw.write("已有客户端列表：" + server.connections + "\n");
@@ -81,10 +80,10 @@ public class ThroughThread extends Thread {
 
                     for (ThroughThread server : server.connections) {
                         if (server.socket.getInetAddress().getHostAddress().equals(ip)
-                                && server.socket.getPort() == Integer.parseInt(port)) {
+                                && server.socket.getHttpPort() == Integer.parseInt(port)) {
 
                             //发送命令通知目标节点进行穿透连接
-                            server.pw.write("autoConn_" + socket.getInetAddress().getHostAddress() + "_" + socket.getPort()
+                            server.pw.write("autoConn_" + socket.getInetAddress().getHostAddress() + "_" + socket.getHttpPort()
                                     + "\n");
                             server.pw.flush();
 
@@ -102,7 +101,7 @@ public class ThroughThread extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            System.out.println("客户端关闭：" + address.getHostAddress() + " ,端口：" + socket.getPort());
+            System.out.println("客户端关闭：" + address.getHostAddress() + " ,端口：" + socket.getHttpPort());
             //server.connections.remove(this);
             // 关闭资源
             try {

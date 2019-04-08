@@ -5,15 +5,14 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.exception.ServletException;
 import priv.bigant.intrance.common.thread.Config;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HttpProcessor implements Runnable {
+public class RequestProcessor implements Runnable {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(HttpProcessor.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(RequestProcessor.class);
 
     private List<HttpHeader> httpHeaders = new ArrayList<>();
 
@@ -47,18 +46,18 @@ public class HttpProcessor implements Runnable {
 
     private String protocol;
 
-    public HttpProcessor(Socket socket, Config config) {
+    public RequestProcessor(Socket socket, Config config) {
         this.socket = socket;
         this.config = config;
     }
 
-    public HttpProcessor(Container container, Socket socket, Config config) {
+    public RequestProcessor(Container container, Socket socket, Config config) {
         this.container = container;
         this.socket = socket;
         this.config = config;
     }
 
-    public HttpProcessor(Socket socket) {
+    public RequestProcessor(Socket socket) {
         this.socket = socket;
     }
 
@@ -100,6 +99,7 @@ public class HttpProcessor implements Runnable {
                     /*if (connector.isChunkingAllowed())
                         response.setAllowChunking(true);*/
                 }
+                container.invoke(this);
             } catch (Exception e) {
                 LOGGER.error("", e);
                 /*try {

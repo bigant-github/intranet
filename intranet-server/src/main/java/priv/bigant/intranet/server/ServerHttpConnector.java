@@ -2,7 +2,7 @@ package priv.bigant.intranet.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.http.HttpProcessor;
+import priv.bigant.intrance.common.http.RequestProcessor;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -25,14 +25,16 @@ public class ServerHttpConnector extends Thread {
 
     @Override
     public void run() {
-        LOGGER.info("ServerHttpConnector start port:" + serverConfig.getPort());
+        LOGGER.info("ServerHttpConnector start port:" + serverConfig.getHttpPort());
         open();
+        ServerContainer serverContainer = new ServerContainer();
         while (!stopped) {
             try {
                 Socket accept = serverSocket.accept();
                 if (serverSocket.getSoTimeout() > 0)
                     accept.setSoTimeout(serverConfig.getSocketTimeOut());
-                HttpProcessor serverHttpProcessor = new HttpProcessor(accept, serverConfig);
+                RequestProcessor serverHttpProcessor = new RequestProcessor(accept, serverConfig);
+                serverHttpProcessor.setContainer(serverContainer);
                 executor.execute(serverHttpProcessor);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -47,7 +49,7 @@ public class ServerHttpConnector extends Thread {
     public void open() {
         this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
         try {
-            serverSocket = new ServerSocket(serverConfig.getPort());
+            serverSocket = new ServerSocket(serverConfig.getHttpPort());
         } catch (IOException e) {
             e.printStackTrace();
         }

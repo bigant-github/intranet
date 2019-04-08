@@ -11,9 +11,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HttpProcessor implements Runnable {
+public class ResponseProcessor implements Runnable {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(HttpProcessor.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ResponseProcessor.class);
 
     private List<HttpHeader> httpHeaders = new ArrayList<>();
 
@@ -47,18 +47,18 @@ public class HttpProcessor implements Runnable {
 
     private String protocol;
 
-    public HttpProcessor(Socket socket, Config config) {
+    public ResponseProcessor(Socket socket, Config config) {
         this.socket = socket;
         this.config = config;
     }
 
-    public HttpProcessor(Container container, Socket socket, Config config) {
+    public ResponseProcessor(Container container, Socket socket, Config config) {
         this.container = container;
         this.socket = socket;
         this.config = config;
     }
 
-    public HttpProcessor(Socket socket) {
+    public ResponseProcessor(Socket socket) {
         this.socket = socket;
     }
 
@@ -75,19 +75,6 @@ public class HttpProcessor implements Runnable {
         keepAlive = true;
 
         while (ok && keepAlive) {
-
-            /*try {
-                request.setStream(input);
-                request.setResponse(response);
-                output = socket.getOutputStream();
-                response.setStream(output);
-                response.setRequest(request);
-            } catch (Exception e) {
-                LOGGER.error("process.create", e);
-                ok = false;
-            }*/
-
-            // Parse the incoming request
             try {
                 parseRequest(input);
                 if (!protocol.startsWith("HTTP/0"))
@@ -100,6 +87,7 @@ public class HttpProcessor implements Runnable {
                     /*if (connector.isChunkingAllowed())
                         response.setAllowChunking(true);*/
                 }
+                //container.invoke(this, input);
             } catch (Exception e) {
                 LOGGER.error("", e);
                 /*try {
@@ -284,9 +272,4 @@ public class HttpProcessor implements Runnable {
     public SocketInputStream getInput() {
         return input;
     }
-
-    public int getContentLength() {
-        return contentLength;
-    }
-
 }

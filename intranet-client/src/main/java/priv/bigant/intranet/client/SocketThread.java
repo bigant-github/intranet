@@ -29,12 +29,10 @@ public class SocketThread extends Thread {
     @Override
     public void run() {
         try {
-
             Socket socket = new Socket();
             socket.connect(new InetSocketAddress(httpSocketHostName, httpSocketPort));
             this.socketBean = new SocketBean(socket);
             this.socketBean.write(msg.getBytes(StandardCharsets.UTF_8));
-
             dispose();
         } catch (IOException e) {
             e.printStackTrace();

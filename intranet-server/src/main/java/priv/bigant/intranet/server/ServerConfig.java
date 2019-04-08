@@ -3,11 +3,21 @@ package priv.bigant.intranet.server;
 import priv.bigant.intrance.common.thread.Config;
 
 public class ServerConfig extends Config {
-    private int socketTimeOut;
-    private int port;
-    private int corePoolSize;
-    private int maximumPoolSize;
-    private int keepAliveTime;
+    private int socketTimeOut = 60000;
+    private int httpPort = 80;
+    private int corePoolSize = 5;
+    private int maximumPoolSize = 30;
+    private int keepAliveTime = 1000;
+
+    private int intranetPort = 2270;
+
+    public int getIntranetPort() {
+        return intranetPort;
+    }
+
+    public void setIntranetPort(int intranetPort) {
+        this.intranetPort = intranetPort;
+    }
 
     public int getSocketTimeOut() {
         return socketTimeOut;
@@ -17,12 +27,12 @@ public class ServerConfig extends Config {
         this.socketTimeOut = socketTimeOut;
     }
 
-    public int getPort() {
-        return port;
+    public int getHttpPort() {
+        return httpPort;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
     }
 
     public int getCorePoolSize() {
