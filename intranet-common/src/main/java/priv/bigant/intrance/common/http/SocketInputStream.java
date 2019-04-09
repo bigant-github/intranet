@@ -258,7 +258,7 @@ public class SocketInputStream extends InputStream {
      * Read the request line, and copies it to the given buffer. This function is meant to be used during the HTTP
      * request header parsing. Do NOT attempt to read the request body using it.
      *
-     * @param requestLine Request line object
+     * @param responseLine Request line object
      * @throws IOException If an exception occurs during the underlying socket read operations, or if the given buffer
      *                     is not big enough to accomodate the whole line.
      */
@@ -293,7 +293,7 @@ public class SocketInputStream extends InputStream {
         while (!space) {
             // if the buffer is full, extend it
             if (readCount >= maxRead) {
-                if ((2 * maxRead) <= HttpRequestLine.MAX_METHOD_SIZE) {
+                if ((2 * maxRead) <= HttpResponseLine.MAX_METHOD_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];
                     System.arraycopy(responseLine.protocol, 0, newBuffer, 0, maxRead);
                     responseLine.protocol = newBuffer;
@@ -374,7 +374,7 @@ public class SocketInputStream extends InputStream {
         while (!eol) {
             // if the buffer is full, extend it
             if (readCount >= maxRead) {
-                if ((2 * maxRead) <= HttpRequestLine.MAX_PROTOCOL_SIZE) {
+                if ((2 * maxRead) <= HttpResponseLine.MAX_PROTOCOL_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];
                     System.arraycopy(responseLine.status, 0, newBuffer, 0, maxRead);
                     responseLine.status = newBuffer;

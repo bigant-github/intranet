@@ -13,8 +13,8 @@ public final class HttpHeader {
 
     public static final int INITIAL_NAME_SIZE = 32;
     public static final int INITIAL_VALUE_SIZE = 64;
-    public static final int MAX_NAME_SIZE = 128;
-    public static final int MAX_VALUE_SIZE = 4096;
+    public static final int MAX_NAME_SIZE = 8192;
+    public static final int MAX_VALUE_SIZE = 8192;
 
 
     // ----------------------------------------------------------- Constructors

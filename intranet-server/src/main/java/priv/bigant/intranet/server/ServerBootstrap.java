@@ -12,7 +12,7 @@ public class ServerBootstrap {
         serverConfig.setHttpPort(7082);
         serverConfig.setCorePoolSize(1);
         serverConfig.setKeepAliveTime(1000);
-        serverConfig.setMaximumPoolSize(2);
+        serverConfig.setMaximumPoolSize(10);
         serverConfig.setSocketTimeOut(3000);
         new ServerHttpConnector(serverConfig).start();
         new ServerIntranet(serverConfig).start();
