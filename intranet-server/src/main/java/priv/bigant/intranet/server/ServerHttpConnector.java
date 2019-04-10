@@ -28,16 +28,18 @@ public class ServerHttpConnector extends Thread {
     public void run() {
         LOGGER.info("ServerHttpConnector start port:" + serverConfig.getHttpPort());
         open();
-        ServerContainer serverContainer = new ServerContainer();
         while (!stopped) {
-            try {
-                Socket accept = serverSocket.accept();
-                if (serverSocket.getSoTimeout() > 0)
-                    accept.setSoTimeout(serverConfig.getSocketTimeOut());
-                HttpProcessor serverHttpProcessor = new ServerHttpProcessor(accept, serverConfig);
-                executor.execute(serverHttpProcessor);
-            } catch (IOException e) {
-                e.printStackTrace();
+            synchronized (LOGGER) {
+                try {
+                    Socket accept = serverSocket.accept();
+                    if (serverSocket.getSoTimeout() > 0)
+                        accept.setSoTimeout(serverConfig.getSocketTimeOut());
+                    HttpProcessor serverHttpProcessor = new ServerHttpProcessor(accept, serverConfig);
+                    serverHttpProcessor.run();
+                    //executor.execute(serverHttpProcessor);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

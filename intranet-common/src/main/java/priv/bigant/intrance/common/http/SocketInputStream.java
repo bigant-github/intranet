@@ -299,6 +299,10 @@ public class SocketInputStream extends InputStream {
                     responseLine.protocol = newBuffer;
                     maxRead = responseLine.protocol.length;
                 } else {
+                    String s = new String(responseLine.protocol);
+                    String s1 = new String(buf);
+                    System.out.println(s);
+                    int available = is.available();
                     throw new IOException("requestStream.readline.toolong");
                 }
             }
@@ -650,8 +654,8 @@ public class SocketInputStream extends InputStream {
         int nRead = is.read(buf, 0, buf.length);
         if (nRead > 0) {
             count = nRead;
-            byte[] subarray = ArrayUtils.subarray(buf, 0, nRead);
-            byteBuffer = ArrayUtils.addAll(byteBuffer, subarray);
+            byte[] subArray = ArrayUtils.subarray(buf, 0, nRead);
+            byteBuffer = ArrayUtils.addAll(byteBuffer, subArray);
         }
     }
 

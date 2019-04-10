@@ -57,28 +57,26 @@ public class RequestProcessor implements Runnable {
     }
 
     protected void process() {
-        boolean ok = true;
         // Construct and initialize the objects we will need
         try {
             input = new SocketInputStream(socket.getInputStream(), config.getBufferSize());
         } catch (Exception e) {
             LOGGER.error("process.create", e);
-            ok = false;
         }
 
         keepAlive = true;
 
 
-            /*try {
-                request.setStream(input);
-                request.setResponse(response);
-                output = socket.getOutputStream();
-                response.setStream(output);
-                response.setRequest(request);
-            } catch (Exception e) {
-                LOGGER.error("process.create", e);
-                ok = false;
-            }*/
+        /*try {
+            request.setStream(input);
+            request.setResponse(response);
+            output = socket.getOutputStream();
+            response.setStream(output);
+            response.setRequest(request);
+        } catch (Exception e) {
+            LOGGER.error("process.create", e);
+            ok = false;
+        }*/
 
         // Parse the incoming request
         try {
@@ -95,7 +93,6 @@ public class RequestProcessor implements Runnable {
             }
         } catch (Exception e) {
             LOGGER.error("", e);
-            ok = false;
         }
 
     }
@@ -212,6 +209,8 @@ public class RequestProcessor implements Runnable {
 
     }
 
+    private String uri;
+
     /**
      * Parse the incoming HTTP request and set the corresponding HTTP request properties.
      *
@@ -225,7 +224,7 @@ public class RequestProcessor implements Runnable {
         input.readRequestLine(requestLine);
 
         protocol = new String(requestLine.protocol, 0, requestLine.protocolEnd);
-
+        uri = new String(requestLine.uri, 0, requestLine.uriEnd);
         //System.out.println(" Method:" + method + "_ Uri:" + uri
         //                   + "_ Protocol:" + protocol);
 
@@ -283,4 +282,9 @@ public class RequestProcessor implements Runnable {
     public void setInput(SocketInputStream input) {
         this.input = input;
     }
+
+    public String getUri() {
+        return uri;
+    }
+
 }

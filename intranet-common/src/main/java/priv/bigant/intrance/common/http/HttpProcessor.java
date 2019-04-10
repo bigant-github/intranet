@@ -50,7 +50,9 @@ public abstract class HttpProcessor implements Runnable {
             if (receiver == null) {
                 LOGGER.error("receiver is null error");
             }
-
+            if ("/vs3/static/favicon.ico".equals(requestProcessor.getUri())) {
+                System.out.println("");
+            }
             try {
                 SocketMutual.mutual(requestProcessor.getInput(), requestProcessor.getContentLength(), receiver);
             } catch (IOException e) {
@@ -62,7 +64,6 @@ public abstract class HttpProcessor implements Runnable {
 
             responseProcessor = new ResponseProcessor(receiver, config);
             responseProcessor.process();
-
             try {
                 SocketMutual.mutual(responseProcessor.getInput(), responseProcessor.getContentLength(), socket);
             } catch (IOException e) {
