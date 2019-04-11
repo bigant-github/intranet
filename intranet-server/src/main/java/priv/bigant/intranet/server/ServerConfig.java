@@ -8,8 +8,23 @@ public class ServerConfig extends Config {
     private int corePoolSize = 5;
     private int maximumPoolSize = 30;
     private int keepAliveTime = 1000;
-
     private int intranetPort = 45678;
+
+    private ServerConfig() {
+
+    }
+
+    public static Config getConfig() {
+        if (config == null) {
+            synchronized (Config.class) {
+                if (config == null) {
+                    config = new ServerConfig();
+                }
+            }
+        }
+        return config;
+    }
+
 
     public int getIntranetPort() {
         return intranetPort;
@@ -58,4 +73,6 @@ public class ServerConfig extends Config {
     public void setKeepAliveTime(int keepAliveTime) {
         this.keepAliveTime = keepAliveTime;
     }
+
+
 }

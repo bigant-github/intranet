@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 
 public class ServerBootstrap {
 
-    private final static Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ServerBootstrap.class);
 
     public static void main(String[] args) {
-        ServerConfig serverConfig = new ServerConfig();
+        ServerConfig serverConfig = (ServerConfig) ServerConfig.getConfig();
         serverConfig.setHttpPort(7082);
         serverConfig.setCorePoolSize(1);
         serverConfig.setKeepAliveTime(1000);

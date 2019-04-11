@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.thread.Config;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 
 public abstract class HttpProcessor implements Runnable {
@@ -27,53 +28,47 @@ public abstract class HttpProcessor implements Runnable {
     }
 
 
-    private void process() {
-        boolean ok = true;
+    private void process() throws IOException {
         do {
             requestProcessor = new RequestProcessor(socket, config);
             requestProcessor.process();
             if (requestProcessor.isSendAck())
                 //TODO send ACK service
-                System.out.println("send ack service last");
+                LOGGER.warn("send ack service last");
 
             if (receiver == null) {
                 try {
                     receiver = getSocketBean();
                 } catch (IOException e) {
                     LOGGER.error("get socket bean", e);
+                    throw e;
                     //TODO mutual service
-                    e.printStackTrace();
-                    ok = false;
+                }
+
+                if (receiver == null) {
+                    LOGGER.error("receiver is null error");
                 }
             }
 
-            if (receiver == null) {
-                LOGGER.error("receiver is null error");
-            }
-            if ("/vs3/static/favicon.ico".equals(requestProcessor.getUri())) {
-                System.out.println("");
-            }
             try {
-                SocketMutual.mutual(requestProcessor.getInput(), requestProcessor.getContentLength(), receiver);
+                mutual(requestProcessor.getInput(), requestProcessor.getContentLength(), receiver);
             } catch (IOException e) {
                 LOGGER.error("request mutual error", e);
                 //TODO mutual service
-                e.printStackTrace();
-                ok = false;
+                throw e;
             }
 
             responseProcessor = new ResponseProcessor(receiver, config);
             responseProcessor.process();
             try {
-                SocketMutual.mutual(responseProcessor.getInput(), responseProcessor.getContentLength(), socket);
+                mutual(responseProcessor.getInput(), responseProcessor.getContentLength(), socket);
             } catch (IOException e) {
                 LOGGER.error("response mutual error", e);
                 //TODO mutual service
-                e.printStackTrace();
-                ok = false;
+                throw e;
             }
 
-        } while (ok && requestProcessor.isKeepAlive() && responseProcessor.isKeepAlive());
+        } while (requestProcessor.isKeepAlive() && responseProcessor.isKeepAlive());
 
         try {
             close();
@@ -92,7 +87,27 @@ public abstract class HttpProcessor implements Runnable {
 
     @Override
     public void run() {
-        process();
+        try {
+            process();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+
+    private void mutual(SocketInputStream socketInputStream, int contentLength, Socket socket) throws IOException {
+        OutputStream os = socket.getOutputStream();
+        os.write(socketInputStream.byteBuffer);
+        byte[] bytes = new byte[1024];
+        if (contentLength > 0) {
+            int readSize = 0;
+            int by;
+            do {
+                by = socketInputStream.is.read(bytes);
+                readSize += by;
+                os.write(bytes, 0, by);
+            } while (readSize < contentLength && by >= 1024);
+        }
+        System.out.println();
+    }
 }
