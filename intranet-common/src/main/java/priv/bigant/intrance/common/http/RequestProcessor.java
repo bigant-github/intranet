@@ -21,8 +21,6 @@ public class RequestProcessor implements Runnable {
      */
     private boolean keepAlive = false;
 
-    private Container container;
-
     /**
      * HTTP/1.1 client.
      */
@@ -43,7 +41,6 @@ public class RequestProcessor implements Runnable {
 
     private int contentLength;
     private String host;
-
     private String protocol;
 
     public RequestProcessor(Socket socket, Config config) {
@@ -51,32 +48,16 @@ public class RequestProcessor implements Runnable {
         this.config = config;
     }
 
-
-    public RequestProcessor(Socket socket) {
-        this.socket = socket;
-    }
-
     protected void process() {
         // Construct and initialize the objects we will need
         try {
             input = new SocketInputStream(socket.getInputStream(), config.getBufferSize());
-        } catch (Exception e) {
-            LOGGER.error("process.create", e);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         keepAlive = true;
 
-
-        /*try {
-            request.setStream(input);
-            request.setResponse(response);
-            output = socket.getOutputStream();
-            response.setStream(output);
-            response.setRequest(request);
-        } catch (Exception e) {
-            LOGGER.error("process.create", e);
-            ok = false;
-        }*/
 
         // Parse the incoming request
         try {
@@ -244,10 +225,6 @@ public class RequestProcessor implements Runnable {
             keepAlive = false;
         }
 
-    }
-
-    public void setContainer(Container container) {
-        this.container = container;
     }
 
     @Override

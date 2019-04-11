@@ -1,6 +1,10 @@
 package priv.bigant.intranet.client;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.http.ResponseProcessor;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -9,6 +13,8 @@ import java.util.Properties;
  * Created by GaoHan on 2018/5/23.
  */
 public class Start1 {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(Start1.class);
 
     public static void main(String[] args) {
         //new Home().showHome();
@@ -24,7 +30,7 @@ public class Start1 {
             clientConfig.setHostName(hostName);
             clientConfig.setDomainName(hostName);
             clientConfig.setLocalPort(Integer.valueOf(localPort));
-            System.out.println("请求穿透域名" + hostName + "本地端口" + localPort);
+            LOGGER.info("请求穿透域名" + hostName + "本地端口" + localPort);
             new ClientServe(clientConfig).start();
         } catch (IOException e) {
             e.printStackTrace();
