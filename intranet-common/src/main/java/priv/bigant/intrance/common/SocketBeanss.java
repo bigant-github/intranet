@@ -1,4 +1,4 @@
-package priv.bigant.intrance.common.http;
+package priv.bigant.intrance.common;
 
 
 import java.io.*;
@@ -21,6 +21,12 @@ public class SocketBeanss {
     private OutputStream os;
     private InetAddress inetAddress;
     private String domainName;
+    private String id;
+
+    public SocketBeanss(Socket socket, String id) {
+        this.socket = socket;
+        this.id = id;
+    }
 
     public SocketBeanss(Socket socket) throws IOException {
         this.socket = socket;
@@ -94,5 +100,13 @@ public class SocketBeanss {
 
     public void setDomainName(String domainName) {
         this.domainName = domainName;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

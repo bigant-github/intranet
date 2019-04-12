@@ -20,16 +20,6 @@ public class CommunicationRequest extends CommunicationReturn {
         super.jsonObject = jsonObject;
     }
 
-    /*public static CommunicationRequest toCommunicationRequest(byte[] bytes) {
-        String s = new String(bytes, StandardCharsets.UTF_8).replaceAll("\r", "").replace("\n", "");
-        String[] split = s.split(CodeEnum.SPLIT);
-        return new CommunicationRequest(split[0], split[1]);
-    }
-
-    public static CommunicationRequest getCommunicationRequest(String type, String value) {
-        return new CommunicationRequest(type, value);
-    }*/
-
     public static CommunicationRequest createCommunicationRequest(CommunicationP communicationP) throws Exception {
         CommunicationRequest communicationRequest = new CommunicationRequest();
         communicationRequest.add(communicationP);

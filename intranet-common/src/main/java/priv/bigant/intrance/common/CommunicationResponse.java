@@ -16,6 +16,9 @@ public class CommunicationResponse extends CommunicationReturn {
         jsonObject.put("code", code);
     }
 
+    private CommunicationResponse() {
+    }
+
     private CommunicationResponse(JSONObject jsonObject) {
         super.jsonObject = jsonObject;
     }
@@ -31,10 +34,19 @@ public class CommunicationResponse extends CommunicationReturn {
         return new CommunicationResponse(jsonObject);
     }
 
-    public <T> T toJavaObject(Class<T> clazz) {
-        return jsonObject.toJavaObject(clazz);
+    public static CommunicationResponse createSuccess() {
+        return new CommunicationResponse(CodeEnum.SUCCESS);
     }
 
+    public static CommunicationResponse create(CodeEnum code) throws Exception {
+        return new CommunicationResponse(code);
+    }
+
+    public static CommunicationResponse createCommunicationResponse(CommunicationP communicationP) throws Exception {
+        CommunicationResponse communicationRequest = new CommunicationResponse();
+        communicationRequest.add(communicationP);
+        return communicationRequest;
+    }
 
     public static class CommunicationResponseP implements CommunicationP {
         private CodeEnum code;

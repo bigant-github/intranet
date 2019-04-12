@@ -34,6 +34,10 @@ public abstract class CommunicationReturn {
         return map;
     }
 
+    public <T> T toJavaObject(Class<T> clazz) {
+        return jsonObject.toJavaObject(clazz);
+    }
+
     public byte[] toByte() {
         return jsonObject.toJSONString().getBytes(StandardCharsets.UTF_8);
     }
