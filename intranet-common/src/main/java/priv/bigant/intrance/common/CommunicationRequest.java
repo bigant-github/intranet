@@ -26,7 +26,7 @@ public class CommunicationRequest extends CommunicationReturn {
         return communicationRequest;
     }
 
-    public static CommunicationRequest createCommunicationRequest(byte[] bytes) throws Exception {
+    public static CommunicationRequest createCommunicationRequest(byte[] bytes) {
         String s = new String(bytes, StandardCharsets.UTF_8);
         JSONObject jsonObject = JSON.parseObject(s);
         return new CommunicationRequest(jsonObject);

@@ -6,6 +6,7 @@ import priv.bigant.intrance.common.http.*;
 import java.io.IOException;
 import java.net.Socket;
 
+@Deprecated
 public class ClientContainer implements Container {
 
     ClientConfig clientConfig;

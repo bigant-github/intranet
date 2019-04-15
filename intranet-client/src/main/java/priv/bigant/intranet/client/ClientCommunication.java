@@ -23,7 +23,6 @@ public class ClientCommunication extends Communication {
     }
 
 
-
     @Override
     public void connect() {
         try {
