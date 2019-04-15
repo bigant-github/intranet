@@ -78,4 +78,38 @@ public class CommunicationResponse extends CommunicationReturn {
 
 
     }
+
+    public static class CommunicationResponseHttpAdd extends CommunicationResponseP {
+
+
+        /**
+         * 成功时使用
+         *
+         * @param id
+         */
+        public CommunicationResponseHttpAdd(String id) {
+            super(CodeEnum.SUCCESS);
+        }
+
+        /**
+         * 失败时使用
+         *
+         * @param codeEnum
+         * @param id
+         */
+        public CommunicationResponseHttpAdd(CodeEnum codeEnum, String id) {
+            super(codeEnum);
+            this.id = id;
+        }
+
+        private String id;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+    }
 }

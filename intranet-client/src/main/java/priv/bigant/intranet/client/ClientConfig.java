@@ -4,10 +4,14 @@ import priv.bigant.intrance.common.thread.Config;
 
 public class ClientConfig extends Config {
 
+    private ClientConfig() {
+    }
+
     /**
      * 服务器端口
      */
     private int port = 45678;
+
 
     /**
      * 服务器地址
@@ -55,5 +59,16 @@ public class ClientConfig extends Config {
 
     public void setLocalPort(int localPort) {
         this.localPort = localPort;
+    }
+
+    public static Config getConfig() {
+        if (config == null) {
+            synchronized (Config.class) {
+                if (config == null) {
+                    config = new ClientConfig();
+                }
+            }
+        }
+        return config;
     }
 }

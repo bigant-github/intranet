@@ -6,7 +6,10 @@ public enum CodeEnum {
     SUCCESS("10000", "success"),
 
     //HTTP 系列
-    HOST_ALREADY_EXIST("11001", "域名已被使用");
+    HOST_ALREADY_EXIST("11001", "域名已被使用"),
+
+
+    ERROR("20000", "错误");
 
     private String code;
     private String msg;

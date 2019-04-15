@@ -9,6 +9,16 @@ public class ServerConfig extends Config {
     private int maximumPoolSize = 30;
     private int keepAliveTime = 1000;
     private int intranetPort = 45678;
+    private int waitSocketTime = 20000;
+
+
+    public int getWaitSocketTime() {
+        return waitSocketTime;
+    }
+
+    public void setWaitSocketTime(int waitSocketTime) {
+        this.waitSocketTime = waitSocketTime;
+    }
 
     private ServerConfig() {
 

@@ -9,11 +9,16 @@ import java.nio.charset.StandardCharsets;
 public class CommunicationRequest extends CommunicationReturn {
 
 
-    public CommunicationRequest(CommunicationReturnEnum type) {
+    public CommunicationRequest(CommunicationEnum type) {
         jsonObject.put("type", type);
     }
 
     private CommunicationRequest() {
+    }
+
+    public CommunicationEnum getType() {
+        Object type = jsonObject.get("type");
+        return CommunicationEnum.valueOf(type.toString());
     }
 
     private CommunicationRequest(JSONObject jsonObject) {
@@ -33,24 +38,24 @@ public class CommunicationRequest extends CommunicationReturn {
     }
 
     public static class CommunicationRequestP implements CommunicationP {
-        private CommunicationReturnEnum type;
+        private CommunicationEnum type;
 
-        public CommunicationRequestP(CommunicationReturnEnum type) {
+        public CommunicationRequestP(CommunicationEnum type) {
             this.type = type;
         }
 
-        public CommunicationReturnEnum getType() {
+        public CommunicationEnum getType() {
             return type;
         }
 
-        public void setType(CommunicationReturnEnum type) {
+        public void setType(CommunicationEnum type) {
             this.type = type;
         }
     }
 
     public static class CommunicationRequestHttpFirst extends CommunicationRequestP {
 
-        public CommunicationRequestHttpFirst(CommunicationReturnEnum type) {
+        public CommunicationRequestHttpFirst(CommunicationEnum type) {
             super(type);
         }
 
@@ -65,4 +70,25 @@ public class CommunicationRequest extends CommunicationReturn {
         }
     }
 
+    public static class CommunicationRequestHttpAdd extends CommunicationRequestP {
+
+        public CommunicationRequestHttpAdd() {
+            super(CommunicationEnum.HTTP_ADD);
+        }
+
+        public CommunicationRequestHttpAdd(String id) {
+            super(CommunicationEnum.HTTP_ADD);
+            this.id = id;
+        }
+
+        private String id;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+    }
 }

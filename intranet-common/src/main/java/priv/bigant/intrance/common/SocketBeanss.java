@@ -13,10 +13,7 @@ import java.util.Arrays;
  * socket连接的Bean
  */
 public class SocketBeanss {
-    // 和本线程相关的Socket
     private Socket socket;
-    //private BufferedReader br = null;
-    //private PrintWriter pw = null;
     private InputStream is;
     private OutputStream os;
     private InetAddress inetAddress;
@@ -38,27 +35,30 @@ public class SocketBeanss {
     }
 
 
-    public void close() throws IOException {
-        /*if (br != null)
-            br.close();
+    public void close() {
+        if (os != null) {
+            try {
+                os.close();
+            } catch (IOException e) {
+                os = null;
+            }
+        }
 
-        if (pw != null)
-
-            pw.close();*/
-
-
-        if (os != null)
-            os.close();
-
-        if (is != null)
-            is.close();
+        if (is != null) {
+            try {
+                is.close();
+            } catch (IOException e) {
+                os = null;
+            }
+        }
 
 
         if (socket != null) {
-            System.out.print("");
-            socket.close();
-//            socket.shutdownOutput();
-//            socket.shutdownInput();
+            try {
+                socket.close();
+            } catch (IOException e) {
+                socket = null;
+            }
         }
     }
 
