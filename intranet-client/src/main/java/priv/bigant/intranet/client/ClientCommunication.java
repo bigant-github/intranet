@@ -37,6 +37,7 @@ public class ClientCommunication extends Communication {
             CommunicationRequest.CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequest.CommunicationRequestHttpFirst(CommunicationReturnEnum.HTTP);
             communicationHttpFirst.setHost(clientConfig.getDomainName());
 
+
             write(CommunicationRequest.createCommunicationRequest(communicationHttpFirst));
 
             CommunicationResponse.CommunicationResponseP communicationResponseP = readResponse().toJavaObject(CommunicationResponse.CommunicationResponseP.class);
