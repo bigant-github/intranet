@@ -39,6 +39,7 @@ public class ClientCommunication extends Communication {
 
             write(CommunicationRequest.createCommunicationRequest(communicationHttpFirst));
 
+
             CommunicationResponse.CommunicationResponseP communicationResponseP = readResponse().toJavaObject(CommunicationResponse.CommunicationResponseP.class);
 
             if (!communicationResponseP.isSuccess()) {
