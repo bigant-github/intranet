@@ -47,10 +47,13 @@ public class ServerCommunication extends Communication {
         do {
             if (!socketStack.empty()) {
                 SocketBeanss pop = socketStack.pop();
-                if (pop != null)
+                if (pop != null) {
+                    LOGGER.debug("获取到http连接 :" + pop.getId());
                     return pop;
+                }
             }
             try {
+                LOGGER.debug("未获取到客户端http连接 等待。。。。");
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 LOGGER.error("get socket bean sleep error");
@@ -63,6 +66,7 @@ public class ServerCommunication extends Communication {
      * 获取socketBean 还回socketBean
      */
     public synchronized void putSocketBean(SocketBeanss socketBeanss) {
+        LOGGER.debug("归还http连接 :" + socketBeanss.getId());
         socketStack.push(socketBeanss);
     }
 

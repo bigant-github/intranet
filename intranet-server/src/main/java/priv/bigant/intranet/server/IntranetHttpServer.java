@@ -32,7 +32,6 @@ public class IntranetHttpServer extends Thread {
         //noinspection InfiniteLoopStatement
         while (true) {
             try {
-                assert serverSocket != null;
                 Socket accept = serverSocket.accept();
                 new HttpThread(accept).start();
             } catch (IOException e) {

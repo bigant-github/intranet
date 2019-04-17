@@ -24,6 +24,7 @@ public abstract class HttpProcessor implements Runnable {
     }
 
     public HttpProcessor(Socket socket) {
+        this.config = Config.getConfig();
         this.socket = socket;
     }
 
@@ -67,7 +68,9 @@ public abstract class HttpProcessor implements Runnable {
                 //TODO mutual service
                 throw e;
             }
-
+            if (requestProcessor.isKeepAlive() && responseProcessor.isKeepAlive()) {
+                LOGGER.debug("保持连接");
+            }
         } while (requestProcessor.isKeepAlive() && responseProcessor.isKeepAlive());
 
         try {
@@ -98,15 +101,17 @@ public abstract class HttpProcessor implements Runnable {
     private void mutual(SocketInputStream socketInputStream, int contentLength, Socket socket) throws IOException {
         OutputStream os = socket.getOutputStream();
         os.write(socketInputStream.byteBuffer);
+        LOGGER.debug("write:" + new String(socketInputStream.byteBuffer));
         byte[] bytes = new byte[1024];
+        int readSize = socketInputStream.getCount() - socketInputStream.getPos();
         if (contentLength > 0) {
-            int readSize = 0;
             int by;
             do {
                 by = socketInputStream.is.read(bytes);
                 readSize += by;
                 os.write(bytes, 0, by);
-            } while (readSize < contentLength && by >= 1024);
+                LOGGER.debug("write:" + new String(bytes));
+            } while (readSize < contentLength);
         }
         System.out.println();
     }

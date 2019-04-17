@@ -29,6 +29,7 @@ public class ServerHttpAccept extends Thread {
         int httpAcceptPort = serverConfig.getHttpAcceptPort();
         try {
             serverSocket = new ServerSocket(httpAcceptPort);
+            LOGGER.info("start http accept port:" + httpAcceptPort);
         } catch (IOException e) {
             LOGGER.error("start http accept error", e);
         }
@@ -41,7 +42,7 @@ public class ServerHttpAccept extends Thread {
                 CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = CommunicationResponse.createCommunicationResponse(ArrayUtils.subarray(bytes, 0, read)).toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
                 String id = communicationRequestHttpAdd.getId();
                 socketBeanss.setId(id);
-                ServerCommunication serverCommunication = HttpSocketManager.get(id);
+                ServerCommunication serverCommunication = HttpSocketManager.get(HttpSocketManager.getKey(id));
                 serverCommunication.putSocketBean(socketBeanss);
                 LOGGER.info(serverCommunication.getHost() + "create new http accept socket");
             } catch (IOException e) {

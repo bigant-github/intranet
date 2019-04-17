@@ -55,6 +55,9 @@ public class CommunicationResponse extends CommunicationReturn {
             this.code = code;
         }
 
+        public CommunicationResponseP() {
+        }
+
         public boolean isSuccess() {
             return code.equals(CodeEnum.SUCCESS);
         }
@@ -81,6 +84,8 @@ public class CommunicationResponse extends CommunicationReturn {
 
     public static class CommunicationResponseHttpAdd extends CommunicationResponseP {
 
+        public CommunicationResponseHttpAdd() {
+        }
 
         /**
          * 成功时使用

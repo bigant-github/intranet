@@ -2,6 +2,7 @@ package priv.bigant.intranet.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.SocketBeanss;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -21,6 +22,13 @@ public class ClientServe extends Thread {
         this.clientConfig = clientConfig;
     }
 
+    public ClientServe(SocketBeanss socketBeanss) {
+        this.socket = socketBeanss.getSocket();
+        this.inputStream = socketBeanss.getIs();
+        this.outputStream = socketBeanss.getOs();
+        clientConfig = (ClientConfig) ClientConfig.getConfig();
+    }
+
     private byte[] bytes = new byte[1024];
     private Socket socket;
     private InputStream inputStream;
@@ -30,7 +38,6 @@ public class ClientServe extends Thread {
 
     @Override
     public void run() {
-        connect();
         threadDispose();
     }
 
@@ -74,11 +81,9 @@ public class ClientServe extends Thread {
     private void threadDispose() {
         while (true) {//监听连接情况
             try {
-                if (start) {
-                    while (true) {
-                        ClientHttpProcessor httpProcessor = new ClientHttpProcessor(socket, clientConfig);
-                        httpProcessor.run();
-                    }
+                while (true) {
+                    ClientHttpProcessor httpProcessor = new ClientHttpProcessor(socket, clientConfig);
+                    httpProcessor.run();
                 }
             } catch (Exception e) {
                 LOGGER.error("error", e);

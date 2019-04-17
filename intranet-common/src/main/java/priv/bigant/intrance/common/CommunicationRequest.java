@@ -2,6 +2,8 @@ package priv.bigant.intrance.common;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.annotation.JSONType;
 
 import java.nio.charset.StandardCharsets;
 
@@ -57,6 +59,10 @@ public class CommunicationRequest extends CommunicationReturn {
 
         public CommunicationRequestHttpFirst(CommunicationEnum type) {
             super(type);
+        }
+
+        public CommunicationRequestHttpFirst() {
+            super(CommunicationEnum.HTTP);
         }
 
         private String host;

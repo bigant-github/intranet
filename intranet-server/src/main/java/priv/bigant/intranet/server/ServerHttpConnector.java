@@ -24,6 +24,10 @@ public class ServerHttpConnector extends Thread {
         this.serverConfig = serverConfig;
     }
 
+    public ServerHttpConnector() {
+        this.serverConfig = (ServerConfig) ServerConfig.getConfig();
+    }
+
     @Override
     public void run() {
         LOGGER.info("ServerHttpConnector start port:" + serverConfig.getHttpPort());
@@ -35,8 +39,8 @@ public class ServerHttpConnector extends Thread {
                     if (serverSocket.getSoTimeout() > 0)
                         accept.setSoTimeout(serverConfig.getSocketTimeOut());
                     HttpProcessor serverHttpProcessor = new ServerHttpProcessor(accept, serverConfig);
-                    serverHttpProcessor.run();
-                    //executor.execute(serverHttpProcessor);
+                    //serverHttpProcessor.run();
+                    executor.execute(serverHttpProcessor);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

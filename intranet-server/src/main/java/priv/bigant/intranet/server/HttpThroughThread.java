@@ -26,8 +26,12 @@ public class HttpThroughThread extends Thread {
     @Override
     public void run() {
         try {
+            //创建server与客户端通信连接
             serverCommunication = new ServerCommunication(socketBean.getSocket());
+
+            //读取客户端配置信息
             CommunicationRequest.CommunicationRequestHttpFirst communicationRequestHttpFirst = serverCommunication.readRequest().toJavaObject(CommunicationRequest.CommunicationRequestHttpFirst.class);
+
             String host = communicationRequestHttpFirst.getHost();
             serverCommunication.setHost(host);
             socketBean.setDomainName(host);
@@ -47,6 +51,8 @@ public class HttpThroughThread extends Thread {
             LOGGER.error("connection error", e);
             serverCommunication.close();
         }
+
+        createdSocketBean();
     }
 
     public void createdSocketBean() {
@@ -60,7 +66,16 @@ public class HttpThroughThread extends Thread {
                 e.printStackTrace();
             }
             HttpSocketManager.addKey(id, serverCommunication.getHost());
-            serverCommunication.write(communicationRequest);
+            try {
+                serverCommunication.write(communicationRequest);
+                CommunicationResponse.CommunicationResponseHttpAdd communicationResponseHttpAdd = serverCommunication.readResponse().toJavaObject(CommunicationResponse.CommunicationResponseHttpAdd.class);
+                if (communicationResponseHttpAdd.isSuccess()) {
+                    LOGGER.info(serverCommunication.getHost() + "新建http连接");
+                } else
+                    LOGGER.info(serverCommunication.getHost() + "新建http失败");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

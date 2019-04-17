@@ -384,7 +384,7 @@ public class SocketInputStream extends InputStream {
                     responseLine.status = newBuffer;
                     maxRead = responseLine.status.length;
                 } else {
-                    throw new IOException("requestStream.readline.toolong");
+                    throw new IOException("requestStream.readline.toolong:" + new String(responseLine.status));
                 }
             }
             // We're at the end of the internal buffer
@@ -659,4 +659,11 @@ public class SocketInputStream extends InputStream {
         }
     }
 
+    public int getPos() {
+        return pos;
+    }
+
+    public int getCount() {
+        return count;
+    }
 }

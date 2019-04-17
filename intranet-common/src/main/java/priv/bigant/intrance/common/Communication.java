@@ -1,5 +1,6 @@
 package priv.bigant.intrance.common;
 
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 public abstract class Communication extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(Communication.class);
@@ -19,12 +21,15 @@ public abstract class Communication extends Thread {
 
 
     public Communication(Socket socket) throws IOException {
+
         this.socket = socket;
         inputStream = socket.getInputStream();
         outputStream = socket.getOutputStream();
     }
 
     public Communication() {
+
+
     }
 
     public abstract void connect() throws Exception;
@@ -55,7 +60,9 @@ public abstract class Communication extends Thread {
             LOGGER.error("communication read error", e);
             return null;
         }
-        return ArrayUtils.subarray(bytes, 0, readNum);
+        byte[] subarray = ArrayUtils.subarray(bytes, 0, readNum);
+        LOGGER.debug("read :" + new String(subarray, StandardCharsets.UTF_8));
+        return subarray;
     }
 
     public synchronized CommunicationRequest readRequest() {
@@ -66,12 +73,10 @@ public abstract class Communication extends Thread {
         return CommunicationResponse.createCommunicationResponse(read());
     }
 
-    public synchronized void write(CommunicationReturn communicationReturn) {
-        try {
-            outputStream.write(communicationReturn.toByte());
-        } catch (IOException e) {
-            LOGGER.error("communication write error", e);
-        }
+    public synchronized void write(CommunicationReturn communicationReturn) throws IOException {
+        byte[] bytes = communicationReturn.toByte();
+        LOGGER.debug("write :" + new String(bytes, StandardCharsets.UTF_8));
+        outputStream.write(bytes);
     }
 
     /**

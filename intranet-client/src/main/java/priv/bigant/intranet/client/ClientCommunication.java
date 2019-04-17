@@ -73,12 +73,15 @@ public class ClientCommunication extends Communication {
         CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
         String id = communicationRequestHttpAdd.getId();
         try {
-            Socket socket = new Socket(clientConfig.getHostName(), clientConfig.getLocalPort());
+            Socket socket = new Socket(clientConfig.getHostName(), clientConfig.getHttpAcceptPort());
             socketBeanss = new SocketBeanss(socket);
             CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequest.CommunicationRequestHttpAdd();
             communicationRequestHttpAdd1.setId(id);
             CommunicationRequest type = CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd1);
             socketBeanss.getOs().write(type.toByte());
+            new ClientServe(socketBeanss).start();
+            CommunicationResponse communicationResponse = CommunicationResponse.createCommunicationResponse(new CommunicationResponse.CommunicationResponseHttpAdd(id));
+            write(communicationResponse);
         } catch (Exception e) {
             LOGGER.error("add http socket error", e);
             if (socketBeanss != null)

@@ -163,7 +163,11 @@ public class RequestProcessor implements Runnable {
                 request.setContentType(value);
             }*/ else if (header.equals(DefaultHeaders.HOST_NAME)) {
                 int n = value.indexOf(':');
-                this.host = value.substring(0, n).trim();
+                if (n > 0) {
+                    this.host = value.substring(0, n).trim();
+                } else {
+                    this.host = value.trim();
+                }
             } else if (header.equals(DefaultHeaders.CONNECTION_NAME)) {
                 if (header.valueEquals(DefaultHeaders.CONNECTION_CLOSE_VALUE)) {
                     keepAlive = false;
@@ -224,6 +228,8 @@ public class RequestProcessor implements Runnable {
             // unless specified with a Connection: Keep-Alive header.
             keepAlive = false;
         }
+
+        LOGGER.debug("protocol:" + protocol + "      uri:" + uri);
 
     }
 
