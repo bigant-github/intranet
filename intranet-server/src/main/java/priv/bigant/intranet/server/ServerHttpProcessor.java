@@ -1,38 +1,31 @@
 package priv.bigant.intranet.server;
 
-import priv.bigant.intrance.common.SocketBeanss;
+import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.http.HttpProcessor;
-import priv.bigant.intrance.common.thread.Config;
 
 import java.io.IOException;
-import java.net.Socket;
 
+/**
+ * 负责与客户端HTTP交互
+ */
 public class ServerHttpProcessor extends HttpProcessor {
 
-    SocketBeanss socketBeanss;
 
-    public ServerHttpProcessor(Socket socket, Config config) {
-        super(socket, config);
-    }
-
-    public ServerHttpProcessor(Socket socket) {
-        super(socket);
+    public ServerHttpProcessor(SocketBean socketBean) {
+        super(socketBean);
     }
 
     @Override
-    protected Socket getSocketBean() {
+    protected SocketBean getSocketBean() {
         String host = super.requestProcessor.getHost();
         ServerCommunication serverCommunication = HttpSocketManager.get(host);
-        this.socketBeanss = serverCommunication.getSocketBean();
-        if (socketBeanss == null)
-            return null;
-        return socketBeanss.getSocket();
+        return serverCommunication.getSocketBean();
     }
 
     @Override
     protected void close() throws IOException {
         String host = super.requestProcessor.getHost();
-        HttpSocketManager.get(host).putSocketBean(socketBeanss);
-        super.socket.close();
+        HttpSocketManager.get(host).putSocketBean(receiver);
+        super.socketBean.close();
     }
 }

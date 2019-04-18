@@ -1,6 +1,6 @@
 package priv.bigant.intranet.client;
 
-import priv.bigant.intrance.common.thread.Config;
+import priv.bigant.intrance.common.Config;
 
 public class ClientConfig extends Config {
 

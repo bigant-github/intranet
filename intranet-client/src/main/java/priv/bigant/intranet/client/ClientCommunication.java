@@ -3,19 +3,21 @@ package priv.bigant.intranet.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.communication.Communication;
+import priv.bigant.intrance.common.communication.CommunicationEnum;
+import priv.bigant.intrance.common.communication.CommunicationRequest;
+import priv.bigant.intrance.common.communication.CommunicationResponse;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+/**
+ * @author GaoLei 保持客户端与服务端通信
+ */
 public class ClientCommunication extends Communication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommunication.class);
     private ClientConfig clientConfig;
-
-    public Socket getSocket() {
-        return socket;
-    }
 
     public ClientCommunication() {
         clientConfig = (ClientConfig) ClientConfig.getConfig();
@@ -69,23 +71,23 @@ public class ClientCommunication extends Communication {
     }
 
     public void add(CommunicationRequest communicationRequest) {
-        SocketBeanss socketBeanss = null;
+        SocketBean socketBean = null;
         CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
         String id = communicationRequestHttpAdd.getId();
         try {
             Socket socket = new Socket(clientConfig.getHostName(), clientConfig.getHttpAcceptPort());
-            socketBeanss = new SocketBeanss(socket);
+            socketBean = new SocketBean(socket);
             CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequest.CommunicationRequestHttpAdd();
             communicationRequestHttpAdd1.setId(id);
             CommunicationRequest type = CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd1);
-            socketBeanss.getOs().write(type.toByte());
-            new ClientServe(socketBeanss).start();
+            socketBean.getOs().write(type.toByte());
+            new ClientServe(socketBean).start();
             CommunicationResponse communicationResponse = CommunicationResponse.createCommunicationResponse(new CommunicationResponse.CommunicationResponseHttpAdd(id));
             write(communicationResponse);
         } catch (Exception e) {
             LOGGER.error("add http socket error", e);
-            if (socketBeanss != null)
-                socketBeanss.close();
+            if (socketBean != null)
+                socketBean.close();
             //write(new CommunicationResponse(CodeEnum.ERROR));
         }
 

@@ -1,5 +1,6 @@
 package priv.bigant.intranet.client;
 
+import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.http.HttpProcessor;
 
 import java.io.IOException;
@@ -7,17 +8,17 @@ import java.net.Socket;
 
 public class ClientHttpProcessor extends HttpProcessor {
 
-    public ClientHttpProcessor(Socket socket, ClientConfig config) {
-        super(socket, config);
+    public ClientHttpProcessor(SocketBean socketBean) {
+        super(socketBean);
     }
 
-    protected Socket getSocketBean() throws IOException {
+    protected SocketBean getSocketBean() throws IOException {
         int localPort = ((ClientConfig) config).getLocalPort();
         String localHost = ((ClientConfig) config).getLocalHost();
-        return new Socket(localHost, localPort);
+        return new SocketBean(new Socket(localHost, localPort));
     }
 
     protected void close() {
-
+        receiver.close();
     }
 }

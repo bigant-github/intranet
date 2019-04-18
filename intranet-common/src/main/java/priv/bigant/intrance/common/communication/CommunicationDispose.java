@@ -1,4 +1,4 @@
-package priv.bigant.intrance.common;
+package priv.bigant.intrance.common.communication;
 
 public abstract class CommunicationDispose {
     /**

@@ -3,10 +3,10 @@ package priv.bigant.intranet.server;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.CommunicationRequest;
-import priv.bigant.intrance.common.CommunicationResponse;
-import priv.bigant.intrance.common.SocketBeanss;
-import priv.bigant.intrance.common.thread.Config;
+import priv.bigant.intrance.common.communication.CommunicationRequest;
+import priv.bigant.intrance.common.communication.CommunicationResponse;
+import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.Config;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -34,10 +34,10 @@ public class ServerHttpAccept extends Thread {
             LOGGER.error("start http accept error", e);
         }
         while (true) {
-            SocketBeanss socketBeanss;
+            SocketBean socketBeanss;
             try {
                 Socket accept = serverSocket.accept();
-                socketBeanss = new SocketBeanss(accept);
+                socketBeanss = new SocketBean(accept);
                 int read = socketBeanss.getIs().read(bytes);
                 CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = CommunicationResponse.createCommunicationResponse(ArrayUtils.subarray(bytes, 0, read)).toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
                 String id = communicationRequestHttpAdd.getId();

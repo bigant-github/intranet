@@ -2,8 +2,9 @@ package priv.bigant.intrance.common.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.exception.ServletException;
-import priv.bigant.intrance.common.thread.Config;
+import priv.bigant.intrance.common.Config;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,6 +14,7 @@ import java.util.List;
 public class RequestProcessor implements Runnable {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RequestProcessor.class);
+    private String uri;
 
     private List<HttpHeader> httpHeaders = new ArrayList<>();
 
@@ -34,62 +36,37 @@ public class RequestProcessor implements Runnable {
      */
     private boolean sendAck = false;
     private boolean chunked = false;
-    private Socket socket;
     private Config config;
     private HttpRequestLine requestLine = new HttpRequestLine();
     private SocketInputStream input;
-    private OutputStream output;
 
     private int contentLength;
     private String host;
     private String protocol;
+    private static final byte[] ack = ("HTTP/1.1 100 Continue\r\n\r\n").getBytes();
+    private SocketBean socketBean;
 
-    public RequestProcessor(Socket socket, Config config) {
-        this.socket = socket;
+    public RequestProcessor(SocketBean socketBean, Config config) {
+        this.socketBean = socketBean;
         this.config = config;
     }
 
     protected void process() {
         // Construct and initialize the objects we will need
-        try {
-            input = new SocketInputStream(socket.getInputStream(), config.getBufferSize());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        keepAlive = true;
-
-
+        input = new SocketInputStream(socketBean.getIs(), config.getBufferSize());
         // Parse the incoming request
         try {
             parseRequest(input);
-            if (!protocol.startsWith("HTTP/0"))
-                parseHeaders(input);
-            if (http11) {
-                // Sending a request acknowledge back to the client if
-                // TODO
-                ackRequest(output);
-                // If the protocol is HTTP/1.1, chunking is allowed.
-                    /*if (connector.isChunkingAllowed())
-                        response.setAllowChunking(true);*/
+            if (!protocol.startsWith("HTTP/0")) {
+                //TODO http version lg 1
             }
+            parseHeaders(input);
+            // TODO ack
+            ackRequest(socketBean.getOs());
         } catch (Exception e) {
             LOGGER.error("", e);
         }
 
-    }
-
-    public void shutdown() throws IOException {
-        try {
-            int available = input.available();
-            // skip any unread (bogus) bytes
-            if (available > 0) {
-                input.skip(available);
-            }
-        } catch (Throwable e) {
-            ;
-        }
-        socket.close();
     }
 
     /**
@@ -100,7 +77,7 @@ public class RequestProcessor implements Runnable {
      */
     private void ackRequest(OutputStream output) throws IOException {
         if (sendAck)
-            output.write(new byte[1]);
+            output.write(ack);
     }
 
 
@@ -128,30 +105,6 @@ public class RequestProcessor implements Runnable {
 
             String value = new String(header.value, 0, header.valueEnd);
             LOGGER.debug(" Header " + new String(header.name, 0, header.nameEnd) + " = " + value);
-            // Set the corresponding request headers
-            /*if (header.equals(DefaultHeaders.AUTHORIZATION_NAME)) {
-                request.setAuthorization(value);
-            } else if (header.equals(DefaultHeaders.ACCEPT_LANGUAGE_NAME)) {
-                parseAcceptLanguage(value);
-            } else if (header.equals(DefaultHeaders.COOKIE_NAME)) {
-                Cookie cookies[] = RequestUtil.parseCookieHeader(value);
-                for (int i = 0; i < cookies.length; i++) {
-                    if (cookies[i].getName().equals(Globals.SESSION_COOKIE_NAME)) {
-                        // Override anything requested in the URL
-                        if (!request.isRequestedSessionIdFromCookie()) {
-                            // Accept only the first session id cookie
-                            request.setRequestedSessionId(cookies[i].getValue());
-                            request.setRequestedSessionCookie(true);
-                            request.setRequestedSessionURL(false);
-                            if (debug >= 1)
-                                log(" Requested cookie session id is " + ((HttpServletRequest) request.getRequest()).getRequestedSessionId());
-                        }
-                    }
-                    if (debug >= 1)
-                        log(" Adding cookie " + cookies[i].getName() + "=" + cookies[i].getValue());
-                    request.addCookie(cookies[i]);
-                }
-            } else */
             if (header.equals(DefaultHeaders.CONTENT_LENGTH_NAME)) {
                 int n;
                 try {
@@ -172,14 +125,9 @@ public class RequestProcessor implements Runnable {
             } else if (header.equals(DefaultHeaders.CONNECTION_NAME)) {
                 if (header.valueEquals(DefaultHeaders.CONNECTION_CLOSE_VALUE)) {
                     keepAlive = false;
-                    //response.setHeader("Connection", "close");
+                } else if ("keep-alive".equalsIgnoreCase(value)) {
+                    keepAlive = true;
                 }
-                //request.setConnection(header);
-                /*
-                  if ("keep-alive".equalsIgnoreCase(value)) {
-                  keepAlive = true;
-                  }
-                */
             } else if (header.equals(DefaultHeaders.EXPECT_NAME)) {
                 if (header.valueEquals(DefaultHeaders.EXPECT_100_VALUE))
                     sendAck = true;
@@ -199,11 +147,6 @@ public class RequestProcessor implements Runnable {
         return chunked;
     }
 
-    public void setChunked(boolean chunked) {
-        this.chunked = chunked;
-    }
-
-    private String uri;
 
     /**
      * Parse the incoming HTTP request and set the corresponding HTTP request properties.
@@ -224,19 +167,6 @@ public class RequestProcessor implements Runnable {
 
         if (protocol.length() == 0)
             protocol = "HTTP/0.9";
-
-        // Now check if the connection should be kept alive after parsing the
-        // request.
-        if (protocol.equals("HTTP/1.1")) {
-            http11 = true;
-            sendAck = false;
-        } else {
-            http11 = false;
-            sendAck = false;
-            // For HTTP/1.0, connection are not persistent by default,
-            // unless specified with a Connection: Keep-Alive header.
-            keepAlive = false;
-        }
 
         LOGGER.debug("protocol:" + protocol + "      uri:" + uri);
 

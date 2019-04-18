@@ -3,7 +3,7 @@ package priv.bigant.intranet.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.thread.Config;
+import priv.bigant.intrance.common.Config;
 
 import java.io.IOException;
 import java.net.ServerSocket;

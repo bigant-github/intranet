@@ -2,6 +2,7 @@ package priv.bigant.intranet.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.http.HttpProcessor;
 import priv.bigant.intrance.common.http.RequestProcessor;
 
@@ -20,10 +21,6 @@ public class ServerHttpConnector extends Thread {
     private boolean stopped = false;
     private final static Logger LOGGER = LoggerFactory.getLogger(ServerHttpConnector.class);
 
-    public ServerHttpConnector(ServerConfig serverConfig) {
-        this.serverConfig = serverConfig;
-    }
-
     public ServerHttpConnector() {
         this.serverConfig = (ServerConfig) ServerConfig.getConfig();
     }
@@ -38,7 +35,7 @@ public class ServerHttpConnector extends Thread {
                     Socket accept = serverSocket.accept();
                     if (serverSocket.getSoTimeout() > 0)
                         accept.setSoTimeout(serverConfig.getSocketTimeOut());
-                    HttpProcessor serverHttpProcessor = new ServerHttpProcessor(accept, serverConfig);
+                    HttpProcessor serverHttpProcessor = new ServerHttpProcessor(new SocketBean(accept));
                     //serverHttpProcessor.run();
                     executor.execute(serverHttpProcessor);
                 } catch (IOException e) {

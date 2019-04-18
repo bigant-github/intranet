@@ -1,9 +1,9 @@
 package priv.bigant.intranet.client;
 
-import priv.bigant.intrance.common.Communication;
-import priv.bigant.intrance.common.CommunicationDispose;
-import priv.bigant.intrance.common.CommunicationRequest;
-import priv.bigant.intrance.common.thread.Config;
+import priv.bigant.intrance.common.communication.Communication;
+import priv.bigant.intrance.common.communication.CommunicationDispose;
+import priv.bigant.intrance.common.communication.CommunicationRequest;
+import priv.bigant.intrance.common.Config;
 
 public class CommunicationDisposeClient extends CommunicationDispose {
 

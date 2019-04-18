@@ -1,6 +1,5 @@
-package priv.bigant.intrance.common;
+package priv.bigant.intrance.common.communication;
 
-import com.alibaba.fastjson.serializer.SerializeConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

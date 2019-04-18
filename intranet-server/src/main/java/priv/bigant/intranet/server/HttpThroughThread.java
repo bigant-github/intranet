@@ -4,6 +4,9 @@ package priv.bigant.intranet.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.communication.CodeEnum;
+import priv.bigant.intrance.common.communication.CommunicationRequest;
+import priv.bigant.intrance.common.communication.CommunicationResponse;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -14,13 +17,13 @@ import java.util.UUID;
  */
 public class HttpThroughThread extends Thread {
     // 和本线程相关的Socket
-    private SocketBeanss socketBean;
+    private SocketBean socketBean;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpThroughThread.class);
     private ServerCommunication serverCommunication;
 
     public HttpThroughThread(Socket socket) throws IOException {
-        this.socketBean = new SocketBeanss(socket);
+        this.socketBean = new SocketBean(socket);
     }
 
     @Override

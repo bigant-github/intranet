@@ -1,15 +1,15 @@
 package priv.bigant.intrance.common.http;
 
 
+import java.util.Arrays;
+
 /**
  * HTTP header enum type.
  */
 
 public final class HttpHeader {
 
-
     // -------------------------------------------------------------- Constants
-
 
     public static final int INITIAL_NAME_SIZE = 32;
     public static final int INITIAL_VALUE_SIZE = 64;

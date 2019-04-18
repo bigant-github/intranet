@@ -1,9 +1,7 @@
-package priv.bigant.intrance.common;
+package priv.bigant.intrance.common.communication;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.annotation.JSONType;
 
 import java.nio.charset.StandardCharsets;
 

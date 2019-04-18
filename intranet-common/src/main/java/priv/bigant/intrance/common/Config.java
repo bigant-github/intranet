@@ -1,4 +1,4 @@
-package priv.bigant.intrance.common.thread;
+package priv.bigant.intrance.common;
 
 public abstract class Config {
     protected static Config config;

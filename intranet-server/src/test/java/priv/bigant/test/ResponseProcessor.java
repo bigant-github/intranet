@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.exception.ServletException;
 import priv.bigant.intrance.common.http.*;
-import priv.bigant.intrance.common.thread.Config;
+import priv.bigant.intrance.common.Config;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +23,6 @@ public class ResponseProcessor {
      * Keep alive indicator.
      */
     private boolean keepAlive = false;
-
-    private Container container;
 
     /**
      * HTTP/1.1 client.
@@ -53,11 +51,6 @@ public class ResponseProcessor {
         this.config = config;
     }
 
-    public ResponseProcessor(Container container, Socket socket, Config config) {
-        this.container = container;
-        this.socket = socket;
-        this.config = config;
-    }
 
     public ResponseProcessor(Socket socket) {
         this.socket = socket;
@@ -218,10 +211,6 @@ public class ResponseProcessor {
 
         }
 
-    }
-
-    public void setContainer(Container container) {
-        this.container = container;
     }
 
 

@@ -12,7 +12,7 @@ import java.util.Arrays;
  * <p>
  * socket连接的Bean
  */
-public class SocketBeanss {
+public class SocketBean {
     private Socket socket;
     private InputStream is;
     private OutputStream os;
@@ -20,18 +20,16 @@ public class SocketBeanss {
     private String domainName;
     private String id;
 
-    public SocketBeanss(Socket socket, String id) {
+    public SocketBean(Socket socket, String id) {
         this.socket = socket;
         this.id = id;
     }
 
-    public SocketBeanss(Socket socket) throws IOException {
+    public SocketBean(Socket socket) throws IOException {
         this.socket = socket;
         this.inetAddress = socket.getInetAddress();
         is = socket.getInputStream();
         os = socket.getOutputStream();
-        //this.br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        //this.pw = new PrintWriter(socket.getOutputStream());
     }
 
 
@@ -46,6 +44,11 @@ public class SocketBeanss {
 
         if (is != null) {
             try {
+                int available = is.available();
+                // skip any unread (bogus) bytes
+                if (available > 0) {
+                    is.skip(available);
+                }
                 is.close();
             } catch (IOException e) {
                 os = null;

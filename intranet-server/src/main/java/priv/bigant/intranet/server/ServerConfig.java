@@ -1,6 +1,6 @@
 package priv.bigant.intranet.server;
 
-import priv.bigant.intrance.common.thread.Config;
+import priv.bigant.intrance.common.Config;
 
 public class ServerConfig extends Config {
     private int socketTimeOut = 60000;
