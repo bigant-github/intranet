@@ -75,7 +75,6 @@ public class ServerCommunication extends Communication {
         }
     }
 
-    @Override
     public void connect() {
         LOGGER.warn("服务端不能连接");
     }

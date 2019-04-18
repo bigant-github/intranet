@@ -20,7 +20,6 @@ public abstract class Communication extends Thread {
 
 
     public Communication(Socket socket) throws IOException {
-
         this.socket = socket;
         inputStream = socket.getInputStream();
         outputStream = socket.getOutputStream();
@@ -30,8 +29,6 @@ public abstract class Communication extends Thread {
 
 
     }
-
-    public abstract void connect() throws Exception;
 
     public synchronized void close() {
         try {

@@ -3,11 +3,9 @@ package priv.bigant.intranet.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
-import priv.bigant.intrance.common.communication.Communication;
-import priv.bigant.intrance.common.communication.CommunicationEnum;
-import priv.bigant.intrance.common.communication.CommunicationRequest;
-import priv.bigant.intrance.common.communication.CommunicationResponse;
+import priv.bigant.intrance.common.communication.*;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -24,48 +22,63 @@ public class ClientCommunication extends Communication {
     }
 
 
-    @Override
-    public void connect() throws Exception {
+    public CommunicationResponse.CommunicationResponseP connect() throws Exception {
         try {
             if (socket != null) {
                 close();
             }
             this.socket = new Socket();
             socket.connect(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));
+
             inputStream = socket.getInputStream();
+
             outputStream = socket.getOutputStream();
 
             CommunicationRequest.CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequest.CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
             communicationHttpFirst.setHost(clientConfig.getDomainName());
 
             write(CommunicationRequest.createCommunicationRequest(communicationHttpFirst));
-
-            CommunicationResponse.CommunicationResponseP communicationResponseP = readResponse().toJavaObject(CommunicationResponse.CommunicationResponseP.class);
-
-            if (!communicationResponseP.isSuccess()) {
-                LOGGER.error("connect error ");
-            }
-
-            LOGGER.info("connect success:host=" + clientConfig.getDomainName());
+            return readResponse().toJavaObject(CommunicationResponse.CommunicationResponseP.class);
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
-            LOGGER.error("connect error: host =" + clientConfig.getDomainName(), e);
             throw e;
         }
+
     }
 
     @Override
     public void run() {
-        try {
-            connect();
-        } catch (Exception e) {
-            LOGGER.error("连接失败", e);
-            return;
-        }
-        while (true) {
-            CommunicationRequest communicationRequest = readRequest();
-            CommunicationEnum type = communicationRequest.getType();
-            if (type.equals(CommunicationEnum.HTTP_ADD)) {
-                add(communicationRequest);
+        while (true) {//监控是否断开
+            try {
+                CommunicationResponse.CommunicationResponseP communicationResponseP = connect();
+                if (communicationResponseP.isSuccess()) {
+                    LOGGER.info("connect success:host=" + clientConfig.getDomainName());
+                    while (true) {
+                        CommunicationRequest communicationRequest = readRequest();
+                        CommunicationEnum type = communicationRequest.getType();
+                        if (type.equals(CommunicationEnum.HTTP_ADD)) {
+                            add(communicationRequest);
+                        }
+                    }
+                }
+                CodeEnum code = communicationResponseP.getCode();
+                if (CodeEnum.HOST_ALREADY_EXIST.equals(code)) {
+                    LOGGER.error("connect error:" + code.getMsg());
+                    return;
+                }
+            } catch (IOException e) {
+                super.close();
+                LOGGER.error("connect error: host =" + clientConfig.getDomainName() + "     try connect    " + e.getMessage());
+                try {
+                    sleep(10000);
+                } catch (InterruptedException e1) {
+                    ;
+                }
+            } catch (Exception e) {
+                super.close();
+                LOGGER.error("连接失败", e);
+                return;
             }
         }
     }
