@@ -56,7 +56,7 @@ public class HttpThroughThread extends Thread {
     }
 
     public void createdSocketBean() {
-        for (int x = 0; x < 5; x++) {
+        for (int x = 0; x < 10; x++) {
             String id = UUID.randomUUID().toString();
             CommunicationRequest communicationRequest = null;
             CommunicationRequest.CommunicationRequestP communicationRequestHttpAdd = new CommunicationRequest.CommunicationRequestHttpAdd(id);

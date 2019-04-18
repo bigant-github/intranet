@@ -33,6 +33,7 @@ public class RequestProcessor implements Runnable {
      * request entity body.
      */
     private boolean sendAck = false;
+    private boolean chunked = false;
     private Socket socket;
     private Config config;
     private HttpRequestLine requestLine = new HttpRequestLine();
@@ -184,14 +185,22 @@ public class RequestProcessor implements Runnable {
                     sendAck = true;
                 else
                     throw new ServletException("httpProcessor.parseHeaders.unknownExpectation");
-            } else if (header.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {
-                //request.setTransferEncoding(header);
+            } else if (header.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {//分块传输
+                chunked = true;
             }
 
             this.httpHeaders.add(header);
 
         }
 
+    }
+
+    public boolean isChunked() {
+        return chunked;
+    }
+
+    public void setChunked(boolean chunked) {
+        this.chunked = chunked;
     }
 
     private String uri;

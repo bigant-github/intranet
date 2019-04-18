@@ -195,14 +195,19 @@ public class ResponseProcessor implements Runnable {
                     sendAck = true;
                 else
                     throw new ServletException("httpProcessor.parseHeaders.unknownExpectation");
-            } else if (header.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {
-                //request.setTransferEncoding(header);
+            } else if (header.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {//分块传输
+                chunked = true;
             }
-
             this.httpHeaders.add(header);
 
         }
 
+    }
+
+    private boolean chunked = false;
+
+    public boolean isChunked() {
+        return chunked;
     }
 
     /**

@@ -28,6 +28,15 @@ public class ClientConfig extends Config {
      */
     private int localPort;
 
+    private String localHost;
+
+    public String getLocalHost() {
+        return localHost;
+    }
+
+    public void setLocalHost(String localHost) {
+        this.localHost = localHost;
+    }
 
     public int getPort() {
         return port;

@@ -13,7 +13,8 @@ public class ClientHttpProcessor extends HttpProcessor {
 
     protected Socket getSocketBean() throws IOException {
         int localPort = ((ClientConfig) config).getLocalPort();
-        return new Socket("127.0.0.1", localPort);
+        String localHost = ((ClientConfig) config).getLocalHost();
+        return new Socket(localHost, localPort);
     }
 
     protected void close() {

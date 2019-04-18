@@ -31,8 +31,10 @@ public class Start2 {
             properties.load(inputStream);
             String hostName = properties.getProperty("hostName");
             String localPort = properties.getProperty("localPort");
+            String localHost = properties.getProperty("localHost");
             ClientConfig clientConfig = (ClientConfig) ClientConfig.getConfig();
             clientConfig.setHostName(hostName);
+            clientConfig.setLocalHost(localHost);
             clientConfig.setDomainName(hostName);
             clientConfig.setLocalPort(Integer.valueOf(localPort));
             LOGGER.info("请求穿透域名" + hostName + "本地端口" + localPort);
