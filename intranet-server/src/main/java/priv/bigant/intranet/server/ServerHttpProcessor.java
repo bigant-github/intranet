@@ -24,6 +24,8 @@ public class ServerHttpProcessor extends HttpProcessor {
         String host = super.requestProcessor.getHost();
         ServerCommunication serverCommunication = HttpSocketManager.get(host);
         this.socketBeanss = serverCommunication.getSocketBean();
+        if (socketBeanss == null)
+            return null;
         return socketBeanss.getSocket();
     }
 
