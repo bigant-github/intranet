@@ -32,10 +32,8 @@ public class ResponseProcessor implements Runnable {
     private Config config;
     private HttpResponseLine responseLine = new HttpResponseLine();
     private SocketInputStream input;
-    private OutputStream output;
 
     private int contentLength;
-    private String host;
 
     private SocketBean socketBean;
 
@@ -53,7 +51,7 @@ public class ResponseProcessor implements Runnable {
             parseHeaders(input);
             // Sending a request acknowledge back to the client if
             // TODO
-            ackRequest(output);
+            ackRequest(socketBean.getOs());
             // If the protocol is HTTP/1.1, chunking is allowed.
         } catch (Exception e) {
             LOGGER.error("", e);
@@ -149,10 +147,6 @@ public class ResponseProcessor implements Runnable {
     @Override
     public void run() {
         process();
-    }
-
-    public String getHost() {
-        return host;
     }
 
     public SocketInputStream getInput() {
