@@ -12,6 +12,11 @@ public class ClientHttpProcessor extends HttpProcessor {
         super(socketBean);
     }
 
+    @Override
+    protected void process() throws IOException {
+        super.process();
+    }
+
     protected SocketBean getSocketBean() throws IOException {
         int localPort = ((ClientConfig) config).getLocalPort();
         String localHost = ((ClientConfig) config).getLocalHost();

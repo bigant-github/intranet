@@ -29,7 +29,7 @@ public abstract class HttpProcessor implements Runnable {
     }
 
 
-    private void process() throws IOException {
+    protected void process() throws IOException {
         try {
             do {
                 requestProcessor = new RequestProcessor(socketBean, config);
@@ -40,7 +40,8 @@ public abstract class HttpProcessor implements Runnable {
 
                 if (receiver != null) {
                     boolean b = receiver.sendUrgentData();
-                    if (b) {
+                    if (!b) {
+                        LOGGER.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
                         close();
                     }
                     receiver = null;
