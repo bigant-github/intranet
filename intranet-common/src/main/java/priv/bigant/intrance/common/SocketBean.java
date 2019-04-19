@@ -3,9 +3,7 @@ package priv.bigant.intrance.common;
 
 import java.io.*;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Arrays;
 
 /**
  * Created by GaoHan on 2018/5/22.
@@ -44,11 +42,7 @@ public class SocketBean {
 
         if (is != null) {
             try {
-                int available = is.available();
-                // skip any unread (bogus) bytes
-                if (available > 0) {
-                    is.skip(available);
-                }
+                skip();
                 is.close();
             } catch (IOException e) {
                 os = null;
@@ -63,6 +57,24 @@ public class SocketBean {
                 socket = null;
             }
         }
+    }
+
+
+    public void skip() throws IOException {
+        int available = is.available();
+        // skip any unread (bogus) bytes
+        if (available > 0) {
+            is.skip(available);
+        }
+    }
+
+    public boolean sendUrgentData() {
+        try {
+            socket.sendUrgentData(0);
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
 
     public Socket getSocket() {

@@ -38,6 +38,14 @@ public abstract class HttpProcessor implements Runnable {
                     //TODO send ACK service
                     LOGGER.warn("send ack service last");
 
+                if (receiver != null) {
+                    boolean b = receiver.sendUrgentData();
+                    if (b) {
+                        close();
+                    }
+                    receiver = null;
+                }
+
                 if (receiver == null) {
                     try {
                         receiver = getSocketBean();
@@ -98,20 +106,20 @@ public abstract class HttpProcessor implements Runnable {
     private void mutual(SocketInputStream socketInputStream, int contentLength, OutputStream os, boolean chunked) throws IOException {
         os.write(socketInputStream.byteBuffer);
         LOGGER.debug("write:" + new String(socketInputStream.byteBuffer));
-        if (chunked) {
+        if (false) {
             byte[] bytes = new byte[1024];
             byte[] subArray = null;
             int by = 0;
             do {
                 by = socketInputStream.is.read(bytes);
                 os.write(bytes, 0, by);
-                LOGGER.debug("write:" + new String(bytes));
+                //LOGGER.debug("write:" + new String(bytes));
                 subArray = ArrayUtils.subarray(bytes, by - 5, by);
             } while (!Arrays.equals(subArray, chunkedEndByte));
         } else {
             int readSize = socketInputStream.getCount() - socketInputStream.getPos();
             if (contentLength > 0) {
-                byte[] bytes = new byte[1024];
+                byte[] bytes = new byte[4096];
                 int by;
                 do {
                     by = socketInputStream.is.read(bytes);

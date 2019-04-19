@@ -43,7 +43,7 @@ public class ServerCommunication extends Communication {
             if (!socketStack.empty()) {
                 SocketBean pop = socketStack.pop();
                 if (pop != null) {
-                    LOGGER.debug("获取到http连接 :" + pop.getId());
+                    LOGGER.debug("获取到http连接 :" + pop.getId() + "剩余" + socketStack.size());
                     return pop;
                 }
             }

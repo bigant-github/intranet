@@ -6,6 +6,7 @@ import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.exception.ServletException;
 import priv.bigant.intrance.common.Config;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -139,8 +140,12 @@ public class ResponseProcessor implements Runnable {
      */
     private void parseRequest(SocketInputStream input) throws IOException {
         // Parse the incoming request line
-        input.readResponseLine(responseLine);
-        String protocol = new String(responseLine.protocol, 0, responseLine.protocolEnd);
+        try {
+            input.readResponseLine(responseLine);
+            //String protocol = new String(responseLine.protocol, 0, responseLine.protocolEnd);
+        } catch (EOFException e) {
+            LOGGER.error("客户端已断开");
+        }
 
     }
 

@@ -1,9 +1,5 @@
 package priv.bigant.test;
 
-import priv.bigant.intranet.server.HttpResponseSocket;
-import priv.bigant.intranet.server.IntranetHttpServer;
-import priv.bigant.intranet.server.IntranetServer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;

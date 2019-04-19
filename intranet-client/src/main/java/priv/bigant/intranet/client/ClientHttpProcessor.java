@@ -18,7 +18,8 @@ public class ClientHttpProcessor extends HttpProcessor {
         return new SocketBean(new Socket(localHost, localPort));
     }
 
-    protected void close() {
+    protected void close() throws IOException {
+        socketBean.skip();
         receiver.close();
     }
 }

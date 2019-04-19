@@ -262,7 +262,7 @@ public class SocketInputStream extends InputStream {
      * @throws IOException If an exception occurs during the underlying socket read operations, or if the given buffer
      *                     is not big enough to accomodate the whole line.
      */
-    public void readResponseLine(HttpResponseLine responseLine) throws IOException {
+    public void readResponseLine(HttpResponseLine responseLine) throws EOFException, IOException {
 
         // Recycling check
         if (responseLine.protocolEnd != 0)

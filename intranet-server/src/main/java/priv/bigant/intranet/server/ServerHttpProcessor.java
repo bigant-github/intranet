@@ -19,11 +19,18 @@ public class ServerHttpProcessor extends HttpProcessor {
     protected SocketBean getSocketBean() {
         String host = super.requestProcessor.getHost();
         ServerCommunication serverCommunication = HttpSocketManager.get(host);
-        return serverCommunication.getSocketBean();
+        SocketBean socketBean = serverCommunication.getSocketBean();
+        try {
+            socketBean.skip();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return socketBean;
     }
 
     @Override
     protected void close() throws IOException {
+        receiver.skip();
         String host = super.requestProcessor.getHost();
         HttpSocketManager.get(host).putSocketBean(receiver);
         super.socketBean.close();

@@ -34,16 +34,16 @@ public class ServerHttpAccept extends Thread {
             LOGGER.error("start http accept error", e);
         }
         while (true) {
-            SocketBean socketBeanss;
+            SocketBean socketBean;
             try {
                 Socket accept = serverSocket.accept();
-                socketBeanss = new SocketBean(accept);
-                int read = socketBeanss.getIs().read(bytes);
+                socketBean = new SocketBean(accept);
+                int read = socketBean.getIs().read(bytes);
                 CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = CommunicationResponse.createCommunicationResponse(ArrayUtils.subarray(bytes, 0, read)).toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
                 String id = communicationRequestHttpAdd.getId();
-                socketBeanss.setId(id);
+                socketBean.setId(id);
                 ServerCommunication serverCommunication = HttpSocketManager.get(HttpSocketManager.getKey(id));
-                serverCommunication.putSocketBean(socketBeanss);
+                serverCommunication.putSocketBean(socketBean);
                 LOGGER.info(serverCommunication.getHost() + "create new http accept socket");
             } catch (IOException e) {
                 LOGGER.error("http accept error", e);
