@@ -22,7 +22,6 @@ public abstract class HttpProcessor implements Runnable {
     protected SocketBean receiver;
     protected SocketBean socketBean;
 
-
     public HttpProcessor(SocketBean socketBean) {
         this.config = Config.getConfig();
         this.socketBean = socketBean;
@@ -107,7 +106,7 @@ public abstract class HttpProcessor implements Runnable {
     private void mutual(SocketInputStream socketInputStream, int contentLength, OutputStream os, boolean chunked) throws IOException {
         os.write(socketInputStream.byteBuffer);
         LOGGER.debug("write:" + new String(socketInputStream.byteBuffer));
-        if (false) {
+        if (chunked) {
             byte[] bytes = new byte[1024];
             byte[] subArray = null;
             int by = 0;

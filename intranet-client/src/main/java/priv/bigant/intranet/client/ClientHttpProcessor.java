@@ -25,6 +25,8 @@ public class ClientHttpProcessor extends HttpProcessor {
 
     protected void close() throws IOException {
         socketBean.skip();
+        socketBean.close();
+        receiver.close();
         receiver.close();
     }
 }

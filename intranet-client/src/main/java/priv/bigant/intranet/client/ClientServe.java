@@ -39,10 +39,10 @@ public class ClientServe extends Thread {
      */
     private void threadDispose() {
         try {
-            while (true) {
-                ClientHttpProcessor httpProcessor = new ClientHttpProcessor(socketBean);
-                httpProcessor.run();
-            }
+            //while (true) {
+            ClientHttpProcessor httpProcessor = new ClientHttpProcessor(socketBean);
+            httpProcessor.run();
+            //}
         } catch (Exception e) {
             LOGGER.error("error", e);
         } finally {

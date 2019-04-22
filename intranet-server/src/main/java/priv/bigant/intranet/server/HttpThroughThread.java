@@ -60,25 +60,7 @@ public class HttpThroughThread extends Thread {
 
     public void createdSocketBean() {
         for (int x = 0; x < 10; x++) {
-            String id = UUID.randomUUID().toString();
-            CommunicationRequest communicationRequest = null;
-            CommunicationRequest.CommunicationRequestP communicationRequestHttpAdd = new CommunicationRequest.CommunicationRequestHttpAdd(id);
-            try {
-                communicationRequest = CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            HttpSocketManager.addKey(id, serverCommunication.getHost());
-            try {
-                serverCommunication.write(communicationRequest);
-                CommunicationResponse.CommunicationResponseHttpAdd communicationResponseHttpAdd = serverCommunication.readResponse().toJavaObject(CommunicationResponse.CommunicationResponseHttpAdd.class);
-                if (communicationResponseHttpAdd.isSuccess()) {
-                    LOGGER.info(serverCommunication.getHost() + "新建http连接");
-                } else
-                    LOGGER.info(serverCommunication.getHost() + "新建http失败");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            serverCommunication.createSocketBean();
         }
     }
 

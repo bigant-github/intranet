@@ -12,6 +12,7 @@ public class ServerConfig extends Config {
     private int waitSocketTime = 20000;
 
 
+
     public int getWaitSocketTime() {
         return waitSocketTime;
     }

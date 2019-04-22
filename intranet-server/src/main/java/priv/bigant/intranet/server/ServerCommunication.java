@@ -5,11 +5,14 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.Config;
+import priv.bigant.intrance.common.communication.CommunicationRequest;
+import priv.bigant.intrance.common.communication.CommunicationResponse;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Iterator;
 import java.util.Stack;
+import java.util.UUID;
 
 public class ServerCommunication extends Communication {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerCommunication.class);
@@ -77,5 +80,27 @@ public class ServerCommunication extends Communication {
 
     public void connect() {
         LOGGER.warn("服务端不能连接");
+    }
+
+    public void createSocketBean() {
+        String id = UUID.randomUUID().toString();
+        CommunicationRequest communicationRequest = null;
+        CommunicationRequest.CommunicationRequestP communicationRequestHttpAdd = new CommunicationRequest.CommunicationRequestHttpAdd(id);
+        try {
+            communicationRequest = CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        HttpSocketManager.addKey(id, host);
+        try {
+            super.write(communicationRequest);
+            CommunicationResponse.CommunicationResponseHttpAdd communicationResponseHttpAdd = super.readResponse().toJavaObject(CommunicationResponse.CommunicationResponseHttpAdd.class);
+            if (communicationResponseHttpAdd.isSuccess()) {
+                LOGGER.info(host + "新建http连接");
+            } else
+                LOGGER.info(host + "新建http失败");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
