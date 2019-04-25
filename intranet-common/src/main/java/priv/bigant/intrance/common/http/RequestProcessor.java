@@ -11,6 +11,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * request 核心解析
+ */
 public class RequestProcessor implements Runnable {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RequestProcessor.class);

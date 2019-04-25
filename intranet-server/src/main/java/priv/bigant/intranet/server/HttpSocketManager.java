@@ -34,6 +34,10 @@ public class HttpSocketManager {
         return throughMap.get(host);
     }
 
+    public static ServerCommunication remove(String host) {
+        return throughMap.remove(host);
+    }
+
     /**
      * 验证是否存在
      */

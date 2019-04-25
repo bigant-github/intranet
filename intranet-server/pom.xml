@@ -25,7 +25,7 @@
                             <transformers>
                                 <transformer
                                     implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>priv.bigant.intranet.server.ServerBootstrap</mainClass>
+                                    <mainClass>priv.bigant.intranet.server.Start</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

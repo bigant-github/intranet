@@ -12,6 +12,9 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+/**
+ * http 通信核心处理
+ */
 public abstract class HttpProcessor implements Runnable {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(HttpProcessor.class);

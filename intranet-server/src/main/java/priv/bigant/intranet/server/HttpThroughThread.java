@@ -39,14 +39,21 @@ public class HttpThroughThread extends Thread {
             serverCommunication.setHost(host);
             socketBean.setDomainName(host);
             boolean exist = HttpSocketManager.isExist(host);
-            if (!exist) {
-                HttpSocketManager.add(host, serverCommunication);
-                serverCommunication.write(CommunicationResponse.createSuccess());
-                LOGGER.info(host + " 连接成功");
-            } else {
-                serverCommunication.write(CommunicationResponse.create(CodeEnum.HOST_ALREADY_EXIST));
-                LOGGER.info(host + CodeEnum.HOST_ALREADY_EXIST.getMsg());
+            if (exist) {
+                boolean b = HttpSocketManager.get(host).sendUrgentData();
+                if (b) {
+                    HttpSocketManager.get(host).close();
+                    HttpSocketManager.remove(host);
+                } else {
+                    serverCommunication.write(CommunicationResponse.create(CodeEnum.HOST_ALREADY_EXIST));
+                    serverCommunication.close();
+                    LOGGER.info(host + CodeEnum.HOST_ALREADY_EXIST.getMsg());
+                    return;
+                }
             }
+            HttpSocketManager.add(host, serverCommunication);
+            serverCommunication.write(CommunicationResponse.createSuccess());
+            LOGGER.info(host + " 连接成功");
         } catch (IOException e) {
             LOGGER.error("connection io error", e);
             serverCommunication.close();
