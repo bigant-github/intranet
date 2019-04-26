@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.exception.ServletException;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,7 +32,7 @@ public abstract class HttpProcessor implements Runnable {
     }
 
 
-    protected void process() throws IOException {
+    protected void process() throws IOException, ServletException {
         try {
             do {
                 requestProcessor = new RequestProcessor(socketBean, config);
@@ -85,8 +86,6 @@ public abstract class HttpProcessor implements Runnable {
         } finally {
             close();
         }
-        receiver = null;
-        socketBean = null;
     }
 
     protected abstract SocketBean getSocketBean() throws IOException;
@@ -98,8 +97,8 @@ public abstract class HttpProcessor implements Runnable {
     public void run() {
         try {
             process();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | ServletException e) {
+            LOGGER.error("", e);
         }
     }
 

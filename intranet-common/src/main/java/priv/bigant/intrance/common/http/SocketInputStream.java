@@ -5,6 +5,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 
 /**
  * Extends InputStream to be more efficient reading lines during HTTP header processing.
@@ -118,6 +119,8 @@ public class SocketInputStream extends InputStream {
         do { // Skipping CR or LF
             try {
                 chr = read();
+            } catch (SocketTimeoutException e) {
+                throw e;
             } catch (IOException e) {
                 chr = -1;
             }

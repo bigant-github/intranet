@@ -1,6 +1,7 @@
 package priv.bigant.intranet.client;
 
 import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.exception.ServletException;
 import priv.bigant.intrance.common.http.HttpProcessor;
 
 import java.io.IOException;
@@ -8,12 +9,13 @@ import java.net.Socket;
 
 public class ClientHttpProcessor extends HttpProcessor {
 
+
     public ClientHttpProcessor(SocketBean socketBean) {
         super(socketBean);
     }
 
     @Override
-    protected void process() throws IOException {
+    protected void process() throws IOException, ServletException {
         super.process();
     }
 
@@ -24,6 +26,7 @@ public class ClientHttpProcessor extends HttpProcessor {
     }
 
     protected void close() throws IOException {
+
         socketBean.skip();
         socketBean.close();
         receiver.close();

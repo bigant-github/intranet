@@ -8,6 +8,7 @@ import priv.bigant.intrance.common.Config;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,21 +55,17 @@ public class RequestProcessor implements Runnable {
         this.config = config;
     }
 
-    protected void process() {
+    protected void process() throws IOException, ServletException {
         // Construct and initialize the objects we will need
         input = new SocketInputStream(socketBean.getIs(), config.getBufferSize());
         // Parse the incoming request
-        try {
-            parseRequest(input);
-            if (!protocol.startsWith("HTTP/0")) {
-                //TODO http version lg 1
-            }
-            parseHeaders(input);
-            // TODO ack
-            ackRequest(socketBean.getOs());
-        } catch (Exception e) {
-            LOGGER.error("", e);
+        parseRequest(input);
+        if (!protocol.startsWith("HTTP/0")) {
+            //TODO http version lg 1
         }
+        parseHeaders(input);
+        // TODO ack
+        ackRequest(socketBean.getOs());
 
     }
 
@@ -158,7 +155,7 @@ public class RequestProcessor implements Runnable {
      * @throws IOException      if an input/output error occurs
      * @throws ServletException if a parsing error occurs
      */
-    private void parseRequest(SocketInputStream input) throws IOException {
+    private void parseRequest(SocketInputStream input) throws SocketTimeoutException, IOException {
 
         // Parse the incoming request line
         input.readRequestLine(requestLine);
@@ -177,7 +174,13 @@ public class RequestProcessor implements Runnable {
 
     @Override
     public void run() {
-        process();
+        try {
+            process();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ServletException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getHost() {

@@ -63,9 +63,11 @@ public class ServerCommunication extends Communication {
     /**
      * 获取socketBean 还回socketBean
      */
-    public synchronized void putSocketBean(SocketBean socketBeanss) {
-        LOGGER.debug("归还http连接 :" + socketBeanss.getId());
-        socketStack.push(socketBeanss);
+    public synchronized void putSocketBean(SocketBean socketBean) {
+        LOGGER.debug("归还http连接 :" + socketBean.getId());
+        LOGGER.debug("before num :" + socketStack.size());
+        socketStack.push(socketBean);
+        LOGGER.debug("after num :" + socketStack.size());
     }
 
     @Override
