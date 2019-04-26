@@ -33,6 +33,7 @@ public class ServerHttpConnector extends Thread {
             synchronized (LOGGER) {
                 try {
                     Socket accept = serverSocket.accept();
+                    LOGGER.debug("接受到http请求");
                     if (serverConfig.getSocketTimeOut() > 0)
                         accept.setSoTimeout(serverConfig.getSocketTimeOut());
                     HttpProcessor serverHttpProcessor = new ServerHttpProcessor(new SocketBean(accept));

@@ -47,7 +47,6 @@ public abstract class HttpProcessor implements Runnable {
                         LOGGER.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
                         close();
                     }
-                    receiver = null;
                 }
 
                 if (receiver == null) {
