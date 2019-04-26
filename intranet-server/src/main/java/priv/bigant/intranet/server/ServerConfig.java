@@ -3,7 +3,7 @@ package priv.bigant.intranet.server;
 import priv.bigant.intrance.common.Config;
 
 public class ServerConfig extends Config {
-    private int socketTimeOut = 60000;
+    private int socketTimeOut = 5000;
     private int httpPort = 80;
     private int corePoolSize = 5;
     private int maximumPoolSize = 30;
