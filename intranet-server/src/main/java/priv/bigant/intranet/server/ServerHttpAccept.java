@@ -37,6 +37,7 @@ public class ServerHttpAccept extends Thread {
             SocketBean socketBean;
             try {
                 Socket accept = serverSocket.accept();
+                accept.setKeepAlive(true);
                 socketBean = new SocketBean(accept);
                 int read = socketBean.getIs().read(bytes);
                 CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = CommunicationResponse.createCommunicationResponse(ArrayUtils.subarray(bytes, 0, read)).toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);

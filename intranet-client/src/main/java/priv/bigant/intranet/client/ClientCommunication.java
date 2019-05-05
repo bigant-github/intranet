@@ -28,8 +28,8 @@ public class ClientCommunication extends Communication {
                 close();
             }
             this.socket = new Socket();
+            socket.setKeepAlive(true);
             socket.connect(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));
-
             inputStream = socket.getInputStream();
 
             outputStream = socket.getOutputStream();
@@ -89,6 +89,7 @@ public class ClientCommunication extends Communication {
         String id = communicationRequestHttpAdd.getId();
         try {
             Socket socket = new Socket(clientConfig.getHostName(), clientConfig.getHttpAcceptPort());
+            socket.setKeepAlive(true);
             socketBean = new SocketBean(socket);
             CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequest.CommunicationRequestHttpAdd();
             communicationRequestHttpAdd1.setId(id);

@@ -28,7 +28,7 @@ public class Start {
         FileInputStream inputStream = null;
         try {
             inputStream = new FileInputStream(new File("/tmp/conf.properties"));
-            //inputStream = new FileInputStream(Start.class.getResource("conf.properties").getPath());
+            //inputStream = new FileInputStream(Start.class.getResource("/conf.properties").getPath());
             //inputStream = new FileInputStream(new File(userPath + "/conf.properties"));
             Properties properties = new Properties();
             properties.load(inputStream);

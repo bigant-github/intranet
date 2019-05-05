@@ -48,24 +48,19 @@ public abstract class Communication extends Thread {
     }
 
 
-    public synchronized byte[] read() {
+    public synchronized byte[] read() throws IOException {
         int readNum = 0;
-        try {
-            readNum = inputStream.read(bytes);
-        } catch (IOException e) {
-            LOGGER.error("communication read error", e);
-            return null;
-        }
+        readNum = inputStream.read(bytes);
         byte[] subarray = ArrayUtils.subarray(bytes, 0, readNum);
         LOGGER.debug("read :" + new String(subarray, StandardCharsets.UTF_8));
         return subarray;
     }
 
-    public synchronized CommunicationRequest readRequest() {
+    public synchronized CommunicationRequest readRequest() throws IOException {
         return CommunicationRequest.createCommunicationRequest(read());
     }
 
-    public synchronized CommunicationResponse readResponse() {
+    public synchronized CommunicationResponse readResponse() throws IOException {
         return CommunicationResponse.createCommunicationResponse(read());
     }
 

@@ -96,7 +96,7 @@ public abstract class HttpProcessor implements Runnable {
     public void run() {
         try {
             process();
-        } catch (IOException | ServletException e) {
+        } catch (Exception e) {
             LOGGER.error("", e);
         }
     }

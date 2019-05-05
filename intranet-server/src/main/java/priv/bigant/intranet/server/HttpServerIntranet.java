@@ -37,6 +37,7 @@ public class HttpServerIntranet extends Thread {
         while (true) {
             try {
                 Socket socket = serverSocket.accept();
+                socket.setKeepAlive(true);
                 LOGGER.info("接受到申请穿透");
                 new HttpThroughThread(socket).start();
             } catch (IOException e) {
