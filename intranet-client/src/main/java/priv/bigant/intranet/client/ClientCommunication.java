@@ -31,9 +31,7 @@ public class ClientCommunication extends Communication {
             socket.setKeepAlive(true);
             socket.connect(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));
             inputStream = socket.getInputStream();
-
             outputStream = socket.getOutputStream();
-
             CommunicationRequest.CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequest.CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
             communicationHttpFirst.setHost(clientConfig.getDomainName());
 
@@ -52,6 +50,7 @@ public class ClientCommunication extends Communication {
         while (true) {//监控是否断开
             try {
                 CommunicationResponse.CommunicationResponseP communicationResponseP = connect();
+                new CommunicationListener(this).start();
                 if (communicationResponseP.isSuccess()) {
                     LOGGER.info("connect success:host=" + clientConfig.getDomainName());
                     while (true) {
