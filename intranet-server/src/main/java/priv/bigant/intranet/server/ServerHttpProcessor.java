@@ -23,11 +23,37 @@ public class ServerHttpProcessor extends HttpProcessor {
     protected SocketBean getSocketBean() {
         String host = super.requestProcessor.getHost();
         serverCommunication = HttpSocketManager.get(host);
-        SocketBean socketBean = serverCommunication.getSocketBean();
-        return socketBean;
+        if (serverCommunication != null) {
+            boolean b = serverCommunication.sendUrgentData();
+            if (!b) {
+                LOGGER.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
+                serverCommunication.close();
+            }
+            return null;
+        }
+        return checkSocketBean();
+    }
+
+    protected SocketBean checkSocketBean() {
+        while (true) {
+            SocketBean socketBean = serverCommunication.getSocketBean();
+            if (socketBean != null) {
+                boolean b = socketBean.sendUrgentData();
+                if (!b) {
+                    LOGGER.warn("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
+                    serverCommunication.close();
+                    serverCommunication.createSocketBean();
+                    continue;
+                }
+                return socketBean;
+            } else {
+                return null;
+            }
+        }
     }
 
     @Override
+
     protected void close() throws IOException {
         LOGGER.debug("server close.............." + serverCommunication);
         if (receiver != null) {

@@ -82,6 +82,11 @@ public class ClientCommunication extends Communication {
         }
     }
 
+    /**
+     * 创建http通信连接
+     *
+     * @param communicationRequest
+     */
     public void add(CommunicationRequest communicationRequest) {
         SocketBean socketBean = null;
         CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);

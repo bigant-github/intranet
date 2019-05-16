@@ -29,7 +29,10 @@ public class ClientHttpProcessor extends HttpProcessor {
 
         socketBean.skip();
         socketBean.close();
-        receiver.close();
-        receiver.close();
+        if (receiver != null) {
+            receiver.skip();
+            receiver.close();
+        }
+
     }
 }

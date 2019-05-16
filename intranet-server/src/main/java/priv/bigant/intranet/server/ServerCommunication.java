@@ -98,9 +98,9 @@ public class ServerCommunication extends Communication {
             super.write(communicationRequest);
             CommunicationResponse.CommunicationResponseHttpAdd communicationResponseHttpAdd = super.readResponse().toJavaObject(CommunicationResponse.CommunicationResponseHttpAdd.class);
             if (communicationResponseHttpAdd.isSuccess()) {
-                LOGGER.info(host + "新建http连接");
+                LOGGER.debug(host + "新建http连接");
             } else
-                LOGGER.info(host + "新建http失败");
+                LOGGER.warn(host + "新建http失败");
         } catch (IOException e) {
             e.printStackTrace();
         }
