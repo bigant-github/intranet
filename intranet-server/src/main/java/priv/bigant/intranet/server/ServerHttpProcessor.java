@@ -15,7 +15,7 @@ public class ServerHttpProcessor extends HttpProcessor {
 
     private ServerCommunication serverCommunication;
 
-    public ServerHttpProcessor(SocketBean  socketBean) {
+    public ServerHttpProcessor(SocketBean socketBean) {
         super(socketBean);
     }
 
