@@ -16,7 +16,7 @@
  */
 
 
-package priv.bigant.intranet.modeler;
+package priv.bigant.intrance.common.modeler;
 
 
 import javax.management.*;
@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
 
 
 /**

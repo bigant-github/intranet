@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package priv.bigant.intranet.modeler;
+package priv.bigant.intrance.common.modeler;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;

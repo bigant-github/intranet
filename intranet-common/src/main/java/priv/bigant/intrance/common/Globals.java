@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package priv.bigant.intranet;
+package priv.bigant.intrance.common;
 
 /**
  * Global constants that are applicable to multiple packages within Catalina.

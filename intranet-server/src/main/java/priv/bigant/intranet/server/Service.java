@@ -1,8 +1,6 @@
 package priv.bigant.intranet.server;
 
-import com.sun.xml.internal.ws.api.pipe.Engine;
-
-import java.util.concurrent.Executor;
+import priv.bigant.intrance.common.Lifecycle;
 
 public interface Service extends Lifecycle, BigAnt {
     // ------------------------------------------------------------- Properties

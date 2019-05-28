@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package priv.bigant.intranet.server;
+package priv.bigant.intrance.common;
 
 /**
  * The list of valid states for components that implement {@link Lifecycle}.

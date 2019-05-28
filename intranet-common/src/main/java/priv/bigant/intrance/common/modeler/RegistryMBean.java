@@ -16,7 +16,7 @@
  */
 
 
-package priv.bigant.intranet.modeler;
+package priv.bigant.intrance.common.modeler;
 
 
 import javax.management.ObjectName;

@@ -1,6 +1,6 @@
 package priv.bigant.intranet.server;
 
-import java.util.Set;
+import priv.bigant.intrance.common.Lifecycle;
 
 public interface Server extends Lifecycle, BigAnt {
 

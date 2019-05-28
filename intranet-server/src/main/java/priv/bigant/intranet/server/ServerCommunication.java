@@ -10,13 +10,14 @@ import priv.bigant.intrance.common.communication.CommunicationResponse;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.UUID;
 
 public class ServerCommunication extends Communication {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerCommunication.class);
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerCommunication.class);
     private ServerConfig serverConfig;
     private String host;
     private Stack<SocketBean> socketStack;
@@ -31,6 +32,12 @@ public class ServerCommunication extends Communication {
 
     public ServerCommunication(Socket socket) throws IOException {
         super(socket);
+        serverConfig = (ServerConfig) Config.getConfig();
+        socketStack = new Stack<>();
+    }
+
+    public ServerCommunication(SocketChannel socketChannel) throws IOException {
+        super(socketChannel);
         serverConfig = (ServerConfig) Config.getConfig();
         socketStack = new Stack<>();
     }

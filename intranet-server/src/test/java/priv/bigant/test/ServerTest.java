@@ -15,12 +15,8 @@ public class ServerTest {
 
 
     public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(8080);
-        Socket accept = serverSocket.accept();
-        InputStream inputStream = accept.getInputStream();
-        while (true) {
-            System.out.print(inputStream.read());
-        }
+        Socket socket = new Socket("127.0.0.1", 45678);
+        System.out.println(socket);
     }
 
 

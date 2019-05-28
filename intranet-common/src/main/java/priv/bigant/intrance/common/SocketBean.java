@@ -4,6 +4,7 @@ package priv.bigant.intrance.common;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 
 /**
  * Created by GaoHan on 2018/5/22.
@@ -23,13 +24,29 @@ public class SocketBean {
         this.id = id;
     }
 
+    public SocketBean(SocketChannel socketChannel) throws IOException {
+        Socket socket = socketChannel.socket();
+        this.socket = socket;
+        this.inetAddress = this.socket.getInetAddress();
+        is = this.socket.getInputStream();
+        os = this.socket.getOutputStream();
+    }
+
+    public SocketBean(SocketChannel socketChannel, String id) throws IOException {
+        Socket socket = socketChannel.socket();
+        this.id = id;
+        this.socket = socket;
+        this.inetAddress = this.socket.getInetAddress();
+        is = this.socket.getInputStream();
+        os = this.socket.getOutputStream();
+    }
+
     public SocketBean(Socket socket) throws IOException {
         this.socket = socket;
         this.inetAddress = socket.getInetAddress();
         is = socket.getInputStream();
         os = socket.getOutputStream();
     }
-
 
     public void close() {
         if (os != null) {

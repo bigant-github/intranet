@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package priv.bigant.intranet.server;
+package priv.bigant.intrance.common;
 
 
 import org.slf4j.Logger;

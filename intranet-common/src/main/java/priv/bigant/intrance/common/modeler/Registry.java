@@ -16,12 +16,12 @@
  */
 
 
-package priv.bigant.intranet.modeler;
+package priv.bigant.intrance.common.modeler;
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intranet.modeler.modules.ModelerSource;
+import priv.bigant.intrance.common.modeler.modules.ModelerSource;
 
 import javax.management.*;
 import java.io.File;
@@ -661,13 +661,12 @@ public class Registry implements RegistryMBean, MBeanRegistration {
         return;
     }
 
-    private ModelerSource getModelerSource(String type)
-            throws Exception {
-        if (type == null) type = "MbeansDescriptorsDigesterSource";
+    private ModelerSource getModelerSource(String type) throws Exception {
+        if (type == null)
+            type = "MbeansDescriptorsDigesterSource";
         if (type.indexOf(".") < 0) {
-            type = "org.apache.tomcat.util.modeler.modules." + type;
+            type = "priv.bigant.intrance.common.modeler.modules." + type;
         }
-
         Class<?> c = Class.forName(type);
         ModelerSource ds = (ModelerSource) c.getConstructor().newInstance();
         return ds;

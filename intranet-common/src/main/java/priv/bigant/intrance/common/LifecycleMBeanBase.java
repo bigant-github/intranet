@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-package priv.bigant.intranet.server;
+package priv.bigant.intrance.common;
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intranet.Globals;
-import priv.bigant.intranet.modeler.Registry;
+import priv.bigant.intrance.common.modeler.Registry;
 
 import javax.management.*;
 

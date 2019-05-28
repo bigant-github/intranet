@@ -2,6 +2,9 @@ package priv.bigant.intranet.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.LifecycleException;
+import priv.bigant.intrance.common.LifecycleMBeanBase;
+import priv.bigant.intrance.common.LifecycleState;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,9 +18,10 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
     private int port;
     private ServerSocketChannel server;
 
-    public Connector(String name, Process process) {
+    public Connector(String name, Process process, int port) {
         this.name = name;
         this.process = process;
+        this.port = port;
     }
 
     @Override
@@ -37,17 +41,20 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
 
     @Override
     protected void startInternal() throws LifecycleException {
+        setState(LifecycleState.STARTING);
         try {
-            this.server = ServerSocketChannel.open();
-            server.configureBlocking(false);
+            build();
             ConnectorThread connectorThread = new ConnectorThread();
             connectorThread.register(server, SelectionKey.OP_ACCEPT);
+            connectorThread.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void bulid() throws IOException {
+    private void build() throws IOException {
+        this.server = ServerSocketChannel.open();
+        server.configureBlocking(false);
         server.bind(new InetSocketAddress(port));
     }
 
@@ -78,19 +85,20 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
                 try {
                     if (selector.select() < 1)
                         continue;
-
                     Iterator<SelectionKey> selectionKeys = selector.selectedKeys().iterator();
                     while (selectionKeys.hasNext()) {
+
                         SelectionKey selectionKey = selectionKeys.next();
+                        selectionKeys.remove();
+
                         if (selectionKey.isAcceptable()) {
                             SocketChannel socketChannel = server.accept();
-                            socketChannel.configureBlocking(false);
+                            //socketChannel.configureBlocking(false);
                             process.accept(this, socketChannel);
                         } else if (selectionKey.isReadable()) {
                             SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                            process.read(this,socketChannel);
+                            process.read(this, socketChannel);
                         }
-                        selectionKeys.remove();
                     }
 
                 } catch (IOException e) {

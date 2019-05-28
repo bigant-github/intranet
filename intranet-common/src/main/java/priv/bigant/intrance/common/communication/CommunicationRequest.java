@@ -38,7 +38,11 @@ public class CommunicationRequest extends CommunicationReturn {
     }
 
     public static class CommunicationRequestP implements CommunicationP {
+
         private CommunicationEnum type;
+
+        //请求或相应 1请求类型 2相应类型
+        //private Integer fromType;
 
         public CommunicationRequestP(CommunicationEnum type) {
             this.type = type;
