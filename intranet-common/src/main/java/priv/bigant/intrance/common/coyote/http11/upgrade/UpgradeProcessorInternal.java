@@ -16,27 +16,27 @@
  */
 package priv.bigant.intrance.common.coyote.http11.upgrade;
 
-import org.apache.coyote.UpgradeToken;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
-import org.apache.tomcat.util.net.SSLSupport;
-import org.apache.tomcat.util.net.SocketEvent;
-import org.apache.tomcat.util.net.SocketWrapperBase;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.coyote.UpgradeToken;
+import priv.bigant.intrance.common.coyote.http11.servlet.ServletInputStream;
+import priv.bigant.intrance.common.coyote.http11.servlet.ServletOutputStream;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint;
+import priv.bigant.intrance.common.util.net.SSLSupport;
+import priv.bigant.intrance.common.util.net.SocketEvent;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
+import sun.rmi.runtime.Log;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
 import java.io.IOException;
 
 public class UpgradeProcessorInternal extends UpgradeProcessorBase {
 
-    private static final Log log = LogFactory.getLog(UpgradeProcessorInternal.class);
+    private static final Logger log = LoggerFactory.getLogger(UpgradeProcessorInternal.class);
 
     private final InternalHttpUpgradeHandler internalHttpUpgradeHandler;
 
     public UpgradeProcessorInternal(SocketWrapperBase<?> wrapper,
-            UpgradeToken upgradeToken) {
+                                    UpgradeToken upgradeToken) {
         super(upgradeToken);
         this.internalHttpUpgradeHandler = (InternalHttpUpgradeHandler) upgradeToken.getHttpUpgradeHandler();
         /*
@@ -50,7 +50,7 @@ public class UpgradeProcessorInternal extends UpgradeProcessorBase {
 
 
     @Override
-    public SocketState dispatch(SocketEvent status) {
+    public AbstractEndpoint.Handler.SocketState dispatch(SocketEvent status) {
         return internalHttpUpgradeHandler.upgradeDispatch(status);
     }
 

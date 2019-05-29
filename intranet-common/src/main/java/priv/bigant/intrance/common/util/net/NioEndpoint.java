@@ -44,14 +44,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.IntrospectionUtils;
-import org.apache.tomcat.util.collections.SynchronizedQueue;
-import org.apache.tomcat.util.collections.SynchronizedStack;
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
-import org.apache.tomcat.util.net.jsse.JSSESupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.IntrospectionUtils;
+import priv.bigant.intrance.common.util.collections.SynchronizedQueue;
+import priv.bigant.intrance.common.util.collections.SynchronizedStack;
+import priv.bigant.intrance.common.util.net.jsse.JSSESupport;
 
 /**
  * NIO tailored thread pool, providing the following services:
@@ -72,7 +71,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
     // -------------------------------------------------------------- Constants
 
 
-    private static final Log log = LogFactory.getLog(NioEndpoint.class);
+    private static final Logger log = LoggerFactory.getLogger(NioEndpoint.class);
 
 
     public static final int OP_REGISTER = 0x100; //register interest op
@@ -449,7 +448,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
 
 
     @Override
-    protected Log getLog() {
+    protected Logger getLog() {
         return log;
     }
 
@@ -612,8 +611,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
         public void run() {
             if (interestOps == OP_REGISTER) {
                 try {
-                    socket.getIOChannel().register(
-                            socket.getPoller().getSelector(), SelectionKey.OP_READ, socketWrapper);
+                    socket.getIOChannel().register(socket.getPoller().getSelector(), SelectionKey.OP_READ, socketWrapper);
                 } catch (Exception x) {
                     log.error(sm.getString("endpoint.nio.registerFail"), x);
                 }
@@ -1349,8 +1347,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                     // Ignore
                 }
                 try {
-                    NioSocketWrapper att = (NioSocketWrapper) channel
-                            .getAttachment();
+                    NioSocketWrapper att = (NioSocketWrapper) channel.getAttachment();
                     if (att == null) {
                         throw new IOException("Key must be cancelled.");
                     }
@@ -1423,8 +1420,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
         @Override
         public SendfileState processSendfile(SendfileDataBase sendfileData) {
             setSendfileData((SendfileData) sendfileData);
-            SelectionKey key = getSocket().getIOChannel().keyFor(
-                    getSocket().getPoller().getSelector());
+            SelectionKey key = getSocket().getIOChannel().keyFor(getSocket().getPoller().getSelector());
             // Might as well do the first write on this thread
             return getSocket().getPoller().processSendfile(key, this, true);
         }
@@ -1566,14 +1562,14 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                     handshake = -1;
                 }
                 if (handshake == 0) {
-                    SocketState state = SocketState.OPEN;
+                    Handler.SocketState state = Handler.SocketState.OPEN;
                     // Process the request from this socket
                     if (event == null) {
                         state = getHandler().process(socketWrapper, SocketEvent.OPEN_READ);
                     } else {
                         state = getHandler().process(socketWrapper, event);
                     }
-                    if (state == SocketState.CLOSED) {
+                    if (state == Handler.SocketState.CLOSED) {
                         close(socket, key);
                     }
                 } else if (handshake == -1) {

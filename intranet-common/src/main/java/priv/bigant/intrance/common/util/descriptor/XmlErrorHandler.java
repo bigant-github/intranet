@@ -19,16 +19,16 @@ package priv.bigant.intrance.common.util.descriptor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.juli.logging.Log;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 public class XmlErrorHandler implements ErrorHandler {
 
     private static final StringManager sm =
-        StringManager.getManager(Constants.PACKAGE_NAME);
+            StringManager.getManager(Constants.PACKAGE_NAME);
 
     private final List<SAXParseException> errors = new ArrayList<>();
 
@@ -62,7 +62,7 @@ public class XmlErrorHandler implements ErrorHandler {
         return warnings;
     }
 
-    public void logFindings(Log log, String source) {
+    public void logFindings(Logger log, String source) {
         for (SAXParseException e : getWarnings()) {
             log.warn(sm.getString(
                     "xmlErrorHandler.warning", e.getMessage(), source));

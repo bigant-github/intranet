@@ -16,6 +16,10 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import priv.bigant.intrance.common.util.compat.JreCompat;
+import priv.bigant.intrance.common.util.net.openssl.OpenSSLImplementation;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.Cipher;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -28,9 +32,6 @@ import java.util.Set;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 
-import org.apache.tomcat.util.compat.JreCompat;
-import org.apache.tomcat.util.net.openssl.OpenSSLImplementation;
-import org.apache.tomcat.util.net.openssl.ciphers.Cipher;
 
 public abstract class AbstractJsseEndpoint<S> extends AbstractEndpoint<S> {
 

@@ -16,16 +16,16 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.buf.B2CConverter;
-import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.buf.MessageBytes;
-import org.apache.tomcat.util.http.MimeHeaders;
-import org.apache.tomcat.util.http.parser.MediaType;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.buf.B2CConverter;
+import priv.bigant.intrance.common.util.buf.ByteChunk;
+import priv.bigant.intrance.common.util.buf.MessageBytes;
+import priv.bigant.intrance.common.util.http.MimeHeaders;
+import priv.bigant.intrance.common.util.http.parser.MediaType;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
 
-import javax.servlet.WriteListener;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -49,7 +49,7 @@ public final class Response {
 
     private static final StringManager sm = StringManager.getManager(Response.class);
 
-    private static final Log log = LogFactory.getLog(Response.class);
+    private static final Logger log = LoggerFactory.getLogger(Response.class);
 
     // ----------------------------------------------------- Class Variables
 
@@ -126,12 +126,10 @@ public final class Response {
     Exception errorException = null;
 
     /**
-     * With the introduction of async processing and the possibility of
-     * non-container threads calling sendError() tracking the current error
-     * state and ensuring that the correct error page is called becomes more
-     * complicated. This state attribute helps by tracking the current error
-     * state and informing callers that attempt to change state if the change
-     * was successful or if another thread got there first.
+     * With the introduction of async processing and the possibility of non-container threads calling sendError()
+     * tracking the current error state and ensuring that the correct error page is called becomes more complicated.
+     * This state attribute helps by tracking the current error state and informing callers that attempt to change state
+     * if the change was successful or if another thread got there first.
      *
      * <pre>
      * The state machine is very simple:
@@ -165,8 +163,8 @@ public final class Response {
         return req;
     }
 
-    public void setRequest( Request req ) {
-        this.req=req;
+    public void setRequest(Request req) {
+        this.req = req;
     }
 
 
@@ -291,7 +289,7 @@ public final class Response {
 
 
     public boolean isExceptionPresent() {
-        return ( errorException != null );
+        return (errorException != null);
     }
 
 
@@ -338,14 +336,13 @@ public final class Response {
 
 
     // -------------------- Headers --------------------
+
     /**
      * Does the response contain the given header.
      * <br>
-     * Warning: This method always returns <code>false</code> for Content-Type
-     * and Content-Length.
+     * Warning: This method always returns <code>false</code> for Content-Type and Content-Length.
      *
      * @param name The name of the header of interest
-     *
      * @return {@code true} if the response contains the header.
      */
     public boolean containsHeader(String name) {
@@ -354,12 +351,12 @@ public final class Response {
 
 
     public void setHeader(String name, String value) {
-        char cc=name.charAt(0);
-        if( cc=='C' || cc=='c' ) {
-            if( checkSpecialHeader(name, value) )
-            return;
+        char cc = name.charAt(0);
+        if (cc == 'C' || cc == 'c') {
+            if (checkSpecialHeader(name, value))
+                return;
         }
-        headers.setValue(name).setString( value);
+        headers.setValue(name).setString(value);
     }
 
 
@@ -369,10 +366,10 @@ public final class Response {
 
 
     public void addHeader(String name, String value, Charset charset) {
-        char cc=name.charAt(0);
-        if( cc=='C' || cc=='c' ) {
-            if( checkSpecialHeader(name, value) )
-            return;
+        char cc = name.charAt(0);
+        if (cc == 'C' || cc == 'c') {
+            if (checkSpecialHeader(name, value))
+                return;
         }
         MessageBytes mb = headers.addValue(name);
         if (charset != null) {
@@ -383,23 +380,22 @@ public final class Response {
 
 
     /**
-     * Set internal fields for special header names.
-     * Called from set/addHeader.
-     * Return true if the header is special, no need to set the header.
+     * Set internal fields for special header names. Called from set/addHeader. Return true if the header is special, no
+     * need to set the header.
      */
-    private boolean checkSpecialHeader( String name, String value) {
+    private boolean checkSpecialHeader(String name, String value) {
         // XXX Eliminate redundant fields !!!
         // ( both header and in special fields )
-        if( name.equalsIgnoreCase( "Content-Type" ) ) {
-            setContentType( value );
+        if (name.equalsIgnoreCase("Content-Type")) {
+            setContentType(value);
             return true;
         }
-        if( name.equalsIgnoreCase( "Content-Length" ) ) {
+        if (name.equalsIgnoreCase("Content-Length")) {
             try {
-                long cL=Long.parseLong( value );
-                setContentLength( cL );
+                long cL = Long.parseLong(value);
+                setContentLength(cL);
                 return true;
-            } catch( NumberFormatException ex ) {
+            } catch (NumberFormatException ex) {
                 // Do nothing - the spec doesn't have any "throws"
                 // and the user might know what he's doing
                 return false;
@@ -409,9 +405,9 @@ public final class Response {
     }
 
 
-    /** Signal that we're done with the headers, and body will follow.
-     *  Any implementation needs to notify ContextManager, to allow
-     *  interceptors to fix headers.
+    /**
+     * Signal that we're done with the headers, and body will follow. Any implementation needs to notify ContextManager,
+     * to allow interceptors to fix headers.
      */
     public void sendHeaders() {
         action(ActionCode.COMMIT, this);
@@ -427,8 +423,7 @@ public final class Response {
     }
 
     /**
-     * Called explicitly by user to set the Content-Language and the default
-     * encoding.
+     * Called explicitly by user to set the Content-Language and the default encoding.
      *
      * @param locale The locale to use for this response
      */
@@ -448,20 +443,17 @@ public final class Response {
     /**
      * Return the content language.
      *
-     * @return The language code for the language currently associated with this
-     *         response
+     * @return The language code for the language currently associated with this response
      */
     public String getContentLanguage() {
         return contentLanguage;
     }
 
     /**
-     * Overrides the name of the character encoding used in the body
-     * of the response. This method must be called prior to writing output
-     * using getWriter().
+     * Overrides the name of the character encoding used in the body of the response. This method must be called prior
+     * to writing output using getWriter().
      *
-     * @param characterEncoding String containing the name of the character
-     *                          encoding.
+     * @param characterEncoding String containing the name of the character encoding.
      */
     public void setCharacterEncoding(String characterEncoding) {
         if (isCommitted()) {
@@ -495,10 +487,9 @@ public final class Response {
 
     /**
      * Sets the content type.
-     *
-     * This method must preserve any response charset that may already have
-     * been set via a call to response.setContentType(), response.setLocale(),
-     * or response.setCharacterEncoding().
+     * <p>
+     * This method must preserve any response charset that may already have been set via a call to
+     * response.setContentType(), response.setLocale(), or response.setCharacterEncoding().
      *
      * @param type the content type
      */
@@ -511,7 +502,7 @@ public final class Response {
 
         MediaType m = null;
         try {
-             m = MediaType.parseMediaType(new StringReader(type));
+            m = MediaType.parseMediaType(new StringReader(type));
         } catch (IOException e) {
             // Ignore - null test below handles this
         }
@@ -547,7 +538,7 @@ public final class Response {
         String ret = contentType;
 
         if (ret != null
-            && charset != null) {
+                && charset != null) {
             ret = ret + ";charset=" + characterEncoding;
         }
 
@@ -576,16 +567,13 @@ public final class Response {
      * Write a chunk of bytes.
      *
      * @param chunk The bytes to write
-     *
      * @throws IOException If an I/O error occurs during the write
-     *
-     * @deprecated Unused. Will be removed in Tomcat 9. Use
-     *             {@link #doWrite(ByteBuffer)}
+     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doWrite(ByteBuffer)}
      */
     @Deprecated
     public void doWrite(ByteChunk chunk) throws IOException {
         outputBuffer.doWrite(chunk);
-        contentWritten+=chunk.getLength();
+        contentWritten += chunk.getLength();
     }
 
 
@@ -593,7 +581,6 @@ public final class Response {
      * Write a chunk of bytes.
      *
      * @param chunk The ByteBuffer to write
-     *
      * @throws IOException If an I/O error occurs during the write
      */
     public void doWrite(ByteBuffer chunk) throws IOException {
@@ -620,20 +607,19 @@ public final class Response {
         errorState.set(0);
         headers.clear();
         // Servlet 3.1 non-blocking write listener
-        listener = null;
+        //listener = null;
         fireListener = false;
         registeredForWrite = false;
 
         // update counters
-        contentWritten=0;
+        contentWritten = 0;
     }
 
     /**
      * Bytes written by application - i.e. before compression, chunking, etc.
      *
-     * @return The total number of bytes written to the response by the
-     *         application. This will not be the number of bytes written to the
-     *         network which may be more or less than this value.
+     * @return The total number of bytes written to the response by the application. This will not be the number of
+     * bytes written to the network which may be more or less than this value.
      */
     public long getContentWritten() {
         return contentWritten;
@@ -642,10 +628,8 @@ public final class Response {
     /**
      * Bytes written to socket - i.e. after compression, chunking, etc.
      *
-     * @param flush Should any remaining bytes be flushed before returning the
-     *              total? If {@code false} bytes remaining in the buffer will
-     *              not be included in the returned value
-     *
+     * @param flush Should any remaining bytes be flushed before returning the total? If {@code false} bytes remaining
+     *              in the buffer will not be included in the returned value
      * @return The total number of bytes written to the socket for this response
      */
     public long getBytesWritten(boolean flush) {
@@ -660,14 +644,14 @@ public final class Response {
      * easily reachable from the CoyoteOutputStream and the Processor which both
      * need access to state.
      */
-    volatile WriteListener listener;
+    //volatile WriteListener listener;
     private boolean fireListener = false;
     private boolean registeredForWrite = false;
     private final Object nonBlockingStateLock = new Object();
 
-    public WriteListener getWriteListener() {
+/*    public WriteListener getWriteListener() {
         return listener;
-}
+    }
 
     public void setWriteListener(WriteListener listener) {
         if (listener == null) {
@@ -712,15 +696,15 @@ public final class Response {
                 action(ActionCode.DISPATCH_EXECUTE, null);
             }
         }
-    }
+    }*/
 
     public boolean isReady() {
-        if (listener == null) {
+        /*if (listener == null) {
             if (log.isDebugEnabled()) {
                 log.debug(sm.getString("response.notNonBlocking"));
             }
             return false;
-        }
+        }*/
         // Assume write is not possible
         boolean ready = false;
         synchronized (nonBlockingStateLock) {
@@ -757,8 +741,8 @@ public final class Response {
                 fire = true;
             }
         }
-        if (fire) {
+        /*if (fire) {
             listener.onWritePossible();
-        }
+        }*/
     }
 }

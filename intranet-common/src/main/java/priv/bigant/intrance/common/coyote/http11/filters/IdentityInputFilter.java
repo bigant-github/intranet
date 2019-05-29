@@ -17,12 +17,13 @@
 
 package priv.bigant.intrance.common.coyote.http11.filters;
 
-import org.apache.coyote.InputBuffer;
-import org.apache.coyote.Request;
-import org.apache.coyote.http11.InputFilter;
-import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.net.ApplicationBufferHandler;
-import org.apache.tomcat.util.res.StringManager;
+
+import priv.bigant.intrance.common.coyote.InputBuffer;
+import priv.bigant.intrance.common.coyote.Request;
+import priv.bigant.intrance.common.coyote.http11.InputFilter;
+import priv.bigant.intrance.common.util.buf.ByteChunk;
+import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -35,8 +36,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class IdentityInputFilter implements InputFilter, ApplicationBufferHandler {
 
-    private static final StringManager sm = StringManager.getManager(
-            IdentityInputFilter.class.getPackage().getName());
+    private static final StringManager sm = StringManager.getManager(IdentityInputFilter.class.getPackage().getName());
 
 
     // -------------------------------------------------------------- Constants
@@ -93,8 +93,7 @@ public class IdentityInputFilter implements InputFilter, ApplicationBufferHandle
     // ---------------------------------------------------- InputBuffer Methods
 
     /**
-     * @deprecated Unused. Will be removed in Tomcat 9. Use
-     *             {@link #doRead(ApplicationBufferHandler)}
+     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doRead(ApplicationBufferHandler)}
      */
     @Deprecated
     @Override
@@ -110,7 +109,7 @@ public class IdentityInputFilter implements InputFilter, ApplicationBufferHandle
                     // in the body; changing the chunk length to the number
                     // of bytes remaining
                     chunk.setBytes(chunk.getBytes(), chunk.getStart(),
-                                   (int) remaining);
+                            (int) remaining);
                     result = (int) remaining;
                 } else {
                     result = nRead;
@@ -189,7 +188,7 @@ public class IdentityInputFilter implements InputFilter, ApplicationBufferHandle
 
             int nread = buffer.doRead(this);
             tempRead = null;
-            if (nread > 0 ) {
+            if (nread > 0) {
                 swallowed += nread;
                 remaining = remaining - nread;
                 if (maxSwallowSizeExceeded && swallowed > maxSwallowSize) {
@@ -238,8 +237,7 @@ public class IdentityInputFilter implements InputFilter, ApplicationBufferHandle
 
 
     /**
-     * Return the name of the associated encoding; Here, the value is
-     * "identity".
+     * Return the name of the associated encoding; Here, the value is "identity".
      */
     @Override
     public ByteChunk getEncodingName() {

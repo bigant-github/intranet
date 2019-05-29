@@ -16,13 +16,13 @@
  */
 package priv.bigant.intrance.common.util.http.fileupload.util;
 
+import priv.bigant.intrance.common.util.http.fileupload.IOUtils;
+import priv.bigant.intrance.common.util.http.fileupload.InvalidFileNameException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import org.apache.tomcat.util.http.fileupload.IOUtils;
-import org.apache.tomcat.util.http.fileupload.InvalidFileNameException;
 
 /**
  * Utility class for working with streams.

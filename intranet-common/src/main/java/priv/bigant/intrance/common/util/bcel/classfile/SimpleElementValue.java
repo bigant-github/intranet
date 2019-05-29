@@ -17,7 +17,8 @@
  */
 package priv.bigant.intrance.common.util.bcel.classfile;
 
-import org.apache.tomcat.util.bcel.Const;
+
+import priv.bigant.intrance.common.util.bcel.Const;
 
 public class SimpleElementValue extends ElementValue
 {

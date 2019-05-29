@@ -16,18 +16,18 @@
  */
 package priv.bigant.intrance.common.util.descriptor.web;
 
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.tomcat.util.res.StringManager;
-
 
 /**
- * Representation of a servlet definition for a web application, as represented
- * in a <code>&lt;servlet&gt;</code> element in the deployment descriptor.
+ * Representation of a servlet definition for a web application, as represented in a <code>&lt;servlet&gt;</code>
+ * element in the deployment descriptor.
  */
 
 public class ServletDef implements Serializable {
@@ -35,7 +35,7 @@ public class ServletDef implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final StringManager sm =
-        StringManager.getManager(Constants.PACKAGE_NAME);
+            StringManager.getManager(Constants.PACKAGE_NAME);
 
     // ------------------------------------------------------------- Properties
 
@@ -96,8 +96,7 @@ public class ServletDef implements Serializable {
 
 
     /**
-     * The name of this servlet, which must be unique among the servlets
-     * defined for a particular web application.
+     * The name of this servlet, which must be unique among the servlets defined for a particular web application.
      */
     private String servletName = null;
 
@@ -143,8 +142,7 @@ public class ServletDef implements Serializable {
 
 
     /**
-     * The set of initialization parameters for this servlet, keyed by
-     * parameter name.
+     * The set of initialization parameters for this servlet, keyed by parameter name.
      */
     private final Map<String, String> parameters = new HashMap<>();
 
@@ -155,10 +153,9 @@ public class ServletDef implements Serializable {
     }
 
     /**
-     * Add an initialization parameter to the set of parameters associated
-     * with this servlet.
+     * Add an initialization parameter to the set of parameters associated with this servlet.
      *
-     * @param name The initialisation parameter name
+     * @param name  The initialisation parameter name
      * @param value The initialisation parameter value
      */
     public void addInitParameter(String name, String value) {
@@ -210,8 +207,8 @@ public class ServletDef implements Serializable {
     }
 
     /**
-     * Add a security-role-ref to the set of security-role-refs associated
-     * with this servlet.
+     * Add a security-role-ref to the set of security-role-refs associated with this servlet.
+     *
      * @param securityRoleRef The security role
      */
     public void addSecurityRoleRef(SecurityRoleRef securityRoleRef) {

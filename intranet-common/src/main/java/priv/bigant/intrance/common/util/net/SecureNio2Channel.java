@@ -16,6 +16,15 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.buf.ByteBufferUtils;
+import priv.bigant.intrance.common.util.compat.JreCompat;
+import priv.bigant.intrance.common.util.net.TLSClientHelloExtractor.ExtractorResult;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.Cipher;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -35,20 +44,13 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.buf.ByteBufferUtils;
-import org.apache.tomcat.util.compat.JreCompat;
-import org.apache.tomcat.util.net.TLSClientHelloExtractor.ExtractorResult;
-import org.apache.tomcat.util.net.openssl.ciphers.Cipher;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * Implementation of a secure socket channel for NIO2.
  */
 public class SecureNio2Channel extends Nio2Channel  {
 
-    private static final Log log = LogFactory.getLog(SecureNio2Channel.class);
+    private static final Logger log = LoggerFactory.getLogger(SecureNio2Channel.class);
     private static final StringManager sm = StringManager.getManager(SecureNio2Channel.class);
 
     // Value determined by observation of what the SSL Engine requested in

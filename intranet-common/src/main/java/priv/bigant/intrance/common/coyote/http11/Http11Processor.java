@@ -19,7 +19,6 @@ package priv.bigant.intrance.common.coyote.http11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.HttpServletResponse;
-import priv.bigant.intrance.common.StringManager;
 import priv.bigant.intrance.common.coyote.*;
 import priv.bigant.intrance.common.coyote.http11.filters.*;
 import priv.bigant.intrance.common.coyote.http11.upgrade.InternalHttpUpgradeHandler;
@@ -28,11 +27,13 @@ import priv.bigant.intrance.common.util.buf.Ascii;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
 import priv.bigant.intrance.common.util.http.FastHttpDateFormat;
+import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.parser.HttpParser;
 import priv.bigant.intrance.common.util.log.UserDataHelper;
 import priv.bigant.intrance.common.util.net.*;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
+import priv.bigant.intrance.common.util.res.StringManager;
 
-import javax.xml.soap.MimeHeaders;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
@@ -472,8 +473,7 @@ public class Http11Processor extends AbstractProcessor {
     private boolean isCompressible() {
 
         // Check if content is not already gzipped
-        MessageBytes contentEncodingMB =
-                response.getMimeHeaders().getValue("Content-Encoding");
+        MessageBytes contentEncodingMB = response.getMimeHeaders().getValue("Content-Encoding");
 
         if ((contentEncodingMB != null)
                 && (contentEncodingMB.indexOf("gzip") != -1)) {
@@ -622,13 +622,12 @@ public class Http11Processor extends AbstractProcessor {
     @Override
     public AbstractEndpoint.Handler.SocketState service(SocketWrapperBase<?> socketWrapper) throws IOException {
         RequestInfo rp = request.getRequestProcessor();
-        rp.setStage(Constants.STAGE_PARSE);
+        rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_PARSE);
 
         // Setting up the I/O
         setSocketWrapper(socketWrapper);
         inputBuffer.init(socketWrapper);
         outputBuffer.init(socketWrapper);
-
         // Flags
         keepAlive = true;
         openSocket = false;
@@ -717,8 +716,8 @@ public class Http11Processor extends AbstractProcessor {
                         getAdapter().log(request, response, 0);
 
                         InternalHttpUpgradeHandler upgradeHandler = upgradeProtocol.getInternalUpgradeHandler(getAdapter(), cloneRequest(request));
-                        UpgradeToken upgradeToken = new UpgradeToken(upgradeHandler, null, null);
-                        action(ActionCode.UPGRADE, upgradeToken);
+                        //UpgradeToken upgradeToken = new UpgradeToken(upgradeHandler, null, null);
+                        //action(ActionCode.UPGRADE, upgradeToken);
                         return SocketState.UPGRADING;
                     }
                 }
@@ -726,7 +725,7 @@ public class Http11Processor extends AbstractProcessor {
 
             if (getErrorState().isIoAllowed()) {
                 // Setting up filters, and parse some request headers
-                rp.setStage(org.apache.coyote.Constants.STAGE_PREPARE);
+                rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_PREPARE);
                 try {
                     prepareRequest();
                 } catch (Throwable t) {
@@ -749,7 +748,7 @@ public class Http11Processor extends AbstractProcessor {
             // Process the request in the adapter
             if (getErrorState().isIoAllowed()) {
                 try {
-                    rp.setStage(org.apache.coyote.Constants.STAGE_SERVICE);
+                    rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_SERVICE);
                     getAdapter().service(request, response);
                     // Handle when the response was committed before a serious
                     // error occurred.  Throwing a ServletException should both
@@ -784,14 +783,14 @@ public class Http11Processor extends AbstractProcessor {
             }
 
             // Finish the handling of the request
-            rp.setStage(org.apache.coyote.Constants.STAGE_ENDINPUT);
+            rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_ENDINPUT);
             if (!isAsync()) {
                 // If this is an async request then the request ends when it has
                 // been completed. The AsyncContext is responsible for calling
                 // endRequest() in that case.
                 endRequest();
             }
-            rp.setStage(org.apache.coyote.Constants.STAGE_ENDOUTPUT);
+            rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_ENDOUTPUT);
 
             // If there was an error, make sure the request is counted as
             // and error, and update the statistics counter
@@ -816,15 +815,15 @@ public class Http11Processor extends AbstractProcessor {
                 }
             }
 
-            rp.setStage(org.apache.coyote.Constants.STAGE_KEEPALIVE);
+            rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_KEEPALIVE);
 
             sendfileState = processSendfile(socketWrapper);
         }
 
-        rp.setStage(org.apache.coyote.Constants.STAGE_ENDED);
+        rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_ENDED);
 
         if (getErrorState().isError() || endpoint.isPaused()) {
-            return SocketState.CLOSED;
+            return AbstractEndpoint.Handler.SocketState.CLOSED;
         } else if (isAsync()) {
             return SocketState.LONG;
         } else if (isUpgrade()) {
@@ -1361,17 +1360,15 @@ public class Http11Processor extends AbstractProcessor {
 
     private void prepareSendfile(OutputFilter[] outputFilters) {
         String fileName = (String) request.getAttribute(
-                org.apache.coyote.Constants.SENDFILE_FILENAME_ATTR);
+                priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILENAME_ATTR);
         if (fileName == null) {
             sendfileData = null;
         } else {
             // No entity body sent here
             outputBuffer.addActiveFilter(outputFilters[Constants.VOID_FILTER]);
             contentDelimitation = true;
-            long pos = ((Long) request.getAttribute(
-                    org.apache.coyote.Constants.SENDFILE_FILE_START_ATTR)).longValue();
-            long end = ((Long) request.getAttribute(
-                    org.apache.coyote.Constants.SENDFILE_FILE_END_ATTR)).longValue();
+            long pos = (Long) request.getAttribute(priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILE_START_ATTR);
+            long end = (Long) request.getAttribute(priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILE_END_ATTR);
             sendfileData = socketWrapper.createSendfileData(fileName, pos, end - pos);
         }
     }

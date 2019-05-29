@@ -17,6 +17,16 @@
 
 package priv.bigant.intrance.common.util.net.jsse;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.net.SSLSessionManager;
+import priv.bigant.intrance.common.util.net.SSLSupport;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.Cipher;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
+import javax.net.ssl.SSLSession;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.Certificate;
@@ -24,35 +34,23 @@ import java.security.cert.CertificateFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.net.ssl.SSLSession;
-
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.SSLSessionManager;
-import org.apache.tomcat.util.net.SSLSupport;
-import org.apache.tomcat.util.net.openssl.ciphers.Cipher;
-import org.apache.tomcat.util.res.StringManager;
-
-/** JSSESupport
-
-   Concrete implementation class for JSSE
-   Support classes.
-
-   This will only work with JDK 1.2 and up since it
-   depends on JDK 1.2's certificate support
-
-   @author EKR
-   @author Craig R. McClanahan
-   Parts cribbed from JSSECertCompat
-   Parts cribbed from CertificatesValve
-*/
+/**
+ * JSSESupport
+ * <p>
+ * Concrete implementation class for JSSE Support classes.
+ * <p>
+ * This will only work with JDK 1.2 and up since it depends on JDK 1.2's certificate support
+ *
+ * @author EKR
+ * @author Craig R. McClanahan Parts cribbed from JSSECertCompat Parts cribbed from CertificatesValve
+ */
 public class JSSESupport implements SSLSupport, SSLSessionManager {
 
-    private static final Log log = LogFactory.getLog(JSSESupport.class);
+    private static final Logger log = LoggerFactory.getLogger(JSSESupport.class);
 
     private static final StringManager sm = StringManager.getManager(JSSESupport.class);
 
-    private static final Map<String,Integer> keySizeCache = new HashMap<>();
+    private static final Map<String, Integer> keySizeCache = new HashMap<>();
 
     static {
         for (Cipher cipher : Cipher.values()) {
@@ -92,40 +90,40 @@ public class JSSESupport implements SSLSupport, SSLSessionManager {
         if (session == null)
             return null;
 
-        Certificate [] certs=null;
+        Certificate[] certs = null;
         try {
             certs = session.getPeerCertificates();
-        } catch( Throwable t ) {
+        } catch (Throwable t) {
             log.debug(sm.getString("jsseSupport.clientCertError"), t);
             return null;
         }
-        if( certs==null ) return null;
+        if (certs == null) return null;
 
-        java.security.cert.X509Certificate [] x509Certs =
-            new java.security.cert.X509Certificate[certs.length];
-        for(int i=0; i < certs.length; i++) {
-            if (certs[i] instanceof java.security.cert.X509Certificate ) {
+        java.security.cert.X509Certificate[] x509Certs =
+                new java.security.cert.X509Certificate[certs.length];
+        for (int i = 0; i < certs.length; i++) {
+            if (certs[i] instanceof java.security.cert.X509Certificate) {
                 // always currently true with the JSSE 1.1.x
                 x509Certs[i] = (java.security.cert.X509Certificate) certs[i];
             } else {
                 try {
-                    byte [] buffer = certs[i].getEncoded();
+                    byte[] buffer = certs[i].getEncoded();
                     CertificateFactory cf =
-                        CertificateFactory.getInstance("X.509");
+                            CertificateFactory.getInstance("X.509");
                     ByteArrayInputStream stream =
-                        new ByteArrayInputStream(buffer);
+                            new ByteArrayInputStream(buffer);
                     x509Certs[i] = (java.security.cert.X509Certificate)
                             cf.generateCertificate(stream);
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     log.info(sm.getString(
                             "jseeSupport.certTranslationError", certs[i]), ex);
                     return null;
                 }
             }
-            if(log.isTraceEnabled())
+            if (log.isTraceEnabled())
                 log.trace("Cert #" + i + " = " + x509Certs[i]);
         }
-        if(x509Certs.length < 1)
+        if (x509Certs.length < 1)
             return null;
         return x509Certs;
     }
@@ -148,19 +146,19 @@ public class JSSESupport implements SSLSupport, SSLSessionManager {
 
     @Override
     public String getSessionId()
-        throws IOException {
+            throws IOException {
         // Look up the current SSLSession
         if (session == null)
             return null;
         // Expose ssl_session (getId)
-        byte [] ssl_session = session.getId();
-        if ( ssl_session == null)
+        byte[] ssl_session = session.getId();
+        if (ssl_session == null)
             return null;
-        StringBuilder buf=new StringBuilder();
-        for(int x=0; x<ssl_session.length; x++) {
-            String digit=Integer.toHexString(ssl_session[x]);
-            if (digit.length()<2) buf.append('0');
-            if (digit.length()>2) digit=digit.substring(digit.length()-2);
+        StringBuilder buf = new StringBuilder();
+        for (int x = 0; x < ssl_session.length; x++) {
+            String digit = Integer.toHexString(ssl_session[x]);
+            if (digit.length() < 2) buf.append('0');
+            if (digit.length() > 2) digit = digit.substring(digit.length() - 2);
             buf.append(digit);
         }
         return buf.toString();
@@ -183,9 +181,9 @@ public class JSSESupport implements SSLSupport, SSLSessionManager {
     @Override
     public String getProtocol() throws IOException {
         if (session == null) {
-           return null;
+            return null;
         }
-       return session.getProtocol();
-   }
+        return session.getProtocol();
+    }
 }
 

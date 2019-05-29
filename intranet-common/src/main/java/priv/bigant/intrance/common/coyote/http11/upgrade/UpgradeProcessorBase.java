@@ -16,13 +16,13 @@
  */
 package priv.bigant.intrance.common.coyote.http11.upgrade;
 
-import org.apache.coyote.AbstractProcessorLight;
-import org.apache.coyote.Request;
-import org.apache.coyote.UpgradeToken;
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
-import org.apache.tomcat.util.net.SocketWrapperBase;
+import priv.bigant.intrance.common.coyote.AbstractProcessorLight;
+import priv.bigant.intrance.common.coyote.Request;
+import priv.bigant.intrance.common.coyote.UpgradeToken;
+import priv.bigant.intrance.common.coyote.http11.servlet.http.WebConnection;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 
-import javax.servlet.http.WebConnection;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 

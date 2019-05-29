@@ -17,12 +17,13 @@
  */
 package priv.bigant.intrance.common.util.bcel.classfile;
 
+import priv.bigant.intrance.common.util.bcel.Const;
+
 import java.io.DataInput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.tomcat.util.bcel.Const;
 
 /**
  * represents one annotation in the annotation table

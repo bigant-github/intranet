@@ -16,20 +16,17 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-import org.apache.juli.logging.Log;
-import org.apache.tomcat.InstanceManager;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.collections.SynchronizedStack;
-import org.apache.tomcat.util.modeler.Registry;
-import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler;
-import org.apache.tomcat.util.net.SocketEvent;
-import org.apache.tomcat.util.net.SocketWrapperBase;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.collections.SynchronizedStack;
+import priv.bigant.intrance.common.util.modeler.Registry;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler;
+import priv.bigant.intrance.common.util.net.SocketEvent;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 import javax.management.*;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.WebConnection;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -477,7 +474,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
      *
      * @return the logger
      */
-    protected abstract Log getLog();
+    protected abstract Logger getLog();
 
 
     /**
@@ -719,7 +716,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
 
     // ------------------------------------------- Connection handler base class
 
-    protected static class ConnectionHandler<S> implements AbstractEndpoint.Handler<S> {
+    protected static class ConnectionHandler<S> implements Handler<S> {
 
         private final AbstractProtocol<S> proto;
         private final RequestGroupInfo global = new RequestGroupInfo();
@@ -735,7 +732,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
             return proto;
         }
 
-        protected Log getLog() {
+        protected Logger getLog() {
             return getProtocol().getLog();
         }
 
@@ -862,7 +859,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                                 return SocketState.CLOSED;
                             }
                         } else {
-                            HttpUpgradeHandler httpUpgradeHandler = upgradeToken.getHttpUpgradeHandler();
+                            //TODO HttpUpgradeHandler httpUpgradeHandler = upgradeToken.getHttpUpgradeHandler();
                             // Release the Http11 processor to be re-used
                             release(processor);
                             // Create the upgrade processor
@@ -881,7 +878,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                             // This cast should be safe. If it fails the error
                             // handling for the surrounding try/catch will deal with
                             // it.
-                            if (upgradeToken.getInstanceManager() == null) {
+                            /* TODO if (upgradeToken.getInstanceManager() == null) {
                                 httpUpgradeHandler.init((WebConnection) processor);
                             } else {
                                 ClassLoader oldCL = upgradeToken.getContextBind().bind(false, null);
@@ -890,7 +887,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                                 } finally {
                                     upgradeToken.getContextBind().unbind(false, oldCL);
                                 }
-                            }
+                            }*/
                         }
                     }
                 } while (state == SocketState.UPGRADING);
@@ -932,7 +929,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                     // processors are not recycled.
                     connections.remove(socket);
                     if (processor.isUpgrade()) {
-                        UpgradeToken upgradeToken = processor.getUpgradeToken();
+                        /* TODO UpgradeToken upgradeToken = processor.getUpgradeToken();
                         HttpUpgradeHandler httpUpgradeHandler = upgradeToken.getHttpUpgradeHandler();
                         InstanceManager instanceManager = upgradeToken.getInstanceManager();
                         if (instanceManager == null) {
@@ -950,7 +947,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                                 }
                                 upgradeToken.getContextBind().unbind(false, oldCL);
                             }
-                        }
+                        }*/
                     } else {
                         release(processor);
                     }

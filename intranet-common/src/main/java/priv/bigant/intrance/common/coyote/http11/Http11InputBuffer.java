@@ -675,8 +675,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         wrapper = socketWrapper;
         wrapper.setAppReadBufHandler(this);
 
-        int bufLength = headerBufferSize +
-                wrapper.getSocketBufferHandler().getReadBuffer().capacity();
+        int bufLength = headerBufferSize + wrapper.getSocketBufferHandler().getReadBuffer().capacity();
         if (byteBuffer == null || byteBuffer.capacity() < bufLength) {
             byteBuffer = ByteBuffer.allocate(bufLength);
             byteBuffer.position(0).limit(0);
@@ -814,9 +813,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         // Reading the header value (which can be spanned over multiple lines)
         //
 
-        while (headerParsePos == HeaderParsePosition.HEADER_VALUE_START ||
-                headerParsePos == HeaderParsePosition.HEADER_VALUE ||
-                headerParsePos == HeaderParsePosition.HEADER_MULTI_LINE) {
+        while (headerParsePos == HeaderParsePosition.HEADER_VALUE_START || headerParsePos == HeaderParsePosition.HEADER_VALUE || headerParsePos == HeaderParsePosition.HEADER_MULTI_LINE) {
 
             if (headerParsePos == HeaderParsePosition.HEADER_VALUE_START) {
                 // Skipping spaces

@@ -19,8 +19,8 @@
 package priv.bigant.intrance.common.util.digester;
 
 
-import org.apache.tomcat.util.IntrospectionUtils;
 import org.xml.sax.Attributes;
+import priv.bigant.intrance.common.util.IntrospectionUtils;
 
 
 /**

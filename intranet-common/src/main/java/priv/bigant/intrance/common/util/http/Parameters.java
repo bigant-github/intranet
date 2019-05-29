@@ -26,26 +26,24 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import priv.bigant.intrance.common.util.buf.B2CConverter;
-import priv.bigant.intrance.common.util.buf.ByteChunk;
-import priv.bigant.intrance.common.util.buf.MessageBytes;
-import priv.bigant.intrance.common.util.buf.UDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.buf.*;
 import priv.bigant.intrance.common.util.log.UserDataHelper;
-import sun.rmi.runtime.Log;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 /**
  * @author Costin Manolache
  */
 public final class Parameters {
 
-    private static final Log log = LogFactory.getLog(Parameters.class);
+    private static final Logger log = LoggerFactory.getLogger(Parameters.class);
 
     private static final UserDataHelper userDataLog = new UserDataHelper(log);
 
     private static final UserDataHelper maxParamCountLog = new UserDataHelper(log);
 
-    private static final StringManager sm =
-            StringManager.getManager("org.apache.tomcat.util.http");
+    private static final StringManager sm = StringManager.getManager("org.apache.tomcat.util.http");
 
     private final Map<String, ArrayList<String>> paramHashValues =
             new LinkedHashMap<>();

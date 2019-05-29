@@ -18,6 +18,10 @@
 package priv.bigant.intrance.common.coyote;
 
 
+import priv.bigant.intrance.common.ContextBind;
+import priv.bigant.intrance.common.InstanceManager;
+import priv.bigant.intrance.common.coyote.http11.servlet.http.HttpUpgradeHandler;
+
 /**
  * Token used during the upgrade process.
  */
@@ -28,7 +32,7 @@ public final class UpgradeToken {
     private final InstanceManager instanceManager;
 
     public UpgradeToken(HttpUpgradeHandler httpUpgradeHandler,
-            ContextBind contextBind, InstanceManager instanceManager) {
+                        ContextBind contextBind, InstanceManager instanceManager) {
         this.contextBind = contextBind;
         this.httpUpgradeHandler = httpUpgradeHandler;
         this.instanceManager = instanceManager;

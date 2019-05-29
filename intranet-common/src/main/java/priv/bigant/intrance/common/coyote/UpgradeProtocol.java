@@ -16,7 +16,6 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-
 import priv.bigant.intrance.common.coyote.http11.upgrade.InternalHttpUpgradeHandler;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 

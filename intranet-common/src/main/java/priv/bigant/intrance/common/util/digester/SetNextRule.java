@@ -18,8 +18,8 @@
 
 package priv.bigant.intrance.common.util.digester;
 
-import org.apache.tomcat.util.IntrospectionUtils;
 
+import priv.bigant.intrance.common.util.IntrospectionUtils;
 
 /**
  * <p>Rule implementation that calls a method on the (top-1) (parent)

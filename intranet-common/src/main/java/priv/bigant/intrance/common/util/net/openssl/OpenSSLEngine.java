@@ -16,6 +16,19 @@
  */
 package priv.bigant.intrance.common.util.net.openssl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.jni.Buffer;
+import priv.bigant.intrance.common.jni.Pool;
+import priv.bigant.intrance.common.jni.SSL;
+import priv.bigant.intrance.common.jni.SSLContext;
+import priv.bigant.intrance.common.util.buf.ByteBufferUtils;
+import priv.bigant.intrance.common.util.net.Constants;
+import priv.bigant.intrance.common.util.net.SSLUtil;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.OpenSSLCipherConfigurationParser;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import java.nio.ByteBuffer;
 import java.nio.ReadOnlyBufferException;
 import java.security.Principal;
@@ -38,17 +51,7 @@ import javax.net.ssl.SSLSessionBindingEvent;
 import javax.net.ssl.SSLSessionBindingListener;
 import javax.net.ssl.SSLSessionContext;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.jni.Buffer;
-import org.apache.tomcat.jni.Pool;
-import org.apache.tomcat.jni.SSL;
-import org.apache.tomcat.jni.SSLContext;
-import org.apache.tomcat.util.buf.ByteBufferUtils;
-import org.apache.tomcat.util.net.Constants;
-import org.apache.tomcat.util.net.SSLUtil;
-import org.apache.tomcat.util.net.openssl.ciphers.OpenSSLCipherConfigurationParser;
-import org.apache.tomcat.util.res.StringManager;
+
 
 /**
  * Implements a {@link SSLEngine} using
@@ -57,7 +60,7 @@ import org.apache.tomcat.util.res.StringManager;
  */
 public final class OpenSSLEngine extends SSLEngine implements SSLUtil.ProtocolInfo {
 
-    private static final Log logger = LogFactory.getLog(OpenSSLEngine.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpenSSLEngine.class);
     private static final StringManager sm = StringManager.getManager(OpenSSLEngine.class);
 
     private static final Certificate[] EMPTY_CERTIFICATES = new Certificate[0];

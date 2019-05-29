@@ -16,7 +16,8 @@
  */
 package priv.bigant.intrance.common.util.net.openssl;
 
-import org.apache.tomcat.jni.SSLContext;
+
+import priv.bigant.intrance.common.jni.SSLContext;
 
 /**
  * Stats exposed by an OpenSSL session context.

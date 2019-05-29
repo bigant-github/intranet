@@ -16,14 +16,14 @@
  */
 package priv.bigant.intrance.common.util.descriptor.web;
 
+import priv.bigant.intrance.common.util.buf.UDecoder;
+
 import java.io.Serializable;
 
-import org.apache.tomcat.util.buf.UDecoder;
 
 /**
- * Representation of an error page element for a web application,
- * as represented in a <code>&lt;error-page&gt;</code> element in the
- * deployment descriptor.
+ * Representation of an error page element for a web application, as represented in a <code>&lt;error-page&gt;</code>
+ * element in the deployment descriptor.
  *
  * @author Craig R. McClanahan
  */
@@ -35,8 +35,8 @@ public class ErrorPage implements Serializable {
 
 
     /**
-     * The error (status) code for which this error page is active. Note that
-     * status code 0 is used for the default error page.
+     * The error (status) code for which this error page is active. Note that status code 0 is used for the default
+     * error page.
      */
     private int errorCode = 0;
 

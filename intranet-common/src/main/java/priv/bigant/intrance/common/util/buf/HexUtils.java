@@ -16,7 +16,7 @@
  */
 package priv.bigant.intrance.common.util.buf;
 
-import org.apache.tomcat.util.res.StringManager;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 /**
  * Tables useful when converting byte arrays to and from strings of hexadecimal

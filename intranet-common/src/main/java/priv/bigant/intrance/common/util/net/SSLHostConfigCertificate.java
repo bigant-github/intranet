@@ -16,6 +16,11 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.Authentication;
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.KeyStore;
@@ -25,16 +30,12 @@ import java.util.Set;
 import javax.management.ObjectName;
 import javax.net.ssl.X509KeyManager;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
-import org.apache.tomcat.util.res.StringManager;
 
 public class SSLHostConfigCertificate implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Log log = LogFactory.getLog(SSLHostConfigCertificate.class);
+    private static final Logger log = LoggerFactory.getLogger(SSLHostConfigCertificate.class);
     private static final StringManager sm = StringManager.getManager(SSLHostConfigCertificate.class);
 
     public static final Type DEFAULT_TYPE = Type.UNDEFINED;
@@ -60,7 +61,7 @@ public class SSLHostConfigCertificate implements Serializable {
     // JSSE
     private String certificateKeyAlias;
     private String certificateKeystorePassword = "changeit";
-    private String certificateKeystoreFile = System.getProperty("user.home")+"/.keystore";
+    private String certificateKeystoreFile = System.getProperty("user.home") + "/.keystore";
     private String certificateKeystoreProvider = DEFAULT_KEYSTORE_PROVIDER;
     private String certificateKeystoreType = DEFAULT_KEYSTORE_TYPE;
     private transient KeyStore certificateKeystore = null;

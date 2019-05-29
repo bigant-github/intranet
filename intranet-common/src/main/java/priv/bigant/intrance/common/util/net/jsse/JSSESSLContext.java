@@ -17,6 +17,8 @@
 
 package priv.bigant.intrance.common.util.net.jsse;
 
+import priv.bigant.intrance.common.util.net.SSLContext;
+
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,7 +35,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.tomcat.util.net.SSLContext;
 
 class JSSESSLContext implements SSLContext {
 

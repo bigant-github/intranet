@@ -16,6 +16,15 @@
  */
 package priv.bigant.intrance.common.util.net.openssl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.net.SSLContext;
+import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate;
+import priv.bigant.intrance.common.util.net.SSLUtilBase;
+import priv.bigant.intrance.common.util.net.jsse.JSSEKeyManager;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.util.List;
@@ -24,17 +33,10 @@ import java.util.Set;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.X509KeyManager;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.SSLContext;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
-import org.apache.tomcat.util.net.SSLUtilBase;
-import org.apache.tomcat.util.net.jsse.JSSEKeyManager;
-import org.apache.tomcat.util.res.StringManager;
 
 public class OpenSSLUtil extends SSLUtilBase {
 
-    private static final Log log = LogFactory.getLog(OpenSSLUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenSSLUtil.class);
     private static final StringManager sm = StringManager.getManager(OpenSSLContext.class);
 
 
@@ -44,7 +46,7 @@ public class OpenSSLUtil extends SSLUtilBase {
 
 
     @Override
-    protected Log getLog() {
+    protected Logger getLog() {
         return log;
     }
 

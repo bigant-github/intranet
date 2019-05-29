@@ -24,14 +24,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.compat.JreVendor;
-import org.apache.tomcat.util.net.Constants;
-import org.apache.tomcat.util.net.SSLContext;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
-import org.apache.tomcat.util.net.SSLUtilBase;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.compat.JreVendor;
+import priv.bigant.intrance.common.util.net.Constants;
+import priv.bigant.intrance.common.util.net.SSLContext;
+import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate;
+import priv.bigant.intrance.common.util.net.SSLUtilBase;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
 
 /**
  * SSLUtil implementation for JSSE.
@@ -44,7 +45,7 @@ import org.apache.tomcat.util.res.StringManager;
  */
 public class JSSEUtil extends SSLUtilBase {
 
-    private static final Log log = LogFactory.getLog(JSSEUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(JSSEUtil.class);
     private static final StringManager sm = StringManager.getManager(JSSEUtil.class);
 
     private static final Set<String> implementedProtocols;
@@ -54,7 +55,7 @@ public class JSSEUtil extends SSLUtilBase {
         SSLContext context;
         try {
             context = new JSSESSLContext(Constants.SSL_PROTO_TLS);
-            context.init(null,  null,  null);
+            context.init(null, null, null);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             // This is fatal for the connector so throw an exception to prevent
             // it from starting
@@ -104,18 +105,18 @@ public class JSSEUtil extends SSLUtilBase {
     }
 
 
-    public JSSEUtil (SSLHostConfigCertificate certificate) {
+    public JSSEUtil(SSLHostConfigCertificate certificate) {
         this(certificate, true);
     }
 
 
-    public JSSEUtil (SSLHostConfigCertificate certificate, boolean warnOnSkip) {
+    public JSSEUtil(SSLHostConfigCertificate certificate, boolean warnOnSkip) {
         super(certificate, warnOnSkip);
     }
 
 
     @Override
-    protected Log getLog() {
+    protected Logger getLog() {
         return log;
     }
 

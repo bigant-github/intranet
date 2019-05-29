@@ -23,6 +23,7 @@ import priv.bigant.intrance.common.util.buf.UDecoder;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.Parameters;
 import priv.bigant.intrance.common.util.http.ServerCookies;
+import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
@@ -618,7 +619,6 @@ public final class Request {
         authType.recycle();
         attributes.clear();
 
-        listener = null;
         allDataReadEventSent.set(false);
 
         startTime = -1;
@@ -637,9 +637,9 @@ public final class Request {
         return bytesRead;
     }
 
-    public boolean isProcessing() {
+    /*public boolean isProcessing() {
         return reqProcessorMX.getStage() == org.apache.coyote.Constants.STAGE_SERVICE;
-    }
+    }*/
 
     /**
      * Parse the character encoding from the specified content type header. If the content type is null, or there is no
@@ -663,8 +663,7 @@ public final class Request {
             encoding = encoding.substring(0, end);
         }
         encoding = encoding.trim();
-        if ((encoding.length() > 2) && (encoding.startsWith("\""))
-                && (encoding.endsWith("\""))) {
+        if ((encoding.length() > 2) && (encoding.startsWith("\"")) && (encoding.endsWith("\""))) {
             encoding = encoding.substring(1, encoding.length() - 1);
         }
 

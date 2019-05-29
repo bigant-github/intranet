@@ -19,9 +19,8 @@
 package priv.bigant.intrance.common.util.modeler;
 
 
-import java.io.Serializable;
-
 import javax.management.MBeanFeatureInfo;
+import java.io.Serializable;
 
 
 /**

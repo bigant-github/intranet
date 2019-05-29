@@ -16,9 +16,10 @@
  */
 package priv.bigant.intrance.common.util.http;
 
+import priv.bigant.intrance.common.coyote.http11.servlet.http.Cookie;
+
 import java.nio.charset.Charset;
 
-import javax.servlet.http.Cookie;
 
 public interface CookieProcessor {
 
@@ -26,8 +27,7 @@ public interface CookieProcessor {
      * Parse the provided headers into server cookie objects.
      *
      * @param headers       The HTTP headers to parse
-     * @param serverCookies The server cookies object to populate with the
-     *                      results of the parsing
+     * @param serverCookies The server cookies object to populate with the results of the parsing
      */
     void parseCookieHeader(MimeHeaders headers, ServerCookies serverCookies);
 
@@ -35,15 +35,13 @@ public interface CookieProcessor {
      * Generate the {@code Set-Cookie} HTTP header value for the given Cookie.
      *
      * @param cookie The cookie for which the header will be generated
-     *
-     * @return The header value in a form that can be added directly to the
-     *         response
+     * @return The header value in a form that can be added directly to the response
      */
     String generateHeader(Cookie cookie);
 
     /**
-     * Obtain the character set that will be used when converting between bytes
-     * and characters when parsing and/or generating HTTP headers for cookies.
+     * Obtain the character set that will be used when converting between bytes and characters when parsing and/or
+     * generating HTTP headers for cookies.
      *
      * @return The character set used for byte&lt;-&gt;character conversions
      */

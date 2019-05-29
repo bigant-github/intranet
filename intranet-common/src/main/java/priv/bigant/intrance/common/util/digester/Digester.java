@@ -37,13 +37,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.IntrospectionUtils;
-import org.apache.tomcat.util.buf.B2CConverter;
-import org.apache.tomcat.util.res.StringManager;
-import org.apache.tomcat.util.security.PermissionCheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
@@ -57,6 +52,12 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.Locator2;
 import org.xml.sax.helpers.AttributesImpl;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.IntrospectionUtils;
+import priv.bigant.intrance.common.util.buf.B2CConverter;
+import priv.bigant.intrance.common.util.res.StringManager;
+import priv.bigant.intrance.common.util.security.PermissionCheck;
+import sun.rmi.runtime.Log;
 
 
 /**
@@ -98,8 +99,7 @@ public class Digester extends DefaultHandler2 {
                     break;
                 } catch (Throwable t) {
                     ExceptionUtils.handleThrowable(t);
-                    LogFactory.getLog("org.apache.tomcat.util.digester.Digester")
-                            .error("Unable to load property source[" + className + "].", t);
+                    LoggerFactory.getLogger("org.apache.tomcat.util.digester.Digester").error("Unable to load property source[" + className + "].", t);
                 }
             }
         }
@@ -296,12 +296,12 @@ public class Digester extends DefaultHandler2 {
     /**
      * The Log to which most logging calls will be made.
      */
-    protected Log log = LogFactory.getLog(Digester.class);
+    protected Logger log = LoggerFactory.getLogger(Digester.class);
 
     /**
      * The Log to which all SAX event related logging calls will be made.
      */
-    protected Log saxLog = LogFactory.getLog("org.apache.tomcat.util.digester.Digester.sax");
+    protected Logger saxLog = LoggerFactory.getLogger("org.apache.tomcat.util.digester.Digester.sax");
 
 
     public Digester() {
@@ -313,7 +313,7 @@ public class Digester extends DefaultHandler2 {
 
 
     public static void replaceSystemProperties() {
-        Log log = LogFactory.getLog(Digester.class);
+        Logger log = LoggerFactory.getLogger(Digester.class);
         if (propertySource != null) {
             IntrospectionUtils.PropertySource[] propertySources = new IntrospectionUtils.PropertySource[]{propertySource};
             Properties properties = System.getProperties();
@@ -501,7 +501,7 @@ public class Digester extends DefaultHandler2 {
     /**
      * @return the current Logger associated with this instance of the Digester
      */
-    public Log getLogger() {
+    public Logger getLogger() {
 
         return log;
 
@@ -513,7 +513,7 @@ public class Digester extends DefaultHandler2 {
      *
      * @param log The logger that will be used
      */
-    public void setLogger(Log log) {
+    public void setLogger(Logger log) {
 
         this.log = log;
 
@@ -526,7 +526,7 @@ public class Digester extends DefaultHandler2 {
      * @return the SAX logger
      * @since 1.6
      */
-    public Log getSAXLogger() {
+    public Logger getSAXLogger() {
 
         return saxLog;
     }
@@ -539,7 +539,7 @@ public class Digester extends DefaultHandler2 {
      * @param saxLog Log, not null
      * @since 1.6
      */
-    public void setSAXLogger(Log saxLog) {
+    public void setSAXLogger(Logger saxLog) {
 
         this.saxLog = saxLog;
     }
@@ -1812,9 +1812,8 @@ public class Digester extends DefaultHandler2 {
         if (configured) {
             return;
         }
-
-        log = LogFactory.getLog("org.apache.tomcat.util.digester.Digester");
-        saxLog = LogFactory.getLog("org.apache.tomcat.util.digester.Digester.sax");
+        log = LoggerFactory.getLogger("org.apache.tomcat.util.digester.Digester");
+        saxLog = LoggerFactory.getLogger("org.apache.tomcat.util.digester.Digester.sax");
 
         // Set the configuration flag to avoid repeating
         configured = true;

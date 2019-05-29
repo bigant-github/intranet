@@ -16,15 +16,16 @@
  */
 package priv.bigant.intrance.common.util.net.openssl;
 
+import priv.bigant.intrance.common.jni.SSL;
+import priv.bigant.intrance.common.jni.SSLContext;
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
 
-import org.apache.tomcat.jni.SSL;
-import org.apache.tomcat.jni.SSLContext;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * OpenSSL specific {@link SSLSessionContext} implementation.

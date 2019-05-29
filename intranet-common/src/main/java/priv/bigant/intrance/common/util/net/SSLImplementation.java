@@ -17,34 +17,31 @@
 
 package priv.bigant.intrance.common.util.net;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.net.jsse.JSSEImplementation;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import javax.net.ssl.SSLSession;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.jsse.JSSEImplementation;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
- * Provides a factory and base implementation for the Tomcat specific mechanism
- * that allows alternative SSL/TLS implementations to be used without requiring
- * the implementation of a full JSSE provider.
+ * Provides a factory and base implementation for the Tomcat specific mechanism that allows alternative SSL/TLS
+ * implementations to be used without requiring the implementation of a full JSSE provider.
  */
 public abstract class SSLImplementation {
 
-    private static final Log logger = LogFactory.getLog(SSLImplementation.class);
+    private static final Logger logger = LoggerFactory.getLogger(SSLImplementation.class);
     private static final StringManager sm = StringManager.getManager(SSLImplementation.class);
 
     /**
-     * Obtain an instance (not a singleton) of the implementation with the given
-     * class name.
+     * Obtain an instance (not a singleton) of the implementation with the given class name.
      *
-     * @param className The class name of the required implementation or null to
-     *                  use the default (currently {@link JSSEImplementation}.
-     *
+     * @param className The class name of the required implementation or null to use the default (currently {@link
+     *                  JSSEImplementation}.
      * @return An instance of the required implementation
-     *
-     * @throws ClassNotFoundException If an instance of the requested class
-     *         cannot be created
+     * @throws ClassNotFoundException If an instance of the requested class cannot be created
      */
     public static SSLImplementation getInstance(String className)
             throws ClassNotFoundException {

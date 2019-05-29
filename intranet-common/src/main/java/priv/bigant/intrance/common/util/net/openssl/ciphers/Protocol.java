@@ -17,7 +17,8 @@
 
 package priv.bigant.intrance.common.util.net.openssl.ciphers;
 
-import org.apache.tomcat.util.net.Constants;
+
+import priv.bigant.intrance.common.util.net.Constants;
 
 enum Protocol {
 

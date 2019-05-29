@@ -16,9 +16,10 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-import org.apache.tomcat.util.buf.MessageBytes;
-import org.apache.tomcat.util.http.MimeHeaders;
-import org.apache.tomcat.util.http.ResponseUtil;
+
+import priv.bigant.intrance.common.util.buf.MessageBytes;
+import priv.bigant.intrance.common.util.http.MimeHeaders;
+import priv.bigant.intrance.common.util.http.ResponseUtil;
 
 import java.util.ArrayList;
 import java.util.List;

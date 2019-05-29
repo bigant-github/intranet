@@ -16,12 +16,13 @@
  */
 package priv.bigant.intrance.common.util.codec.binary;
 
-import org.apache.tomcat.util.buf.HexUtils;
-import org.apache.tomcat.util.codec.BinaryDecoder;
-import org.apache.tomcat.util.codec.BinaryEncoder;
-import org.apache.tomcat.util.codec.DecoderException;
-import org.apache.tomcat.util.codec.EncoderException;
-import org.apache.tomcat.util.res.StringManager;
+
+import priv.bigant.intrance.common.util.buf.HexUtils;
+import priv.bigant.intrance.common.util.codec.BinaryDecoder;
+import priv.bigant.intrance.common.util.codec.BinaryEncoder;
+import priv.bigant.intrance.common.util.codec.DecoderException;
+import priv.bigant.intrance.common.util.codec.EncoderException;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 /**
  * Abstract superclass for Base-N encoders and decoders.

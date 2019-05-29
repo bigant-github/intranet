@@ -19,11 +19,10 @@
 package priv.bigant.intrance.common.util.modeler;
 
 
-import java.util.HashSet;
-
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
 import javax.management.NotificationFilter;
+import java.util.HashSet;
 
 
 /**

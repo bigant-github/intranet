@@ -16,13 +16,14 @@
  */
 package priv.bigant.intrance.common.util.net.openssl;
 
+import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate;
+import priv.bigant.intrance.common.util.net.SSLImplementation;
+import priv.bigant.intrance.common.util.net.SSLSupport;
+import priv.bigant.intrance.common.util.net.SSLUtil;
+import priv.bigant.intrance.common.util.net.jsse.JSSESupport;
+
 import javax.net.ssl.SSLSession;
 
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
-import org.apache.tomcat.util.net.SSLImplementation;
-import org.apache.tomcat.util.net.SSLSupport;
-import org.apache.tomcat.util.net.SSLUtil;
-import org.apache.tomcat.util.net.jsse.JSSESupport;
 
 public class OpenSSLImplementation extends SSLImplementation {
 

@@ -16,23 +16,24 @@
  */
 package priv.bigant.intrance.common.coyote.http11.upgrade;
 
-import org.apache.coyote.UpgradeToken;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
-import org.apache.tomcat.util.net.SSLSupport;
-import org.apache.tomcat.util.net.SocketEvent;
-import org.apache.tomcat.util.net.SocketWrapperBase;
-import org.apache.tomcat.util.res.StringManager;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.coyote.UpgradeToken;
+import priv.bigant.intrance.common.coyote.http11.servlet.ServletInputStream;
+import priv.bigant.intrance.common.coyote.http11.servlet.ServletOutputStream;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
+import priv.bigant.intrance.common.util.net.SSLSupport;
+import priv.bigant.intrance.common.util.net.SocketEvent;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
 import java.io.IOException;
 
 public class UpgradeProcessorExternal extends UpgradeProcessorBase {
 
-    private static final Log log = LogFactory.getLog(UpgradeProcessorExternal.class);
+    private static final Logger log = LoggerFactory.getLogger(UpgradeProcessorExternal.class);
     private static final StringManager sm = StringManager.getManager(UpgradeProcessorExternal.class);
 
     private final UpgradeServletInputStream upgradeServletInputStream;
@@ -40,7 +41,7 @@ public class UpgradeProcessorExternal extends UpgradeProcessorBase {
 
 
     public UpgradeProcessorExternal(SocketWrapperBase<?> wrapper,
-            UpgradeToken upgradeToken) {
+                                    UpgradeToken upgradeToken) {
         super(upgradeToken);
         this.upgradeServletInputStream = new UpgradeServletInputStream(this, wrapper);
         this.upgradeServletOutputStream = new UpgradeServletOutputStream(this, wrapper);

@@ -16,11 +16,11 @@
  */
 package priv.bigant.intrance.common.util.compat;
 
+import priv.bigant.intrance.common.util.net.Constants;
+
 import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLContext;
-
-import org.apache.tomcat.util.net.Constants;
 
 /**
  * This class checks for the availability of TLS features.

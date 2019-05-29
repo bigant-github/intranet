@@ -16,6 +16,8 @@
  */
 package priv.bigant.intrance.common.util.collections;
 
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.HashMap;
@@ -24,7 +26,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * A Map implementation that uses case-insensitive (using {@link

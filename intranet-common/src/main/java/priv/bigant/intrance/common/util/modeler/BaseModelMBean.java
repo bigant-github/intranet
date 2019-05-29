@@ -19,35 +19,15 @@
 package priv.bigant.intrance.common.util.modeler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.management.*;
+import javax.management.modelmbean.InvalidTargetObjectTypeException;
+import javax.management.modelmbean.ModelMBeanNotificationBroadcaster;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
-
-import javax.management.Attribute;
-import javax.management.AttributeChangeNotification;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.DynamicMBean;
-import javax.management.InstanceNotFoundException;
-import javax.management.InvalidAttributeValueException;
-import javax.management.ListenerNotFoundException;
-import javax.management.MBeanException;
-import javax.management.MBeanInfo;
-import javax.management.MBeanNotificationInfo;
-import javax.management.MBeanRegistration;
-import javax.management.MBeanServer;
-import javax.management.Notification;
-import javax.management.NotificationFilter;
-import javax.management.NotificationListener;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
-import javax.management.RuntimeErrorException;
-import javax.management.RuntimeOperationsException;
-import javax.management.modelmbean.InvalidTargetObjectTypeException;
-import javax.management.modelmbean.ModelMBeanNotificationBroadcaster;
-
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 
 /*
  * Changes from commons.modeler:
@@ -100,10 +80,9 @@ import org.apache.juli.logging.LogFactory;
  * @author Craig R. McClanahan
  * @author Costin Manolache
  */
-public class BaseModelMBean implements DynamicMBean, MBeanRegistration,
-        ModelMBeanNotificationBroadcaster {
+public class BaseModelMBean implements DynamicMBean, MBeanRegistration,  ModelMBeanNotificationBroadcaster {
 
-    private static final Log log = LogFactory.getLog(BaseModelMBean.class);
+    private static final Logger log = LoggerFactory.getLogger(BaseModelMBean.class);
 
     // ----------------------------------------------------- Instance Variables
 

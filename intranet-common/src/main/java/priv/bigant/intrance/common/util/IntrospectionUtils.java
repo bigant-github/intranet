@@ -17,14 +17,16 @@
 
 package priv.bigant.intrance.common.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.rmi.runtime.Log;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Hashtable;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 
 /**
  * Utils for introspection and reflection
@@ -32,24 +34,24 @@ import org.apache.juli.logging.LogFactory;
 public final class IntrospectionUtils {
 
 
-    private static final Log log = LogFactory.getLog(IntrospectionUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(IntrospectionUtils.class);
 
     /**
-     * Find a method with the right name If found, call the method ( if param is
-     * int or boolean we'll convert value to the right type before) - that means
-     * you can have setDebug(1).
-     * @param o The object to set a property on
-     * @param name The property name
+     * Find a method with the right name If found, call the method ( if param is int or boolean we'll convert value to
+     * the right type before) - that means you can have setDebug(1).
+     *
+     * @param o     The object to set a property on
+     * @param name  The property name
      * @param value The property value
      * @return <code>true</code> if operation was successful
      */
     public static boolean setProperty(Object o, String name, String value) {
-        return setProperty(o,name,value,true);
+        return setProperty(o, name, value, true);
     }
 
     @SuppressWarnings("null") // setPropertyMethodVoid is not null when used
     public static boolean setProperty(Object o, String name, String value,
-            boolean invokeSetProperty) {
+                                      boolean invokeSetProperty) {
         if (log.isDebugEnabled())
             log.debug("IntrospectionUtils: setProperty(" +
                     o.getClass() + " " + name + "=" + value + ")");
@@ -67,7 +69,7 @@ public final class IntrospectionUtils {
                 if (setter.equals(methods[i].getName()) && paramT.length == 1
                         && "java.lang.String".equals(paramT[0].getName())) {
 
-                    methods[i].invoke(o, new Object[] { value });
+                    methods[i].invoke(o, new Object[]{value});
                     return true;
                 }
             }
@@ -90,14 +92,14 @@ public final class IntrospectionUtils {
                         } catch (NumberFormatException ex) {
                             ok = false;
                         }
-                    // Try a setFoo ( long )
-                    }else if ("java.lang.Long".equals(paramType.getName())
-                                || "long".equals(paramType.getName())) {
-                            try {
-                                params[0] = Long.valueOf(value);
-                            } catch (NumberFormatException ex) {
-                                ok = false;
-                            }
+                        // Try a setFoo ( long )
+                    } else if ("java.lang.Long".equals(paramType.getName())
+                            || "long".equals(paramType.getName())) {
+                        try {
+                            params[0] = Long.valueOf(value);
+                        } catch (NumberFormatException ex) {
+                            ok = false;
+                        }
 
                         // Try a setFoo ( boolean )
                     } else if ("java.lang.Boolean".equals(paramType.getName())
@@ -130,9 +132,9 @@ public final class IntrospectionUtils {
 
                 // save "setProperty" for later
                 if ("setProperty".equals(methods[i].getName())) {
-                    if (methods[i].getReturnType()==Boolean.TYPE){
+                    if (methods[i].getReturnType() == Boolean.TYPE) {
                         setPropertyMethodBool = methods[i];
-                    }else {
+                    } else {
                         setPropertyMethodVoid = methods[i];
                     }
 
@@ -149,13 +151,13 @@ public final class IntrospectionUtils {
                     try {
                         return ((Boolean) setPropertyMethodBool.invoke(o,
                                 params)).booleanValue();
-                    }catch (IllegalArgumentException biae) {
+                    } catch (IllegalArgumentException biae) {
                         //the boolean method had the wrong
                         //parameter types. lets try the other
-                        if (setPropertyMethodVoid!=null) {
+                        if (setPropertyMethodVoid != null) {
                             setPropertyMethodVoid.invoke(o, params);
                             return true;
-                        }else {
+                        } else {
                             throw biae;
                         }
                     }
@@ -233,13 +235,14 @@ public final class IntrospectionUtils {
 
     /**
      * Replace ${NAME} with the property value.
-     * @param value The value
-     * @param staticProp Replacement properties
+     *
+     * @param value       The value
+     * @param staticProp  Replacement properties
      * @param dynamicProp Replacement properties
      * @return the replacement value
      */
     public static String replaceProperties(String value,
-            Hashtable<Object,Object> staticProp, PropertySource dynamicProp[]) {
+                                           Hashtable<Object, Object> staticProp, PropertySource dynamicProp[]) {
         if (value.indexOf('$') < 0) {
             return value;
         }
@@ -291,6 +294,7 @@ public final class IntrospectionUtils {
 
     /**
      * Reverse of Introspector.decapitalize.
+     *
      * @param name The name
      * @return the capitalized string
      */
@@ -308,7 +312,7 @@ public final class IntrospectionUtils {
         objectMethods.clear();
     }
 
-    private static final Hashtable<Class<?>,Method[]> objectMethods = new Hashtable<>();
+    private static final Hashtable<Class<?>, Method[]> objectMethods = new Hashtable<>();
 
     public static Method[] findMethods(Class<?> c) {
         Method methods[] = objectMethods.get(c);
@@ -321,9 +325,9 @@ public final class IntrospectionUtils {
     }
 
     @SuppressWarnings("null") // Neither params nor methodParams can be null
-                              // when comparing their lengths
+    // when comparing their lengths
     public static Method findMethod(Class<?> c, String name,
-            Class<?> params[]) {
+                                    Class<?> params[]) {
         Method methods[] = findMethods(c);
         if (methods == null)
             return null;
@@ -353,11 +357,11 @@ public final class IntrospectionUtils {
     }
 
     public static Object callMethod1(Object target, String methodN,
-            Object param1, String typeParam1, ClassLoader cl) throws Exception {
+                                     Object param1, String typeParam1, ClassLoader cl) throws Exception {
         if (target == null || param1 == null) {
             throw new IllegalArgumentException(
                     "IntrospectionUtils: Assert: Illegal params " +
-                    target + " " + param1);
+                            target + " " + param1);
         }
         if (log.isDebugEnabled())
             log.debug("IntrospectionUtils: callMethod1 " +
@@ -374,7 +378,7 @@ public final class IntrospectionUtils {
             throw new NoSuchMethodException(target.getClass().getName() + " "
                     + methodN);
         try {
-            return m.invoke(target, new Object[] { param1 });
+            return m.invoke(target, new Object[]{param1});
         } catch (InvocationTargetException ie) {
             ExceptionUtils.handleThrowable(ie.getCause());
             throw ie;
@@ -382,7 +386,7 @@ public final class IntrospectionUtils {
     }
 
     public static Object callMethodN(Object target, String methodN,
-            Object params[], Class<?> typeParams[]) throws Exception {
+                                     Object params[], Class<?> typeParams[]) throws Exception {
         Method m = null;
         m = findMethod(target.getClass(), methodN, typeParams);
         if (m == null) {

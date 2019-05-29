@@ -16,6 +16,9 @@
  */
 package priv.bigant.intrance.common.util.net.jsse;
 
+import priv.bigant.intrance.common.util.codec.binary.Base64;
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileReader;
@@ -39,8 +42,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import org.apache.tomcat.util.codec.binary.Base64;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * RFC 1421 PEM file containing X509 certificates or private keys (PKCS#8 only,

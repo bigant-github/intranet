@@ -16,6 +16,8 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
@@ -23,8 +25,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-import org.apache.tomcat.util.net.NioEndpoint.Poller;
-import org.apache.tomcat.util.res.StringManager;
+import priv.bigant.intrance.common.util.net.NioEndpoint.Poller;
+
 
 /**
  * Base class for a SocketChannel wrapper used by the endpoint. This way, logic for a SSL socket channel remains the

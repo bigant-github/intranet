@@ -19,9 +19,8 @@
 package priv.bigant.intrance.common.util.modeler;
 
 
-import java.util.List;
-
 import javax.management.ObjectName;
+import java.util.List;
 
 /**
  * Interface for modeler MBeans.

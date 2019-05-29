@@ -31,13 +31,13 @@ import javax.management.ObjectName;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.compat.JreCompat;
-import org.apache.tomcat.util.net.openssl.OpenSSLConf;
-import org.apache.tomcat.util.net.openssl.ciphers.Cipher;
-import org.apache.tomcat.util.net.openssl.ciphers.OpenSSLCipherConfigurationParser;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.compat.JreCompat;
+import priv.bigant.intrance.common.util.net.openssl.OpenSSLConf;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.Cipher;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.OpenSSLCipherConfigurationParser;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 /**
  * Represents the TLS configuration for a virtual host.
@@ -46,7 +46,7 @@ public class SSLHostConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Log log = LogFactory.getLog(SSLHostConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(SSLHostConfig.class);
     private static final StringManager sm = StringManager.getManager(SSLHostConfig.class);
 
     private static final String DEFAULT_CIPHERS = "HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!kRSA";
@@ -168,9 +168,8 @@ public class SSLHostConfig implements Serializable {
     // ----------------------------------------------------- Internal properties
 
     /**
-     * @see SSLUtil#getEnabledProtocols()
-     *
      * @return The protocols enabled for this TLS virtual host
+     * @see SSLUtil#getEnabledProtocols()
      */
     public String[] getEnabledProtocols() {
         return enabledProtocols;
@@ -183,9 +182,8 @@ public class SSLHostConfig implements Serializable {
 
 
     /**
-     * @see SSLUtil#getEnabledCiphers()
-     *
      * @return The ciphers enabled for this TLS virtual host
+     * @see SSLUtil#getEnabledCiphers()
      */
     public String[] getEnabledCiphers() {
         return enabledCiphers;
@@ -228,7 +226,7 @@ public class SSLHostConfig implements Serializable {
 
         if (certificates.size() == 1 &&
                 certificates.iterator().next().getType() == SSLHostConfigCertificate.Type.UNDEFINED ||
-                        certificate.getType() == SSLHostConfigCertificate.Type.UNDEFINED) {
+                certificate.getType() == SSLHostConfigCertificate.Type.UNDEFINED) {
             // Invalid config
             throw new IllegalArgumentException(sm.getString("sslHostConfig.certificate.notype"));
         }
@@ -275,6 +273,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateKeyPassword();
     }
+
     public void setCertificateKeyPassword(String certificateKeyPassword) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateKeyPassword(certificateKeyPassword);
@@ -336,8 +335,8 @@ public class SSLHostConfig implements Serializable {
 
 
     /**
-     * Set the new cipher configuration. Note: Regardless of the format used to
-     * set the configuration, it is always stored in OpenSSL format.
+     * Set the new cipher configuration. Note: Regardless of the format used to set the configuration, it is always
+     * stored in OpenSSL format.
      *
      * @param ciphersList The new cipher configuration in OpenSSL or JSSE format
      */
@@ -397,9 +396,8 @@ public class SSLHostConfig implements Serializable {
 
 
     /**
-     * Obtain the list of JSSE cipher names for the current configuration.
-     * Ciphers included in the configuration but not supported by JSSE will be
-     * excluded from this list.
+     * Obtain the list of JSSE cipher names for the current configuration. Ciphers included in the configuration but not
+     * supported by JSSE will be excluded from this list.
      *
      * @return A list of the JSSE cipher names
      */
@@ -446,7 +444,7 @@ public class SSLHostConfig implements Serializable {
 
         // Split using a positive lookahead to keep the separator in
         // the capture so we can check which case it is.
-        for (String value: input.split("(?=[-+,])")) {
+        for (String value : input.split("(?=[-+,])")) {
             String trimmed = value.trim();
             // Ignore token which only consists of prefix character
             if (trimmed.length() > 1) {
@@ -472,7 +470,7 @@ public class SSLHostConfig implements Serializable {
                     }
                     if (!protocols.isEmpty()) {
                         log.warn(sm.getString("sslHostConfig.prefix_missing",
-                                 trimmed, getHostName()));
+                                trimmed, getHostName()));
                     }
                     if (trimmed.equalsIgnoreCase(Constants.SSL_PROTO_ALL)) {
                         protocols.addAll(SSL_PROTO_ALL_SET);
@@ -525,6 +523,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateKeyAlias();
     }
+
     public void setCertificateKeyAlias(String certificateKeyAlias) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateKeyAlias(certificateKeyAlias);
@@ -535,6 +534,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateKeystoreFile();
     }
+
     public void setCertificateKeystoreFile(String certificateKeystoreFile) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateKeystoreFile(certificateKeystoreFile);
@@ -545,6 +545,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateKeystorePassword();
     }
+
     public void setCertificateKeystorePassword(String certificateKeystorePassword) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateKeystorePassword(certificateKeystorePassword);
@@ -555,6 +556,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateKeystoreProvider();
     }
+
     public void setCertificateKeystoreProvider(String certificateKeystoreProvider) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateKeystoreProvider(certificateKeystoreProvider);
@@ -565,6 +567,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateKeystoreType();
     }
+
     public void setCertificateKeystoreType(String certificateKeystoreType) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateKeystoreType(certificateKeystoreType);
@@ -699,7 +702,7 @@ public class SSLHostConfig implements Serializable {
     public KeyStore getTruststore() throws IOException {
         KeyStore result = truststore;
         if (result == null) {
-            if (truststoreFile != null){
+            if (truststoreFile != null) {
                 try {
                     result = SSLUtilBase.getStore(getTruststoreType(), getTruststoreProvider(),
                             getTruststoreFile(), getTruststorePassword());
@@ -732,6 +735,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateChainFile();
     }
+
     public void setCertificateChainFile(String certificateChainFile) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateChainFile(certificateChainFile);
@@ -742,6 +746,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateFile();
     }
+
     public void setCertificateFile(String certificateFile) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateFile(certificateFile);
@@ -752,6 +757,7 @@ public class SSLHostConfig implements Serializable {
         registerDefaultCertificate();
         return defaultCertificate.getCertificateKeyFile();
     }
+
     public void setCertificateKeyFile(String certificateKeyFile) {
         registerDefaultCertificate();
         defaultCertificate.setCertificateKeyFile(certificateKeyFile);
@@ -834,7 +840,7 @@ public class SSLHostConfig implements Serializable {
         }
         String newPath = path;
         File f = new File(newPath);
-        if ( !f.isAbsolute()) {
+        if (!f.isAbsolute()) {
             newPath = System.getProperty(Constants.CATALINA_BASE_PROP) + File.separator + newPath;
             f = new File(newPath);
         }

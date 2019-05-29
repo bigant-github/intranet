@@ -16,6 +16,13 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.http.parser.HttpParser;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.Cipher;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -23,19 +30,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.http.parser.HttpParser;
-import org.apache.tomcat.util.net.openssl.ciphers.Cipher;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
- * This class extracts the SNI host name and ALPN protocols from a TLS
- * client-hello message.
+ * This class extracts the SNI host name and ALPN protocols from a TLS client-hello message.
  */
 public class TLSClientHelloExtractor {
 
-    private static final Log log = LogFactory.getLog(TLSClientHelloExtractor.class);
+    private static final Logger log = LoggerFactory.getLogger(TLSClientHelloExtractor.class);
     private static final StringManager sm = StringManager.getManager(TLSClientHelloExtractor.class);
 
     private final ExtractorResult result;
@@ -57,9 +58,8 @@ public class TLSClientHelloExtractor {
 
 
     /**
-     * Creates the instance of the parser and processes the provided buffer. The
-     * buffer position and limit will be modified during the execution of this
-     * method but they will be returned to the original values before the method
+     * Creates the instance of the parser and processes the provided buffer. The buffer position and limit will be
+     * modified during the execution of this method but they will be returned to the original values before the method
      * exits.
      *
      * @param netInBuffer The buffer containing the TLS data to process
@@ -143,16 +143,16 @@ public class TLSClientHelloExtractor {
                 // Extension size is another two bytes
                 char extensionDataSize = netInBuffer.getChar();
                 switch (extensionType) {
-                case TLS_EXTENSION_SERVER_NAME: {
-                    sniValue = readSniExtension(netInBuffer);
-                    break;
-                }
-                case TLS_EXTENSION_ALPN:
-                    readAlpnExtension(netInBuffer, clientRequestedApplicationProtocols);
-                    break;
-                default: {
-                    skipBytes(netInBuffer, extensionDataSize);
-                }
+                    case TLS_EXTENSION_SERVER_NAME: {
+                        sniValue = readSniExtension(netInBuffer);
+                        break;
+                    }
+                    case TLS_EXTENSION_ALPN:
+                        readAlpnExtension(netInBuffer, clientRequestedApplicationProtocols);
+                        break;
+                    default: {
+                        skipBytes(netInBuffer, extensionDataSize);
+                    }
                 }
             }
             result = ExtractorResult.COMPLETE;

@@ -16,12 +16,12 @@
  */
 package priv.bigant.intrance.common.util.descriptor.web;
 
+import priv.bigant.intrance.common.coyote.http11.servlet.descriptor.JspConfigDescriptor;
+import priv.bigant.intrance.common.coyote.http11.servlet.descriptor.JspPropertyGroupDescriptor;
+import priv.bigant.intrance.common.coyote.http11.servlet.descriptor.TaglibDescriptor;
+
 import java.util.ArrayList;
 import java.util.Collection;
-
-import javax.servlet.descriptor.JspConfigDescriptor;
-import javax.servlet.descriptor.JspPropertyGroupDescriptor;
-import javax.servlet.descriptor.TaglibDescriptor;
 
 public class JspConfigDescriptorImpl implements JspConfigDescriptor {
 

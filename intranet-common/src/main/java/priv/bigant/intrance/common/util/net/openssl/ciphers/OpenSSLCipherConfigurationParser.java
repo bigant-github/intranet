@@ -17,6 +17,12 @@
 
 package priv.bigant.intrance.common.util.net.openssl.ciphers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.net.Constants;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,17 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.Constants;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * Class in charge with parsing openSSL expressions to define a list of ciphers.
  */
 public class OpenSSLCipherConfigurationParser {
 
-    private static final Log log = LogFactory.getLog(OpenSSLCipherConfigurationParser.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenSSLCipherConfigurationParser.class);
     private static final StringManager sm =
             StringManager.getManager("org.apache.tomcat.util.net.jsse.res");
 

@@ -21,11 +21,10 @@ import java.security.PrivilegedAction;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.tomcat.util.security.PrivilegedSetTccl;
+import priv.bigant.intrance.common.util.security.PrivilegedSetTccl;
 
 /**
- * Simple task thread factory to use to create threads for an executor
- * implementation.
+ * Simple task thread factory to use to create threads for an executor implementation.
  */
 public class TaskThreadFactory implements ThreadFactory {
 
@@ -53,8 +52,7 @@ public class TaskThreadFactory implements ThreadFactory {
         // loader that loaded this factory. This avoids retaining references to
         // web application class loaders and similar.
         if (Constants.IS_SECURITY_ENABLED) {
-            PrivilegedAction<Void> pa = new PrivilegedSetTccl(
-                    t, getClass().getClassLoader());
+            PrivilegedAction<Void> pa = new PrivilegedSetTccl(t, getClass().getClassLoader());
             AccessController.doPrivileged(pa);
         } else {
             t.setContextClassLoader(getClass().getClassLoader());

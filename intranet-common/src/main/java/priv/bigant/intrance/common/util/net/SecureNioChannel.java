@@ -16,6 +16,14 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.buf.ByteBufferUtils;
+import priv.bigant.intrance.common.util.compat.JreCompat;
+import priv.bigant.intrance.common.util.net.openssl.ciphers.Cipher;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -32,20 +40,13 @@ import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.buf.ByteBufferUtils;
-import org.apache.tomcat.util.compat.JreCompat;
-import org.apache.tomcat.util.net.TLSClientHelloExtractor.ExtractorResult;
-import org.apache.tomcat.util.net.openssl.ciphers.Cipher;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * Implementation of a secure socket channel
  */
 public class SecureNioChannel extends NioChannel {
 
-    private static final Log log = LogFactory.getLog(SecureNioChannel.class);
+    private static final Logger log = LoggerFactory.getLogger(SecureNioChannel.class);
     private static final StringManager sm = StringManager.getManager(SecureNioChannel.class);
 
     // Value determined by observation of what the SSL Engine requested in
@@ -272,7 +273,7 @@ public class SecureNioChannel extends NioChannel {
         }
         TLSClientHelloExtractor extractor = new TLSClientHelloExtractor(netInBuffer);
 
-        while (extractor.getResult() == ExtractorResult.UNDERFLOW &&
+        while (extractor.getResult() == TLSClientHelloExtractor.ExtractorResult.UNDERFLOW &&
                 netInBuffer.capacity() < endpoint.getSniParseLimit()) {
             // extractor needed more data to process but netInBuffer was full so
             // expand the buffer and read some more data.

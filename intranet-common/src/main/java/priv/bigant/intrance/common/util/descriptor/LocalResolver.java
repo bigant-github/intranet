@@ -24,10 +24,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 
-import org.apache.tomcat.util.res.StringManager;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.EntityResolver2;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 /**
  * A resolver for locally cached XML resources.

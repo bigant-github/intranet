@@ -16,23 +16,22 @@
  */
 package priv.bigant.intrance.common.coyote.http11.upgrade;
 
-import org.apache.coyote.ContainerThreadMarker;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.net.DispatchType;
-import org.apache.tomcat.util.net.SocketWrapperBase;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.coyote.ContainerThreadMarker;
+import priv.bigant.intrance.common.coyote.http11.servlet.ReadListener;
+import priv.bigant.intrance.common.coyote.http11.servlet.ServletInputStream;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.net.DispatchType;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
+import priv.bigant.intrance.common.util.res.StringManager;
 
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
 import java.io.IOException;
 
 public class UpgradeServletInputStream extends ServletInputStream {
 
-    private static final Log log = LogFactory.getLog(UpgradeServletInputStream.class);
-    private static final StringManager sm =
-            StringManager.getManager(UpgradeServletInputStream.class);
+    private static final Logger log = LoggerFactory.getLogger(UpgradeServletInputStream.class);
+    private static final StringManager sm = StringManager.getManager(UpgradeServletInputStream.class);
 
     private final UpgradeProcessorBase processor;
     private final SocketWrapperBase<?> socketWrapper;
@@ -45,7 +44,7 @@ public class UpgradeServletInputStream extends ServletInputStream {
 
 
     public UpgradeServletInputStream(UpgradeProcessorBase processor,
-            SocketWrapperBase<?> socketWrapper) {
+                                     SocketWrapperBase<?> socketWrapper) {
         this.processor = processor;
         this.socketWrapper = socketWrapper;
     }
@@ -157,7 +156,6 @@ public class UpgradeServletInputStream extends ServletInputStream {
             throw ioe;
         }
     }
-
 
 
     @Override

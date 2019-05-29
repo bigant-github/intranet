@@ -16,8 +16,9 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import org.apache.tomcat.util.net.AbstractJsseEndpoint;
-import org.apache.tomcat.util.net.openssl.OpenSSLImplementation;
+
+import priv.bigant.intrance.common.util.net.AbstractJsseEndpoint;
+import priv.bigant.intrance.common.util.net.openssl.OpenSSLImplementation;
 
 public abstract class AbstractHttp11JsseProtocol<S> extends AbstractHttp11Protocol<S> {
 

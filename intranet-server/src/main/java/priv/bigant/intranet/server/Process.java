@@ -11,7 +11,7 @@ public interface Process extends BigAnt {
 
     Connector getConnector();
 
-    void read(Connector.ConnectorThread connectorThread, SocketChannel socketChannel);
+    void read(Connector.ConnectorThread connectorThread, SocketChannel socketChannel) throws IOException;
 
     void accept(Connector.ConnectorThread connectorThread, SocketChannel channel) throws IOException;
 }

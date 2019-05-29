@@ -16,9 +16,10 @@
  */
 package priv.bigant.intrance.common.util.http;
 
+import priv.bigant.intrance.common.util.buf.MessageBytes;
+
 import java.io.Serializable;
 
-import org.apache.tomcat.util.buf.MessageBytes;
 
 
 /**

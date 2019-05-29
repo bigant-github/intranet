@@ -16,6 +16,8 @@
  */
 package priv.bigant.intrance.common.util.compat;
 
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -28,7 +30,6 @@ import java.util.jar.JarFile;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * This is the base implementation class for JRE compatibility and provides an
@@ -40,8 +41,7 @@ public class JreCompat {
     private static final int RUNTIME_MAJOR_VERSION = 7;
 
     private static final JreCompat instance;
-    private static StringManager sm =
-            StringManager.getManager(JreCompat.class.getPackage().getName());
+    private static StringManager sm = StringManager.getManager(JreCompat.class.getPackage().getName());
     private static final boolean jre9Available;
     private static final boolean jre8Available;
 

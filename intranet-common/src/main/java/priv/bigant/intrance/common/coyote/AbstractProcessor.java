@@ -102,9 +102,10 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
         if (response.getStatus() < 400 && !(t instanceof IOException)) {
             response.setStatus(500);
         }
-        if (t != null) {
+        //TODO
+        /*if (t != null) {
             request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, t);
-        }
+        }*/
         if (blockIo && !ContainerThreadMarker.isContainerThread() && isAsync()) {
             // The error occurred on a non-container thread during async
             // processing which means not all of the necessary clean-up will
@@ -190,53 +191,53 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
 
     @Override
-    public SocketState asyncPostProcess() {
+    public AbstractEndpoint.Handler.SocketState asyncPostProcess() {
         return asyncStateMachine.asyncPostProcess();
     }
 
 
     @Override
-    public final SocketState dispatch(SocketEvent status) throws IOException {
+    public final AbstractEndpoint.Handler.SocketState dispatch(SocketEvent status) throws IOException {
 
-        if (status == SocketEvent.OPEN_WRITE && response.getWriteListener() != null) {
+        if (status == SocketEvent.OPEN_WRITE /* TODO && response.getWriteListener() != null*/) {
             asyncStateMachine.asyncOperation();
             try {
                 if (flushBufferedWrite()) {
-                    return SocketState.LONG;
+                    return AbstractEndpoint.Handler.SocketState.LONG;
                 }
             } catch (IOException ioe) {
                 if (getLog().isDebugEnabled()) {
                     getLog().debug("Unable to write async data.", ioe);
                 }
                 status = SocketEvent.ERROR;
-                request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, ioe);
+                //TODO request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, ioe);
             }
-        } else if (status == SocketEvent.OPEN_READ && request.getReadListener() != null) {
+        } else if (status == SocketEvent.OPEN_READ /*TODO && request.getReadListener() != null*/) {
             dispatchNonBlockingRead();
         } else if (status == SocketEvent.ERROR) {
             // An I/O error occurred on a non-container thread. This includes:
             // - read/write timeouts fired by the Poller (NIO & APR)
             // - completion handler failures in NIO2
 
-            if (request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) == null) {
+            /*TODO if (request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) == null) {
                 // Because the error did not occur on a container thread the
                 // request's error attribute has not been set. If an exception
                 // is available from the socketWrapper, use it to set the
                 // request's error attribute here so it is visible to the error
                 // handling.
                 request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, socketWrapper.getError());
-            }
+            }*/
 
-            if (request.getReadListener() != null || response.getWriteListener() != null) {
+            /*TODO if (request.getReadListener() != null || response.getWriteListener() != null) {
                 // The error occurred during non-blocking I/O. Set the correct
                 // state else the error handling will trigger an ISE.
                 asyncStateMachine.asyncOperation();
-            }
+            }*/
         }
 
         RequestInfo rp = request.getRequestProcessor();
         try {
-            rp.setStage(org.apache.coyote.Constants.STAGE_SERVICE);
+            rp.setStage(Constants.STAGE_SERVICE);
             if (!getAdapter().asyncDispatch(request, response, status)) {
                 setErrorState(ErrorState.CLOSE_NOW, null);
             }
@@ -248,13 +249,13 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
             getLog().error(sm.getString("http11processor.request.process"), t);
         }
 
-        rp.setStage(org.apache.coyote.Constants.STAGE_ENDED);
+        rp.setStage(Constants.STAGE_ENDED);
 
         if (getErrorState().isError()) {
             request.updateCounters();
-            return SocketState.CLOSED;
+            return AbstractEndpoint.Handler.SocketState.CLOSED;
         } else if (isAsync()) {
-            return SocketState.LONG;
+            return AbstractEndpoint.Handler.SocketState.LONG;
         } else {
             request.updateCounters();
             return dispatchEndRequest();
@@ -902,5 +903,5 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
      * @return The state to return for the socket once the clean-up for the current request has completed
      * @throws IOException If an I/O error occurs while attempting to end the request
      */
-    protected abstract SocketState dispatchEndRequest() throws IOException;
+    protected abstract AbstractEndpoint.Handler.SocketState dispatchEndRequest() throws IOException;
 }

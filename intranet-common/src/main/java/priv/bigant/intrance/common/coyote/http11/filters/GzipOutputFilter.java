@@ -16,12 +16,14 @@
  */
 package priv.bigant.intrance.common.coyote.http11.filters;
 
-import org.apache.coyote.Response;
-import org.apache.coyote.http11.HttpOutputBuffer;
-import org.apache.coyote.http11.OutputFilter;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.buf.ByteChunk;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.coyote.Response;
+import priv.bigant.intrance.common.coyote.http11.HttpOutputBuffer;
+import priv.bigant.intrance.common.coyote.http11.OutputFilter;
+import priv.bigant.intrance.common.util.buf.ByteChunk;
+import sun.rmi.runtime.Log;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,7 +37,7 @@ import java.util.zip.GZIPOutputStream;
  */
 public class GzipOutputFilter implements OutputFilter {
 
-    protected static final Log log = LogFactory.getLog(GzipOutputFilter.class);
+    protected static final Logger log = LoggerFactory.getLogger(GzipOutputFilter.class);
 
 
     // ----------------------------------------------------- Instance Variables
@@ -61,8 +63,7 @@ public class GzipOutputFilter implements OutputFilter {
     // --------------------------------------------------- OutputBuffer Methods
 
     /**
-     * @deprecated Unused. Will be removed in Tomcat 9. Use
-     *             {@link #doWrite(ByteBuffer)}
+     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doWrite(ByteBuffer)}
      */
     @Deprecated
     @Override
@@ -71,7 +72,7 @@ public class GzipOutputFilter implements OutputFilter {
             compressionStream = new GZIPOutputStream(fakeOutputStream, true);
         }
         compressionStream.write(chunk.getBytes(), chunk.getStart(),
-                                chunk.getLength());
+                chunk.getLength());
         return chunk.getLength();
     }
 
@@ -159,23 +160,27 @@ public class GzipOutputFilter implements OutputFilter {
 
 
     protected class FakeOutputStream
-        extends OutputStream {
+            extends OutputStream {
         protected final ByteBuffer outputChunk = ByteBuffer.allocate(1);
+
         @Override
         public void write(int b)
-            throws IOException {
+                throws IOException {
             // Shouldn't get used for good performance, but is needed for
             // compatibility with Sun JDK 1.4.0
             outputChunk.put(0, (byte) (b & 0xff));
             buffer.doWrite(outputChunk);
         }
+
         @Override
         public void write(byte[] b, int off, int len)
-            throws IOException {
+                throws IOException {
             buffer.doWrite(ByteBuffer.wrap(b, off, len));
         }
+
         @Override
         public void flush() throws IOException {/*NOOP*/}
+
         @Override
         public void close() throws IOException {/*NOOP*/}
     }

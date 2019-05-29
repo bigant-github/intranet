@@ -16,6 +16,9 @@
  */
 package priv.bigant.intrance.common.util.http;
 
+import priv.bigant.intrance.common.coyote.http11.servlet.http.HttpServletResponse;
+import priv.bigant.intrance.common.util.http.parser.Vary;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -25,9 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.tomcat.util.http.parser.Vary;
 
 public class ResponseUtil {
 

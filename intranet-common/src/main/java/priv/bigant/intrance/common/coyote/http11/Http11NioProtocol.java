@@ -16,11 +16,12 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.net.NioChannel;
-import org.apache.tomcat.util.net.NioEndpoint;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.net.NioChannel;
+import priv.bigant.intrance.common.util.net.NioEndpoint;
+import sun.rmi.runtime.Log;
 
 /**
  * Abstract the protocol implementation, including threading, etc. Processor is single threaded and specific to
@@ -31,7 +32,7 @@ import org.apache.tomcat.util.net.NioEndpoint;
  */
 public class Http11NioProtocol extends AbstractHttp11JsseProtocol<NioChannel> {
 
-    private static final Log log = LogFactory.getLog(Http11NioProtocol.class);
+    private static final Logger log = LoggerFactory.getLogger(Http11NioProtocol.class);
 
 
     public Http11NioProtocol() {
@@ -40,7 +41,7 @@ public class Http11NioProtocol extends AbstractHttp11JsseProtocol<NioChannel> {
 
 
     @Override
-    protected Log getLog() {
+    protected Logger getLog() {
         return log;
     }
 

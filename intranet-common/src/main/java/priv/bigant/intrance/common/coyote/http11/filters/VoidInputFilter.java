@@ -16,11 +16,12 @@
  */
 package priv.bigant.intrance.common.coyote.http11.filters;
 
-import org.apache.coyote.InputBuffer;
-import org.apache.coyote.Request;
-import org.apache.coyote.http11.InputFilter;
-import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.net.ApplicationBufferHandler;
+
+import priv.bigant.intrance.common.coyote.InputBuffer;
+import priv.bigant.intrance.common.coyote.Request;
+import priv.bigant.intrance.common.coyote.http11.InputFilter;
+import priv.bigant.intrance.common.util.buf.ByteChunk;
+import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

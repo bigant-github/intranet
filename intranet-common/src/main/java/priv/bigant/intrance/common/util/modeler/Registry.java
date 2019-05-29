@@ -19,6 +19,11 @@
 package priv.bigant.intrance.common.util.modeler;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.modeler.modules.ModelerSource;
+
+import javax.management.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -27,20 +32,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-
-import javax.management.DynamicMBean;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanInfo;
-import javax.management.MBeanOperationInfo;
-import javax.management.MBeanRegistration;
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.modeler.modules.ModelerSource;
 
 /*
    Issues:
@@ -69,7 +60,7 @@ public class Registry implements RegistryMBean, MBeanRegistration {
     /**
      * The Log instance to which we will write our log messages.
      */
-    private static final Log log = LogFactory.getLog(Registry.class);
+    private static final Logger log = LoggerFactory.getLogger(Registry.class);
 
     // Support for the factory methods
 
@@ -557,8 +548,7 @@ public class Registry implements RegistryMBean, MBeanRegistration {
             sourceType = "MbeansDescriptorsDigesterSource";
         }
         ModelerSource ds = getModelerSource(sourceType);
-        List<ObjectName> mbeans =
-                ds.loadDescriptors(this, type, inputsource);
+        List<ObjectName> mbeans = ds.loadDescriptors(this, type, inputsource);
 
         return mbeans;
     }
@@ -671,13 +661,12 @@ public class Registry implements RegistryMBean, MBeanRegistration {
         return;
     }
 
-    private ModelerSource getModelerSource(String type)
-            throws Exception {
-        if (type == null) type = "MbeansDescriptorsDigesterSource";
+    private ModelerSource getModelerSource(String type) throws Exception {
+        if (type == null)
+            type = "MbeansDescriptorsDigesterSource";
         if (type.indexOf(".") < 0) {
-            type = "org.apache.tomcat.util.modeler.modules." + type;
+            type = "priv.bigant.intrance.common.util.modeler.modules." + type;
         }
-
         Class<?> c = Class.forName(type);
         ModelerSource ds = (ModelerSource) c.getConstructor().newInstance();
         return ds;

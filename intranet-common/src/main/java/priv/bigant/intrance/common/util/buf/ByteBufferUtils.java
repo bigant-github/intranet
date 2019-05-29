@@ -16,21 +16,21 @@
  */
 package priv.bigant.intrance.common.util.buf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.util.compat.JreCompat;
+import priv.bigant.intrance.common.util.res.StringManager;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.compat.JreCompat;
-import org.apache.tomcat.util.res.StringManager;
 
 public class ByteBufferUtils {
 
-    private static final StringManager sm =
-            StringManager.getManager(Constants.Package);
-    private static final Log log = LogFactory.getLog(ByteBufferUtils.class);
+    private static final StringManager sm = StringManager.getManager(Constants.Package);
+    private static final Logger log = LoggerFactory.getLogger(ByteBufferUtils.class);
 
     private static final Object unsafe;
     private static final Method cleanerMethod;
@@ -84,15 +84,13 @@ public class ByteBufferUtils {
 
 
     /**
-     * Expands buffer to the given size unless it is already as big or bigger.
-     * Buffers are assumed to be in 'write to' mode since there would be no need
-     * to expand a buffer while it was in 'read from' mode.
+     * Expands buffer to the given size unless it is already as big or bigger. Buffers are assumed to be in 'write to'
+     * mode since there would be no need to expand a buffer while it was in 'read from' mode.
      *
-     * @param in        Buffer to expand
-     * @param newSize   The size t which the buffer should be expanded
-     * @return          The expanded buffer with any data from the input buffer
-     *                  copied in to it or the original buffer if there was no
-     *                  need for expansion
+     * @param in      Buffer to expand
+     * @param newSize The size t which the buffer should be expanded
+     * @return The expanded buffer with any data from the input buffer copied in to it or the original buffer if there
+     * was no need for expansion
      */
     public static ByteBuffer expand(ByteBuffer in, int newSize) {
         if (in.capacity() >= newSize) {

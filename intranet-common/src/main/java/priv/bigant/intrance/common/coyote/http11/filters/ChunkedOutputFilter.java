@@ -17,11 +17,12 @@
 
 package priv.bigant.intrance.common.coyote.http11.filters;
 
-import org.apache.coyote.Response;
-import org.apache.coyote.http11.HttpOutputBuffer;
-import org.apache.coyote.http11.OutputFilter;
-import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.buf.HexUtils;
+
+import priv.bigant.intrance.common.coyote.Response;
+import priv.bigant.intrance.common.coyote.http11.HttpOutputBuffer;
+import priv.bigant.intrance.common.coyote.http11.OutputFilter;
+import priv.bigant.intrance.common.util.buf.ByteChunk;
+import priv.bigant.intrance.common.util.buf.HexUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -35,8 +36,7 @@ public class ChunkedOutputFilter implements OutputFilter {
 
 
     // -------------------------------------------------------------- Constants
-    private static final byte[] END_CHUNK_BYTES = {(byte) '0', (byte) '\r', (byte) '\n',
-            (byte) '\r', (byte) '\n'};
+    private static final byte[] END_CHUNK_BYTES = {(byte) '0', (byte) '\r', (byte) '\n', (byte) '\r', (byte) '\n'};
 
 
     // ------------------------------------------------------------ Constructor
@@ -78,8 +78,7 @@ public class ChunkedOutputFilter implements OutputFilter {
     // --------------------------------------------------- OutputBuffer Methods
 
     /**
-     * @deprecated Unused. Will be removed in Tomcat 9. Use
-     *             {@link #doWrite(ByteBuffer)}
+     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doWrite(ByteBuffer)}
      */
     @Deprecated
     @Override

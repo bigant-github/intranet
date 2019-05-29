@@ -16,7 +16,8 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-import org.apache.tomcat.util.net.SSLHostConfig;
+
+import priv.bigant.intrance.common.util.net.SSLHostConfig;
 
 import java.util.concurrent.Executor;
 

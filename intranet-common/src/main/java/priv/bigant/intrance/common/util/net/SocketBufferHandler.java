@@ -16,9 +16,10 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import priv.bigant.intrance.common.util.buf.ByteBufferUtils;
+
 import java.nio.ByteBuffer;
 
-import org.apache.tomcat.util.buf.ByteBufferUtils;
 
 public class SocketBufferHandler {
 

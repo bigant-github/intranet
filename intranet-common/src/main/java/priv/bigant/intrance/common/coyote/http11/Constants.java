@@ -16,7 +16,7 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import org.apache.tomcat.util.buf.ByteChunk;
+import priv.bigant.intrance.common.util.buf.ByteChunk;
 
 /**
  * Constants.

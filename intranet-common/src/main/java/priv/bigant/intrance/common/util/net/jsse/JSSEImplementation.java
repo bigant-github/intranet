@@ -16,13 +16,6 @@
  */
 package priv.bigant.intrance.common.util.net.jsse;
 
-import javax.net.ssl.SSLSession;
-
-import org.apache.tomcat.util.compat.JreCompat;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
-import org.apache.tomcat.util.net.SSLImplementation;
-import org.apache.tomcat.util.net.SSLSupport;
-import org.apache.tomcat.util.net.SSLUtil;
 
 /* JSSEImplementation:
 
@@ -30,6 +23,14 @@ import org.apache.tomcat.util.net.SSLUtil;
 
    @author EKR
 */
+
+import priv.bigant.intrance.common.util.compat.JreCompat;
+import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate;
+import priv.bigant.intrance.common.util.net.SSLImplementation;
+import priv.bigant.intrance.common.util.net.SSLSupport;
+import priv.bigant.intrance.common.util.net.SSLUtil;
+
+import javax.net.ssl.SSLSession;
 
 public class JSSEImplementation extends SSLImplementation {
 

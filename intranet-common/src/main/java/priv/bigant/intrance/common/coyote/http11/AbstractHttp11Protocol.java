@@ -16,17 +16,13 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import org.apache.coyote.*;
-import org.apache.coyote.http11.upgrade.InternalHttpUpgradeHandler;
-import org.apache.coyote.http11.upgrade.UpgradeProcessorExternal;
-import org.apache.coyote.http11.upgrade.UpgradeProcessorInternal;
-import org.apache.tomcat.util.buf.StringUtils;
-import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.apache.tomcat.util.net.SSLHostConfig;
-import org.apache.tomcat.util.net.SocketWrapperBase;
-import org.apache.tomcat.util.res.StringManager;
+import priv.bigant.intrance.common.coyote.*;
+import priv.bigant.intrance.common.util.buf.StringUtils;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint;
+import priv.bigant.intrance.common.util.net.SSLHostConfig;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
+import priv.bigant.intrance.common.util.res.StringManager;
 
-import javax.servlet.http.HttpUpgradeHandler;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -370,8 +366,7 @@ public abstract class AbstractHttp11Protocol<S> extends AbstractProtocol<S> {
      * The names of headers that are allowed to be sent via a trailer when using chunked encoding. They are stored in
      * lower case.
      */
-    private Set<String> allowedTrailerHeaders =
-            Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private Set<String> allowedTrailerHeaders = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     public void setAllowedTrailerHeaders(String commaSeparatedHeaders) {
         // Jump through some hoops so we don't end up with an empty set while
@@ -1001,11 +996,12 @@ public abstract class AbstractHttp11Protocol<S> extends AbstractProtocol<S> {
     protected Processor createUpgradeProcessor(
             SocketWrapperBase<?> socket,
             UpgradeToken upgradeToken) {
-        HttpUpgradeHandler httpUpgradeHandler = upgradeToken.getHttpUpgradeHandler();
+        /*HttpUpgradeHandler httpUpgradeHandler = upgradeToken.getHttpUpgradeHandler();
         if (httpUpgradeHandler instanceof InternalHttpUpgradeHandler) {
             return new UpgradeProcessorInternal(socket, upgradeToken);
         } else {
             return new UpgradeProcessorExternal(socket, upgradeToken);
-        }
+        }*/
+        return null;
     }
 }

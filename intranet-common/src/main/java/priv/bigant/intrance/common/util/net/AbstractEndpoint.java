@@ -36,18 +36,13 @@ import java.util.concurrent.TimeUnit;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.apache.juli.logging.Log;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.IntrospectionUtils;
-import org.apache.tomcat.util.collections.SynchronizedStack;
-import org.apache.tomcat.util.modeler.Registry;
-import org.apache.tomcat.util.net.AbstractEndpoint.Acceptor.AcceptorState;
-import org.apache.tomcat.util.res.StringManager;
-import org.apache.tomcat.util.threads.LimitLatch;
-import org.apache.tomcat.util.threads.ResizableExecutor;
-import org.apache.tomcat.util.threads.TaskQueue;
-import org.apache.tomcat.util.threads.TaskThreadFactory;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
+import org.slf4j.Logger;
+import priv.bigant.intrance.common.util.modeler.Registry;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.IntrospectionUtils;
+import priv.bigant.intrance.common.util.collections.SynchronizedStack;
+import priv.bigant.intrance.common.util.res.StringManager;
+import priv.bigant.intrance.common.util.threads.*;
 
 /**
  * @param <S> The type for the sockets managed by this endpoint.
@@ -1329,7 +1324,7 @@ public abstract class AbstractEndpoint<S> {
     }
 
 
-    protected abstract Log getLog();
+    protected abstract Logger getLog();
 
     protected LimitLatch initializeConnectionLatch() {
         if (maxConnections == -1) return null;

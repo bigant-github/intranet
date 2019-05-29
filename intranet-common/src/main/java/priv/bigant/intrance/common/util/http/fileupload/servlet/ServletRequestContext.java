@@ -16,13 +16,13 @@
  */
 package priv.bigant.intrance.common.util.http.fileupload.servlet;
 
+import priv.bigant.intrance.common.coyote.http11.servlet.http.HttpServletRequest;
+import priv.bigant.intrance.common.util.http.fileupload.FileUploadBase;
+import priv.bigant.intrance.common.util.http.fileupload.UploadContext;
+
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.tomcat.util.http.fileupload.FileUploadBase;
-import org.apache.tomcat.util.http.fileupload.UploadContext;
 
 
 /**

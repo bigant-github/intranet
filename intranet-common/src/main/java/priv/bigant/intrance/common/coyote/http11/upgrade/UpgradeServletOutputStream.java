@@ -16,21 +16,21 @@
  */
 package priv.bigant.intrance.common.coyote.http11.upgrade;
 
-import org.apache.coyote.ContainerThreadMarker;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.net.DispatchType;
-import org.apache.tomcat.util.net.SocketWrapperBase;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.coyote.http11.servlet.ServletOutputStream;
+import priv.bigant.intrance.common.coyote.http11.servlet.WriteListener;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.net.ContainerThreadMarker;
+import priv.bigant.intrance.common.util.net.DispatchType;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
+import priv.bigant.intrance.common.util.res.StringManager;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
 import java.io.IOException;
 
 public class UpgradeServletOutputStream extends ServletOutputStream {
 
-    private static final Log log = LogFactory.getLog(UpgradeServletOutputStream.class);
+    private static final Logger log = LoggerFactory.getLogger(UpgradeServletOutputStream.class);
     private static final StringManager sm =
             StringManager.getManager(UpgradeServletOutputStream.class);
 
@@ -59,9 +59,7 @@ public class UpgradeServletOutputStream extends ServletOutputStream {
     private boolean registered = false;
 
 
-
-    public UpgradeServletOutputStream(UpgradeProcessorBase processor,
-            SocketWrapperBase<?> socketWrapper) {
+    public UpgradeServletOutputStream(UpgradeProcessorBase processor, SocketWrapperBase<?> socketWrapper) {
         this.processor = processor;
         this.socketWrapper = socketWrapper;
     }
@@ -85,7 +83,7 @@ public class UpgradeServletOutputStream extends ServletOutputStream {
                 // for write and multiple registrations will cause problems.
                 registered = true;
                 return false;
-            } else if (registered){
+            } else if (registered) {
                 // The socket is already registered for write and multiple
                 // registrations will cause problems.
                 return false;
@@ -135,7 +133,7 @@ public class UpgradeServletOutputStream extends ServletOutputStream {
     public void write(int b) throws IOException {
         synchronized (writeLock) {
             preWriteChecks();
-            writeInternal(new byte[] { (byte) b }, 0, 1);
+            writeInternal(new byte[]{(byte) b}, 0, 1);
         }
     }
 

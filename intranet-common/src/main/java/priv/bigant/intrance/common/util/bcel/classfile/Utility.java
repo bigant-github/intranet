@@ -16,11 +16,12 @@
  */
 package priv.bigant.intrance.common.util.bcel.classfile;
 
+import priv.bigant.intrance.common.util.bcel.Const;
+
 import java.io.DataInput;
 import java.io.EOFException;
 import java.io.IOException;
 
-import org.apache.tomcat.util.bcel.Const;
 
 /**
  * Utility functions that do not really belong to any class in particular.

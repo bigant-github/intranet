@@ -17,20 +17,19 @@
  */
 package priv.bigant.intrance.common.util.bcel.classfile;
 
+import priv.bigant.intrance.common.util.bcel.Const;
+
 import java.io.DataInput;
 import java.io.IOException;
 
-import org.apache.tomcat.util.bcel.Const;
 
 /**
- * This class represents the constant pool, i.e., a table of constants, of
- * a parsed classfile. It may contain null references, due to the JVM
- * specification that skips an entry after an 8-byte constant (double,
- * long) entry.  Those interested in generating constant pools
- * programatically should see <a href="../generic/ConstantPoolGen.html">
+ * This class represents the constant pool, i.e., a table of constants, of a parsed classfile. It may contain null
+ * references, due to the JVM specification that skips an entry after an 8-byte constant (double, long) entry.  Those
+ * interested in generating constant pools programatically should see <a href="../generic/ConstantPoolGen.html">
  * ConstantPoolGen</a>.
-
- * @see     Constant
+ *
+ * @see Constant
  */
 public class ConstantPool {
 
@@ -72,11 +71,11 @@ public class ConstantPool {
     /**
      * Get constant from constant pool.
      *
-     * @param  index Index in constant pool
+     * @param index Index in constant pool
      * @return Constant value
-     * @see    Constant
+     * @see Constant
      */
-    public Constant getConstant( final int index ) {
+    public Constant getConstant(final int index) {
         if (index >= constant_pool.length || index < 0) {
             throw new ClassFormatException("Invalid constant pool reference: " + index
                     + ". Constant pool size is: " + constant_pool.length);
@@ -86,16 +85,15 @@ public class ConstantPool {
 
 
     /**
-     * Get constant from constant pool and check whether it has the
-     * expected type.
+     * Get constant from constant pool and check whether it has the expected type.
      *
-     * @param  index Index in constant pool
-     * @param  tag Tag of expected constant, i.e., its type
+     * @param index Index in constant pool
+     * @param tag   Tag of expected constant, i.e., its type
      * @return Constant value
-     * @see    Constant
-     * @throws  ClassFormatException If the constant is not of the expected type
+     * @throws ClassFormatException If the constant is not of the expected type
+     * @see Constant
      */
-    public Constant getConstant( final int index, final byte tag ) throws ClassFormatException {
+    public Constant getConstant(final int index, final byte tag) throws ClassFormatException {
         Constant c;
         c = getConstant(index);
         if (c == null) {

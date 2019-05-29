@@ -20,7 +20,7 @@ package priv.bigant.intrance.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.modeler.Registry;
+import priv.bigant.intrance.common.util.modeler.Registry;
 
 import javax.management.*;
 

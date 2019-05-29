@@ -21,14 +21,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletContext;
-
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.digester.Digester;
-import org.apache.tomcat.util.digester.RuleSet;
-import org.apache.tomcat.util.res.StringManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ext.EntityResolver2;
+import priv.bigant.intrance.common.coyote.http11.servlet.ServletContext;
+import priv.bigant.intrance.common.util.digester.Digester;
+import priv.bigant.intrance.common.util.digester.RuleSet;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
 
 /**
  * Wrapper class around the Digester that hide Digester's initialization
@@ -150,7 +150,7 @@ public class DigesterFactory {
             location = CLASS_JSP_CONTEXT.getResource("resources/" + name);
         }
         if (location == null) {
-            Log log = LogFactory.getLog(DigesterFactory.class);
+            Logger log = LoggerFactory.getLogger(DigesterFactory.class);
             log.warn(sm.getString("digesterFactory.missingSchema", name));
             return null;
         }

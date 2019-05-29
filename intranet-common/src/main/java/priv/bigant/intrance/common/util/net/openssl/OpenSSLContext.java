@@ -16,6 +16,18 @@
  */
 package priv.bigant.intrance.common.util.net.openssl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.jni.*;
+import priv.bigant.intrance.common.util.codec.binary.Base64;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint;
+import priv.bigant.intrance.common.util.net.Constants;
+import priv.bigant.intrance.common.util.net.SSLHostConfig;
+import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate;
+import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate.Type;
+import priv.bigant.intrance.common.util.res.StringManager;
+import sun.rmi.runtime.Log;
+
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -38,26 +50,12 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.jni.CertificateVerifier;
-import org.apache.tomcat.jni.Pool;
-import org.apache.tomcat.jni.SSL;
-import org.apache.tomcat.jni.SSLConf;
-import org.apache.tomcat.jni.SSLContext;
-import org.apache.tomcat.util.codec.binary.Base64;
-import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.apache.tomcat.util.net.Constants;
-import org.apache.tomcat.util.net.SSLHostConfig;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate;
-import org.apache.tomcat.util.net.SSLHostConfigCertificate.Type;
-import org.apache.tomcat.util.res.StringManager;
 
-public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
+public class OpenSSLContext implements priv.bigant.intrance.common.util.net.SSLContext {
 
-    private static final Base64 BASE64_ENCODER = new Base64(64, new byte[] {'\n'});
+    private static final Base64 BASE64_ENCODER = new Base64(64, new byte[]{'\n'});
 
-    private static final Log log = LogFactory.getLog(OpenSSLContext.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenSSLContext.class);
 
     // Note: this uses the main "net" package strings as many are common with APR
     private static final StringManager netSm = StringManager.getManager(AbstractEndpoint.class);
@@ -119,10 +117,10 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
                     if (log.isDebugEnabled())
                         log.debug(sm.getString("openssl.makeConf"));
                     cctx = SSLConf.make(aprPool,
-                                        SSL.SSL_CONF_FLAG_FILE |
-                                        SSL.SSL_CONF_FLAG_SERVER |
-                                        SSL.SSL_CONF_FLAG_CERTIFICATE |
-                                        SSL.SSL_CONF_FLAG_SHOW_ERRORS);
+                            SSL.SSL_CONF_FLAG_FILE |
+                                    SSL.SSL_CONF_FLAG_SERVER |
+                                    SSL.SSL_CONF_FLAG_CERTIFICATE |
+                                    SSL.SSL_CONF_FLAG_SHOW_ERRORS);
                 } catch (Exception e) {
                     throw new SSLException(sm.getString("openssl.errMakeConf"), e);
                 }
@@ -172,7 +170,7 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
             this.negotiableProtocols = negotiableProtocols;
 
             success = true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new SSLException(sm.getString("openssl.errorSSLCtxInit"), e);
         } finally {
             if (!success) {
@@ -200,11 +198,9 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
     /**
      * Setup the SSL_CTX.
      *
-     * @param kms Must contain a KeyManager of the type
-     *            {@code OpenSSLKeyManager}
-     * @param tms Must contain a TrustManager of the type
-     *            {@code X509TrustManager}
-     * @param sr Is not used for this implementation.
+     * @param kms Must contain a KeyManager of the type {@code OpenSSLKeyManager}
+     * @param tms Must contain a TrustManager of the type {@code X509TrustManager}
+     * @param sr  Is not used for this implementation.
      */
     @Override
     public synchronized void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) {
@@ -256,18 +252,18 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
             // Client certificate verification
             int value = 0;
             switch (sslHostConfig.getCertificateVerification()) {
-            case NONE:
-                value = SSL.SSL_CVERIFY_NONE;
-                break;
-            case OPTIONAL:
-                value = SSL.SSL_CVERIFY_OPTIONAL;
-                break;
-            case OPTIONAL_NO_CA:
-                value = SSL.SSL_CVERIFY_OPTIONAL_NO_CA;
-                break;
-            case REQUIRED:
-                value = SSL.SSL_CVERIFY_REQUIRE;
-                break;
+                case NONE:
+                    value = SSL.SSL_CVERIFY_NONE;
+                    break;
+                case OPTIONAL:
+                    value = SSL.SSL_CVERIFY_OPTIONAL;
+                    break;
+                case OPTIONAL_NO_CA:
+                    value = SSL.SSL_CVERIFY_OPTIONAL_NO_CA;
+                    break;
+                case REQUIRED:
+                    value = SSL.SSL_CVERIFY_REQUIRE;
+                    break;
             }
             SSLContext.setVerify(ctx, value, sslHostConfig.getCertificateVerificationDepth());
 
@@ -444,7 +440,7 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
      * Find a valid alias when none was specified in the config.
      */
     private static String findAlias(X509KeyManager keyManager,
-            SSLHostConfigCertificate certificate) {
+                                    SSLHostConfigCertificate certificate) {
 
         Type type = certificate.getType();
         String result = null;
@@ -461,7 +457,7 @@ public class OpenSSLContext implements org.apache.tomcat.util.net.SSLContext {
 
         Iterator<Type> iter = candidateTypes.iterator();
         while (result == null && iter.hasNext()) {
-            result = keyManager.chooseServerAlias(iter.next().toString(),  null,  null);
+            result = keyManager.chooseServerAlias(iter.next().toString(), null, null);
         }
 
         return result;

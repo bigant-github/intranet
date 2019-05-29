@@ -17,10 +17,12 @@
 
 package priv.bigant.intrance.common.coyote.http11.filters;
 
-import org.apache.coyote.InputBuffer;
-import org.apache.coyote.http11.InputFilter;
-import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.net.ApplicationBufferHandler;
+
+import priv.bigant.intrance.common.coyote.InputBuffer;
+import priv.bigant.intrance.common.coyote.Request;
+import priv.bigant.intrance.common.coyote.http11.InputFilter;
+import priv.bigant.intrance.common.util.buf.ByteChunk;
+import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -86,7 +88,7 @@ public class SavedRequestInputFilter implements InputFilter {
      * Set the content length on the request.
      */
     @Override
-    public void setRequest(org.apache.coyote.Request request) {
+    public void setRequest(Request request) {
         request.setContentLength(input.getLength());
     }
 

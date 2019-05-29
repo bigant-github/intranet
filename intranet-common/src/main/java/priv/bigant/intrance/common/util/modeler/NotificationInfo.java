@@ -16,11 +16,10 @@
  */
 package priv.bigant.intrance.common.util.modeler;
 
+import javax.management.MBeanNotificationInfo;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.management.MBeanNotificationInfo;
 
 /**
  * <p>Internal configuration information for a <code>Notification</code>

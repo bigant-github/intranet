@@ -16,7 +16,8 @@
  */
 package priv.bigant.intrance.common.util.http;
 
-import org.apache.tomcat.util.res.StringManager;
+
+import priv.bigant.intrance.common.util.res.StringManager;
 
 /**
  * This class is not thread-safe.
@@ -37,9 +38,9 @@ public class ServerCookies {
 
 
     /**
-     * Register a new, initialized cookie. Cookies are recycled, and most of the
-     * time an existing ServerCookie object is returned. The caller can set the
-     * name/value and attributes for the cookie.
+     * Register a new, initialized cookie. Cookies are recycled, and most of the time an existing ServerCookie object is
+     * returned. The caller can set the name/value and attributes for the cookie.
+     *
      * @return the new cookie
      */
     public ServerCookie addCookie() {
@@ -49,7 +50,7 @@ public class ServerCookies {
         }
 
         if (cookieCount >= serverCookies.length) {
-            int newSize = limit > -1 ? Math.min(2*cookieCount, limit) : 2*cookieCount;
+            int newSize = limit > -1 ? Math.min(2 * cookieCount, limit) : 2 * cookieCount;
             ServerCookie scookiesTmp[] = new ServerCookie[newSize];
             System.arraycopy(serverCookies, 0, scookiesTmp, 0, cookieCount);
             serverCookies = scookiesTmp;

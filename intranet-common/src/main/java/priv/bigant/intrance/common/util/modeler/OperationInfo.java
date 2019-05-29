@@ -16,13 +16,12 @@
  */
 package priv.bigant.intrance.common.util.modeler;
 
+import javax.management.MBeanOperationInfo;
+import javax.management.MBeanParameterInfo;
 import java.util.Locale;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.management.MBeanOperationInfo;
-import javax.management.MBeanParameterInfo;
 
 /**
  * <p>Internal configuration information for an <code>Operation</code>

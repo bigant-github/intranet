@@ -16,17 +16,16 @@
  */
 package priv.bigant.intrance.common.coyote.http11.upgrade;
 
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
-import org.apache.tomcat.util.net.SSLSupport;
-import org.apache.tomcat.util.net.SocketEvent;
-import org.apache.tomcat.util.net.SocketWrapperBase;
-
-import javax.servlet.http.HttpUpgradeHandler;
+import priv.bigant.intrance.common.coyote.http11.servlet.http.HttpUpgradeHandler;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
+import priv.bigant.intrance.common.util.net.SSLSupport;
+import priv.bigant.intrance.common.util.net.SocketEvent;
+import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 
 
 /**
- * This Tomcat specific interface is implemented by handlers that require direct
- * access to Tomcat's I/O layer rather than going through the Servlet API.
+ * This Tomcat specific interface is implemented by handlers that require direct access to Tomcat's I/O layer rather
+ * than going through the Servlet API.
  */
 public interface InternalHttpUpgradeHandler extends HttpUpgradeHandler {
 
