@@ -179,7 +179,8 @@ public class NioBlockingSelector {
                     }
                 }
                 try {
-                    if (att.getReadLatch() == null || att.getReadLatch().getCount() == 0) att.startReadLatch(1);
+                    if (att.getReadLatch() == null || att.getReadLatch().getCount() == 0)
+                        att.startReadLatch(1);
                     poller.add(att, SelectionKey.OP_READ, reference);
                     if (readTimeout < 0) {
                         att.awaitReadLatch(Long.MAX_VALUE, TimeUnit.MILLISECONDS);

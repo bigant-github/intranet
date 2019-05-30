@@ -35,7 +35,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
     public HttpIntranetServiceProcess() {
         stack = new Stack<>();
         ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+        this.executor = new ThreadPoolExecutor(1, 1, serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
     }
 
     @Override
@@ -55,6 +55,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
 
     @Override
     public void accept(Connector.ConnectorThread connectorThread, SocketChannel socketChannel) throws IOException {
+        socketChannel.configureBlocking(false);
         connectorThread.register(socketChannel, SelectionKey.OP_READ);
     }
 

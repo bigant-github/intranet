@@ -13,5 +13,8 @@ public class HttpIntranetConnectorProcessTest {
         HttpIntranetAcceptProcess httpIntranetAcceptProcess = new HttpIntranetAcceptProcess();
         Connector testHttpIntranetAcceptProcess = new Connector("testHttpIntranetAcceptProcess", httpIntranetAcceptProcess, config.getHttpAcceptPort());
         testHttpIntranetAcceptProcess.start();
+        HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
+        Connector testHttpIntranetServiceProcess = new Connector("testHttpIntranetServiceProcess", httpIntranetServiceProcess, config.getHttpPort());
+        testHttpIntranetServiceProcess.start();
     }
 }

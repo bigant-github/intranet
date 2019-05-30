@@ -530,8 +530,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             }
 
             if ((end - parsingRequestLineStart) > 0) {
-                request.protocol().setBytes(byteBuffer.array(), parsingRequestLineStart,
-                        end - parsingRequestLineStart);
+                request.protocol().setBytes(byteBuffer.array(), parsingRequestLineStart, end - parsingRequestLineStart);
             } else {
                 request.protocol().setString("");
             }
@@ -699,7 +698,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                     // Avoid unknown protocol triggering an additional error
                     request.protocol().setString(Constants.HTTP_11);
                 }
-                throw new IllegalArgumentException(sm.getString("iib.requestheadertoolarge.error"));
+                throw new IllegalArgumentException(sm.getString("iib.request header tool arge.error"));
             }
         } else {
             byteBuffer.limit(end).position(end);

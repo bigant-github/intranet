@@ -19,7 +19,6 @@ package priv.bigant.intrance.common.util.threads;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
 
 /**
  * A Thread implementation that records the time at which it was created.

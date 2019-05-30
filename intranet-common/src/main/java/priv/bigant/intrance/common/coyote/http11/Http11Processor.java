@@ -639,7 +639,7 @@ public class Http11Processor extends AbstractProcessor {
 
             // Parsing the request header
             try {
-                if (!inputBuffer.parseRequestLine(keptAlive)) {
+                if (!inputBuffer.parseRequestLine(keptAlive)) {//解析http请求第一行
                     if (inputBuffer.getParsingRequestLinePhase() == -1) {
                         return AbstractEndpoint.Handler.SocketState.UPGRADING;
                     } else if (handleIncompleteRequestLineRead()) {
@@ -655,7 +655,7 @@ public class Http11Processor extends AbstractProcessor {
                     keptAlive = true;
                     // Set this every time in case limit has been changed via JMX
                     request.getMimeHeaders().setLimit(endpoint.getMaxHeaderCount());
-                    if (!inputBuffer.parseHeaders()) {
+                    if (!inputBuffer.parseHeaders()) {//解析http请求头
                         // We've read part of the request, don't recycle it
                         // instead associate it with the socket
                         openSocket = true;
@@ -693,8 +693,12 @@ public class Http11Processor extends AbstractProcessor {
                 setErrorState(ErrorState.CLOSE_CLEAN, t);
             }
 
+
+            //TODO 目测剩下的都没用
+
+
             // Has an upgrade been requested?
-            Enumeration<String> connectionValues = request.getMimeHeaders().values("Connection");
+            /*Enumeration<String> connectionValues = request.getMimeHeaders().values("Connection");
             boolean foundUpgrade = false;
             while (connectionValues.hasMoreElements() && !foundUpgrade) {
                 foundUpgrade = connectionValues.nextElement().toLowerCase(Locale.ENGLISH).contains("upgrade");
@@ -817,10 +821,10 @@ public class Http11Processor extends AbstractProcessor {
 
             rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_KEEPALIVE);
 
-            sendfileState = processSendfile(socketWrapper);
+            sendfileState = processSendfile(socketWrapper);*/
         }
 
-        rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_ENDED);
+        /*rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_ENDED);
 
         if (getErrorState().isError() || endpoint.isPaused()) {
             return AbstractEndpoint.Handler.SocketState.CLOSED;
@@ -842,7 +846,8 @@ public class Http11Processor extends AbstractProcessor {
                     return SocketState.CLOSED;
                 }
             }
-        }
+        }*/
+        return null;
     }
 
 
