@@ -17,6 +17,10 @@
 package priv.bigant.intrance.common.coyote.http11;
 
 import priv.bigant.intrance.common.coyote.*;
+import priv.bigant.intrance.common.coyote.http11.servlet.http.HttpUpgradeHandler;
+import priv.bigant.intrance.common.coyote.http11.upgrade.InternalHttpUpgradeHandler;
+import priv.bigant.intrance.common.coyote.http11.upgrade.UpgradeProcessorExternal;
+import priv.bigant.intrance.common.coyote.http11.upgrade.UpgradeProcessorInternal;
 import priv.bigant.intrance.common.util.buf.StringUtils;
 import priv.bigant.intrance.common.util.net.AbstractEndpoint;
 import priv.bigant.intrance.common.util.net.SSLHostConfig;
@@ -267,7 +271,8 @@ public abstract class AbstractHttp11Protocol<S> extends AbstractProtocol<S> {
 
 
     /**
-     * Regular expression that defines the User agents which should be restricted to HTTP/1.0 support.
+     * 正则表达式，它定义了用户代理，应该限制为支持HTTP/1.0。 Regular expression that defines the User agents which should be restricted to
+     * HTTP/1.0 support.
      */
     private String restrictedUserAgents = null;
 
@@ -971,7 +976,8 @@ public abstract class AbstractHttp11Protocol<S> extends AbstractProtocol<S> {
     @SuppressWarnings("deprecation")
     @Override
     protected Processor createProcessor() {
-        Http11Processor processor = new Http11Processor(getMaxHttpHeaderSize(),
+        return null;
+        /*TODO Http11Processor processor = new Http11Processor(getMaxHttpHeaderSize(),
                 getAllowHostHeaderMismatch(), getRejectIllegalHeaderName(), getEndpoint(),
                 getMaxTrailerSize(), allowedTrailerHeaders, getMaxExtensionSize(),
                 getMaxSwallowSize(), httpUpgradeProtocols, getSendReasonPhrase(),
@@ -988,20 +994,17 @@ public abstract class AbstractHttp11Protocol<S> extends AbstractProtocol<S> {
         processor.setMaxSavePostSize(getMaxSavePostSize());
         processor.setServer(getServer());
         processor.setServerRemoveAppProvidedValues(getServerRemoveAppProvidedValues());
-        return processor;
+        return processor;*/
     }
 
 
     @Override
-    protected Processor createUpgradeProcessor(
-            SocketWrapperBase<?> socket,
-            UpgradeToken upgradeToken) {
-        /*HttpUpgradeHandler httpUpgradeHandler = upgradeToken.getHttpUpgradeHandler();
+    protected Processor createUpgradeProcessor(SocketWrapperBase<?> socket, UpgradeToken upgradeToken) {
+        HttpUpgradeHandler httpUpgradeHandler = upgradeToken.getHttpUpgradeHandler();
         if (httpUpgradeHandler instanceof InternalHttpUpgradeHandler) {
             return new UpgradeProcessorInternal(socket, upgradeToken);
         } else {
             return new UpgradeProcessorExternal(socket, upgradeToken);
-        }*/
-        return null;
+        }
     }
 }

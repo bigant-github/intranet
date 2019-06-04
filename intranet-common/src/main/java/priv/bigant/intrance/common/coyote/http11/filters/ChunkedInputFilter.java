@@ -44,8 +44,6 @@ import java.util.Set;
 public class ChunkedInputFilter implements InputFilter, ApplicationBufferHandler {
 
     private static final StringManager sm = StringManager.getManager(ChunkedInputFilter.class.getPackage().getName());
-
-
     // -------------------------------------------------------------- Constants
 
     protected static final String ENCODING_NAME = "chunked";
@@ -55,8 +53,7 @@ public class ChunkedInputFilter implements InputFilter, ApplicationBufferHandler
     // ----------------------------------------------------- Static Initializer
 
     static {
-        ENCODING.setBytes(ENCODING_NAME.getBytes(StandardCharsets.ISO_8859_1),
-                0, ENCODING_NAME.length());
+        ENCODING.setBytes(ENCODING_NAME.getBytes(StandardCharsets.ISO_8859_1), 0, ENCODING_NAME.length());
     }
 
 
@@ -135,8 +132,7 @@ public class ChunkedInputFilter implements InputFilter, ApplicationBufferHandler
 
     // ----------------------------------------------------------- Constructors
 
-    public ChunkedInputFilter(int maxTrailerSize, Set<String> allowedTrailerHeaders,
-                              int maxExtensionSize, int maxSwallowSize) {
+    public ChunkedInputFilter(int maxTrailerSize, Set<String> allowedTrailerHeaders, int maxExtensionSize, int maxSwallowSize) {
         this.trailingHeaders.setLimit(maxTrailerSize);
         this.allowedTrailerHeaders = allowedTrailerHeaders;
         this.maxExtensionSize = maxExtensionSize;
@@ -631,15 +627,13 @@ public class ChunkedInputFilter implements InputFilter, ApplicationBufferHandler
 
         }
 
-        String headerName = new String(trailingHeaders.getBytes(), startPos,
-                colonPos - startPos, StandardCharsets.ISO_8859_1);
+        String headerName = new String(trailingHeaders.getBytes(), startPos, colonPos - startPos, StandardCharsets.ISO_8859_1);
 
         if (allowedTrailerHeaders.contains(headerName.toLowerCase(Locale.ENGLISH))) {
             MessageBytes headerValue = headers.addValue(headerName);
 
             // Set the header value
-            headerValue.setBytes(trailingHeaders.getBytes(), colonPos,
-                    lastSignificantChar - colonPos);
+            headerValue.setBytes(trailingHeaders.getBytes(), colonPos, lastSignificantChar - colonPos);
         }
 
         return true;

@@ -2,12 +2,12 @@ package priv.bigant.intranet.client;
 
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.exception.ServletException;
-import priv.bigant.intrance.common.http.HttpProcessor;
+import priv.bigant.intrance.common.http.HttpProcessorAbs;
 
 import java.io.IOException;
 import java.net.Socket;
 
-public class ClientHttpProcessor extends HttpProcessor {
+public class ClientHttpProcessor extends HttpProcessorAbs {
 
 
     public ClientHttpProcessor(SocketBean socketBean) {
@@ -19,14 +19,13 @@ public class ClientHttpProcessor extends HttpProcessor {
         super.process();
     }
 
-    protected SocketBean getSocketBean() throws IOException {
+    public SocketBean getSocketBean() throws IOException {
         int localPort = ((ClientConfig) config).getLocalPort();
         String localHost = ((ClientConfig) config).getLocalHost();
         return new SocketBean(new Socket(localHost, localPort));
     }
 
-    protected void close() throws IOException {
-
+    public void close() throws IOException {
         socketBean.skip();
         socketBean.close();
         if (receiver != null) {

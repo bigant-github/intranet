@@ -3,35 +3,35 @@ package priv.bigant.intranet.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.SocketBean;
-import priv.bigant.intrance.common.http.HttpProcessorAbs;
+import priv.bigant.intrance.common.coyote.UpgradeProtocol;
+import priv.bigant.intrance.common.coyote.http11.Http11Processor;
+import priv.bigant.intrance.common.util.net.*;
 
 import java.io.IOException;
+import java.util.*;
 
-/**
- * 负责与客户端HTTP交互
- */
-public class ServerHttpProcessor extends HttpProcessorAbs {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ServerHttpProcessor.class);
-
+public class Http11ProcessorServer extends Http11Processor {
     private ServerCommunication serverCommunication;
+    private SocketBean receiver;
+    Logger LOGGER = LoggerFactory.getLogger(Http11ProcessorServer.class);
 
-    public ServerHttpProcessor(SocketBean socketBean) {
-        super(socketBean);
+    public Http11ProcessorServer(int maxHttpHeaderSize, boolean allowHostHeaderMismatch, boolean rejectIllegalHeaderName, AbstractEndpoint<?> endpoint, int maxTrailerSize, Set<String> allowedTrailerHeaders, int maxExtensionSize, int maxSwallowSize, Map<String, UpgradeProtocol> httpUpgradeProtocols, boolean sendReasonPhrase, String relaxedPathChars, String relaxedQueryChars) {
+        super(maxHttpHeaderSize, allowHostHeaderMismatch, rejectIllegalHeaderName, endpoint, maxTrailerSize, allowedTrailerHeaders, maxExtensionSize, maxSwallowSize, httpUpgradeProtocols, sendReasonPhrase, relaxedPathChars, relaxedQueryChars);
     }
 
     @Override
     public SocketBean getSocketBean() {
-        String host = super.requestProcessor.getHost();
+        String host = super.request.getHost();
         serverCommunication = HttpSocketManager.get(host);
-        if (serverCommunication != null) {
-            boolean b = serverCommunication.isClose();
-            if (!b) {
-                LOGGER.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
-                serverCommunication.close();
-            }
+        if (serverCommunication == null)
+            return null;
+        if (serverCommunication.isClose()) {
+            LOGGER.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
+            serverCommunication.close();
             return null;
         }
-        return checkSocketBean();
+        receiver = checkSocketBean();
+        return receiver;
     }
 
     protected SocketBean checkSocketBean() {
@@ -64,10 +64,9 @@ public class ServerHttpProcessor extends HttpProcessorAbs {
             }
         }
 
-        if (socketBean != null) {
+        /*if (socketBean != null) {
             socketBean.skip();
             super.socketBean.close();
-        }
-
+        }*/
     }
 }

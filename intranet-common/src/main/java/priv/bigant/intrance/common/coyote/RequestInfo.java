@@ -118,9 +118,9 @@ public class RequestInfo  {
         return req.getBytesRead();
     }
 
-    public long getRequestBytesSent() {
+    /*TODO public long getRequestBytesSent() {
         return req.getResponse().getContentWritten();
-    }
+    }*/
 
     public long getRequestProcessingTime() {
         // Not perfect, but good enough to avoid returning strange values due to
@@ -158,11 +158,11 @@ public class RequestInfo  {
      */
     void updateCounters() {
         bytesReceived+=req.getBytesRead();
-        bytesSent+=req.getResponse().getContentWritten();
+        //TODO bytesSent+=req.getResponse().getContentWritten();
 
         requestCount++;
-        if( req.getResponse().getStatus() >=400 )
-            errorCount++;
+        //TODO if( req.getResponse().getStatus() >=400 )
+        //TODO    errorCount++;
         long t0=req.getStartTime();
         long t1=System.currentTimeMillis();
         long time=t1-t0;

@@ -92,14 +92,15 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
      * @param t          The error which occurred
      */
     protected void setErrorState(ErrorState errorState, Throwable t) {
-        response.setError();
+        //TODO response.setError();
         boolean blockIo = this.errorState.isIoAllowed() && !errorState.isIoAllowed();
         this.errorState = this.errorState.getMostSevere(errorState);
         // Don't change the status code for IOException since that is almost
         // certainly a client disconnect in which case it is preferable to keep
         // the original status code http://markmail.org/message/4cxpwmxhtgnrwh7n
-        if (response.getStatus() < 400 && !(t instanceof IOException)) {
-            response.setStatus(500);
+        if (//TODO response.getStatus() < 400 &&
+                !(t instanceof IOException)) {
+            //TODO response.setStatus(500);
         }
         //TODO
         /*if (t != null) {
@@ -292,7 +293,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 for (int i = colonPos + 1; i < valueL; i++) {
                     char c = (char) valueB[i + valueS];
                     if (c < '0' || c > '9') {
-                        response.setStatus(400);
+                        //TODO response.setStatus(400);
                         setErrorState(ErrorState.CLOSE_CLEAN, null);
                         return;
                     }
@@ -327,7 +328,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 }
             }
 
-            response.setStatus(400);
+            //TODO response.setStatus(400);
             setErrorState(ErrorState.CLOSE_CLEAN, e);
         }
     }
@@ -360,14 +361,15 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
         switch (actionCode) {
             // 'Normal' servlet support
             case COMMIT: {
-                if (!response.isCommitted()) {
+
+                /*//TODO if (!response.isCommitted()) {
                     try {
                         // Validate and write response headers
                         prepareResponse();
                     } catch (IOException e) {
                         setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
                     }
-                }
+                }*/
                 break;
             }
             case CLOSE: {
@@ -391,7 +393,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                     flush();
                 } catch (IOException e) {
                     setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
-                    response.setErrorException(e);
+                    //TODO response.setErrorException(e);
                 }
                 break;
             }

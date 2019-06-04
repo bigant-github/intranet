@@ -120,7 +120,7 @@ public abstract class Communication extends Thread {
     /**
      * 判断是否断开连接，断开返回true,没有返回false
      */
-    public Boolean sendUrgentData() {
+    public Boolean isClose() {
         try {
             socketChannel.socket().sendUrgentData(0xFF);//发送1个字节的紧急数据，默认情况下，服务器端没有开启紧急数据处理，不影响正常通信
             return false;

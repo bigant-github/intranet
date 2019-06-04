@@ -37,7 +37,7 @@ public class Output {
         System.out.println("bbbb");
 
 
-        accept.sendUrgentData(0);*/
+        accept.isClose(0);*/
     }
 
 

@@ -75,7 +75,7 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
                 socketBean.setDomainName(host);
                 boolean exist = HttpSocketManager.isExist(host);
                 if (exist) {
-                    boolean b = HttpSocketManager.get(host).sendUrgentData();
+                    boolean b = HttpSocketManager.get(host).isClose();
                     if (b) {
                         HttpSocketManager.get(host).close();
                         HttpSocketManager.remove(host);
@@ -89,7 +89,8 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
                 HttpSocketManager.add(host, serverCommunication);
                 serverCommunication.writeN(CommunicationResponse.createSuccess());
                 LOG.info(host + " 连接成功");
-                serverCommunication.createSocketBean();
+                for (int a = 0; a < 10; a++)
+                    serverCommunication.createSocketBean();
             } catch (Exception e) {
                 e.printStackTrace();
             }

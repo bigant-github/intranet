@@ -56,8 +56,7 @@ public class NioSelectorPool {
     protected boolean enabled = true;
     protected AtomicInteger active = new AtomicInteger(0);
     protected AtomicInteger spare = new AtomicInteger(0);
-    protected ConcurrentLinkedQueue<Selector> selectors =
-            new ConcurrentLinkedQueue<>();
+    protected ConcurrentLinkedQueue<Selector> selectors = new ConcurrentLinkedQueue<>();
 
     protected Selector getSharedSelector() throws IOException {
         if (SHARED && SHARED_SELECTOR == null) {
@@ -84,7 +83,8 @@ public class NioSelectorPool {
             s = selectors.size() > 0 ? selectors.poll() : null;
             if (s == null) {
                 s = Selector.open();
-            } else spare.decrementAndGet();
+            } else
+                spare.decrementAndGet();
 
         } catch (NoSuchElementException x) {
             try {
@@ -92,7 +92,8 @@ public class NioSelectorPool {
             } catch (IOException iox) {
             }
         } finally {
-            if (s == null) active.decrementAndGet();//we were unable to find a selector
+            if (s == null)
+                active.decrementAndGet();//we were unable to find a selector
         }
         return s;
     }
@@ -260,8 +261,11 @@ public class NioSelectorPool {
                 }
                 if (selector != null) {//perform a blocking read
                     //register OP_WRITE to the selector
-                    if (key == null) key = socket.getIOChannel().register(selector, SelectionKey.OP_READ);
-                    else key.interestOps(SelectionKey.OP_READ);
+                    if (key == null)
+                        key = socket.getIOChannel().register(selector, SelectionKey.OP_READ);
+                    else
+                        key.interestOps(SelectionKey.OP_READ);
+
                     if (readTimeout == 0) {
                         timedout = (read == 0);
                     } else if (readTimeout < 0) {
@@ -273,7 +277,8 @@ public class NioSelectorPool {
                 if (readTimeout > 0 && (selector == null || keycount == 0))
                     timedout = (System.currentTimeMillis() - time) >= readTimeout;
             }//while
-            if (timedout) throw new SocketTimeoutException();
+            if (timedout)
+                throw new SocketTimeoutException();
         } finally {
             if (key != null) {
                 key.cancel();

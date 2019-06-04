@@ -35,7 +35,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
     public HttpIntranetServiceProcess() {
         stack = new Stack<>();
         ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.executor = new ThreadPoolExecutor(1, 1, serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+        this.executor = new ThreadPoolExecutor(10, 10, serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
     }
 
     @Override
@@ -55,8 +55,9 @@ public class HttpIntranetServiceProcess extends ProcessBase {
 
     @Override
     public void accept(Connector.ConnectorThread connectorThread, SocketChannel socketChannel) throws IOException {
-        socketChannel.configureBlocking(false);
-        connectorThread.register(socketChannel, SelectionKey.OP_READ);
+        /*socketChannel.configureBlocking(false);
+        connectorThread.register(socketChannel, SelectionKey.OP_READ);*/
+        executor.execute(new ReadProcessThread(socketChannel));
     }
 
     class ReadProcessThread implements Runnable {
@@ -76,7 +77,8 @@ public class HttpIntranetServiceProcess extends ProcessBase {
         public void run() {
             try {
                 NioEndpoint nioEndpoint = new NioEndpoint();
-                Http11Processor http11Processor = new Http11Processor(8 * 1024, true, false, nioEndpoint, 8192,
+                Http11Processor http11Processor = new Http11ProcessorServer(8 * 1024,
+                        true, false, nioEndpoint, 8192,
                         Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>()), 8192, 2 * 1024 * 1024, new HashMap<>(), true, null, null);
                 NioChannel nioChannel = new NioChannel(socketChannel, new SocketBufferHandler(2048, 2048, true));
                 NioEndpoint.NioSocketWrapper nioSocketWrapper = new NioEndpoint.NioSocketWrapper(nioChannel, nioEndpoint);

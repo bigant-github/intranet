@@ -18,6 +18,7 @@ public class SocketBean {
     private InetAddress inetAddress;
     private String domainName;
     private String id;
+    private SocketChannel socketChannel;
 
     public SocketBean(Socket socket, String id) {
         this.socket = socket;
@@ -26,6 +27,7 @@ public class SocketBean {
 
     public SocketBean(SocketChannel socketChannel) throws IOException {
         Socket socket = socketChannel.socket();
+        this.socketChannel = socketChannel;
         this.socket = socket;
         this.inetAddress = this.socket.getInetAddress();
         is = this.socket.getInputStream();
@@ -136,6 +138,15 @@ public class SocketBean {
 
     public String getId() {
         return id;
+    }
+
+
+    public SocketChannel getSocketChannel() {
+        return socketChannel;
+    }
+
+    public void setSocketChannel(SocketChannel socketChannel) {
+        this.socketChannel = socketChannel;
     }
 
     public void setId(String id) {

@@ -16,12 +16,9 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import com.sun.xml.internal.bind.v2.TODO;
-import priv.bigant.intrance.common.coyote.ActionCode;
 import priv.bigant.intrance.common.coyote.Response;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
-import priv.bigant.intrance.common.util.http.HttpMessages;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 import priv.bigant.intrance.common.util.res.StringManager;
 
@@ -120,7 +117,7 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
         if (sendReasonPhrase) {
             // Cause loading of HttpMessages
-            HttpMessages.getInstance(response.getLocale()).getMessage(200);
+            // TODO  HttpMessages.getInstance(response.getLocale()).getMessage(200);
         }
     }
 
@@ -193,6 +190,7 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     @Override
     public int doWrite(ByteChunk chunk) throws IOException {
 
+       /* TODO
         if (!response.isCommitted()) {
             // Send the connector a request for commit. The connector should
             // then validate the headers, send them (using sendHeaders) and
@@ -204,13 +202,15 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
             return outputStreamOutputBuffer.doWrite(chunk);
         } else {
             return activeFilters[lastActiveFilter].doWrite(chunk);
-        }
+        }*/
+        return 0;
     }
 
 
     @Override
     public int doWrite(ByteBuffer chunk) throws IOException {
 
+        /*TODO
         if (!response.isCommitted()) {
             // Send the connector a request for commit. The connector should
             // then validate the headers, send them (using sendHeaders) and
@@ -222,7 +222,8 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
             return outputStreamOutputBuffer.doWrite(chunk);
         } else {
             return activeFilters[lastActiveFilter].doWrite(chunk);
-        }
+        }*/
+        return 0;
     }
 
 
@@ -315,16 +316,17 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
     @SuppressWarnings("deprecation")
     public void sendAck() throws IOException {
+        /* TODO
         if (!response.isCommitted()) {
-            /*TODO if (sendReasonPhrase) {
+            *//*TODO if (sendReasonPhrase) {
                 socketWrapper.write(isBlocking(), Constants.ACK_BYTES_REASON, 0, Constants.ACK_BYTES_REASON.length);
             } else {
                 socketWrapper.write(isBlocking(), Constants.ACK_BYTES, 0, Constants.ACK_BYTES.length);
-            }*/
+            }*//*
             if (flushBuffer(true)) {
                 throw new IOException(sm.getString("iob.failedwrite.ack"));
             }
-        }
+        }*/
     }
 
 
@@ -334,7 +336,7 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
      * @throws IOException an underlying I/O error occurred
      */
     protected void commit() throws IOException {
-        response.setCommitted(true);
+        // TODO response.setCommitted(true);
 
         if (headerBuffer.position() > 0) {
             // Sending the response header buffer
@@ -358,7 +360,7 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
         headerBuffer.put(Constants.SP);
 
         // Write status code
-        int status = response.getStatus();
+        int status = 0;// TODO  = response.getStatus();
         switch (status) {
             case 200:
                 write(Constants._200_BYTES);
@@ -378,12 +380,11 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
         if (sendReasonPhrase) {
             // Write message
             String message = null;
-            if (priv.bigant.intrance.common.coyote.Constants.USE_CUSTOM_STATUS_MSG_IN_HEADER && HttpMessages.isSafeInHttpHeader(response.getMessage())) {
-                message = response.getMessage();
-            }
+            // TODO if (priv.bigant.intrance.common.coyote.Constants.USE_CUSTOM_STATUS_MSG_IN_HEADER && HttpMessages.isSafeInHttpHeader(response.getMessage())) {
+            // TODO message = response.getMessage();
+            // TODO }
             if (message == null) {
-                write(HttpMessages.getInstance(
-                        response.getLocale()).getMessage(status));
+                // TODO write(HttpMessages.getInstance(response.getLocale()).getMessage(status));
             } else {
                 write(message);
             }

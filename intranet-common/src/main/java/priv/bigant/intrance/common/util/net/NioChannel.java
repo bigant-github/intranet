@@ -40,7 +40,7 @@ public class NioChannel implements ByteChannel {
 
     protected static final ByteBuffer emptyBuf = ByteBuffer.allocate(0);
 
-    protected SocketChannel sc = null;
+    protected SocketChannel sc;
     protected SocketWrapperBase<NioChannel> socketWrapper = null;
 
     protected final SocketBufferHandler bufHandler;

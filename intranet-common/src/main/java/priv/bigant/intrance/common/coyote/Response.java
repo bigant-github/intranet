@@ -18,21 +18,23 @@ package priv.bigant.intrance.common.coyote;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 import priv.bigant.intrance.common.util.buf.B2CConverter;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
+import priv.bigant.intrance.common.util.buf.UDecoder;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
-import priv.bigant.intrance.common.util.http.parser.MediaType;
+import priv.bigant.intrance.common.util.http.Parameters;
+import priv.bigant.intrance.common.util.http.ServerCookies;
+import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Response object.
@@ -50,151 +52,288 @@ public final class Response {
 
     private static final Logger log = LoggerFactory.getLogger(Response.class);
 
-    // ----------------------------------------------------- Class Variables
+    // Expected maximum typical number of cookies per request.
+    private static final int INITIAL_COOKIE_SIZE = 4;
 
-    /**
-     * Default locale as mandated by the spec.
-     */
-    private static final Locale DEFAULT_LOCALE = Locale.getDefault();
+    // ----------------------------------------------------------- Constructors
+
+    public Response() {
+        parameters.setURLDecoder(urlDecoder);
+    }
 
 
     // ----------------------------------------------------- Instance Variables
 
-    /**
-     * Status code.
-     */
-    int status = 200;
+    private int serverPort = -1;
+    private final MessageBytes serverNameMB = MessageBytes.newInstance();
+
+    private int remotePort;
+    private int localPort;
+
+    private final MessageBytes statusMB = MessageBytes.newInstance();
+    private final MessageBytes protoMB = MessageBytes.newInstance();
+    private final MessageBytes descriptionMB = MessageBytes.newInstance();
+
+    private final MimeHeaders headers = new MimeHeaders();
 
 
     /**
-     * Status message.
+     * Path parameters
      */
-    String message = null;
-
-
-    /**
-     * Response headers.
-     */
-    final MimeHeaders headers = new MimeHeaders();
-
-
-    /**
-     * Associated output buffer.
-     */
-    OutputBuffer outputBuffer;
-
+    private final Map<String, String> pathParameters = new HashMap<>();
 
     /**
      * Notes.
      */
-    final Object notes[] = new Object[Constants.MAX_NOTES];
+    private final Object notes[] = new Object[Constants.MAX_NOTES];
 
 
     /**
-     * Committed flag.
+     * Associated input buffer.
      */
-    volatile boolean committed = false;
+    private InputBuffer inputBuffer = null;
 
 
     /**
-     * Action hook.
+     * URL decoder.
      */
-    volatile ActionHook hook;
+    private final UDecoder urlDecoder = new UDecoder();
 
 
     /**
-     * HTTP specific fields.
+     * HTTP specific fields. (remove them ?)
      */
-    String contentType = null;
-    String contentLanguage = null;
-    Charset charset = null;
-    // Retain the original name used to set the charset so exactly that name is
-    // used in the ContentType header. Some (arguably non-specification
-    // compliant) user agents are very particular
-    String characterEncoding = null;
-    long contentLength = -1;
-    private Locale locale = DEFAULT_LOCALE;
-
-    // General informations
-    private long contentWritten = 0;
-    private long commitTime = -1;
+    private long contentLength = -1;
+    private MessageBytes contentTypeMB = null;
+    private Charset charset = null;
+    // Retain the original, user specified character encoding so it can be
+    // returned even if it is invalid
+    private String characterEncoding = null;
 
     /**
-     * Holds request error exception.
+     * Is there an expectation ?
      */
-    Exception errorException = null;
+    private boolean expectation = false;
 
-    /**
-     * With the introduction of async processing and the possibility of non-container threads calling sendError()
-     * tracking the current error state and ensuring that the correct error page is called becomes more complicated.
-     * This state attribute helps by tracking the current error state and informing callers that attempt to change state
-     * if the change was successful or if another thread got there first.
-     *
-     * <pre>
-     * The state machine is very simple:
-     *
-     * 0 - NONE
-     * 1 - NOT_REPORTED
-     * 2 - REPORTED
-     *
-     *
-     *   -->---->-- >NONE
-     *   |   |        |
-     *   |   |        | setError()
-     *   ^   ^        |
-     *   |   |       \|/
-     *   |   |-<-NOT_REPORTED
-     *   |            |
-     *   ^            | report()
-     *   |            |
-     *   |           \|/
-     *   |----<----REPORTED
-     * </pre>
-     */
-    private final AtomicInteger errorState = new AtomicInteger(0);
+    private final ServerCookies serverCookies = new ServerCookies(INITIAL_COOKIE_SIZE);
+    private final Parameters parameters = new Parameters();
 
-    Request req;
+    private final MessageBytes remoteUser = MessageBytes.newInstance();
+    private boolean remoteUserNeedsAuthorization = false;
+    private final MessageBytes authType = MessageBytes.newInstance();
+    private final HashMap<String, Object> attributes = new HashMap<>();
+
+    private Response response;
+    private volatile ActionHook hook;
+
+    private long bytesRead = 0;
+    // Time of the request - useful to avoid repeated calls to System.currentTime
+    private long startTime = -1;
+    private int available = 0;
+
+    private boolean sendfile = true;
+
+    private final AtomicBoolean allDataReadEventSent = new AtomicBoolean(false);
+
+    public boolean sendAllDataReadEvent() {
+        return allDataReadEventSent.compareAndSet(false, true);
+    }
 
 
     // ------------------------------------------------------------- Properties
-
-    public Request getRequest() {
-        return req;
-    }
-
-    public void setRequest(Request req) {
-        this.req = req;
-    }
-
-
-    public void setOutputBuffer(OutputBuffer outputBuffer) {
-        this.outputBuffer = outputBuffer;
-    }
-
 
     public MimeHeaders getMimeHeaders() {
         return headers;
     }
 
 
+    public UDecoder getURLDecoder() {
+        return urlDecoder;
+    }
+
+    // -------------------- Request data --------------------
+
+
+    public MessageBytes protocol() {
+        return protoMB;
+    }
+
+    public MessageBytes status() {
+        return statusMB;
+    }
+
+    public MessageBytes description() {
+        return descriptionMB;
+    }
+
+    /**
+     * Get the "virtual host", derived from the Host: header associated with this request.
+     *
+     * @return The buffer holding the server name, if any. Use isNull() to check if there is no value set.
+     */
+    public MessageBytes serverName() {
+        return serverNameMB;
+    }
+
+    public int getServerPort() {
+        return serverPort;
+    }
+
+    public void setServerPort(int serverPort) {
+        this.serverPort = serverPort;
+    }
+
+
+    public int getRemotePort() {
+        return remotePort;
+    }
+
+    public void setRemotePort(int port) {
+        this.remotePort = port;
+    }
+
+    public int getLocalPort() {
+        return localPort;
+    }
+
+    public void setLocalPort(int port) {
+        this.localPort = port;
+    }
+
+    // -------------------- encoding/type --------------------
+
+
+    /**
+     * Get the character encoding used for this request.
+     *
+     * @return The value set via {@link #setCharacterEncoding(String)} or if no call has been made to that method try to
+     * obtain if from the content type.
+     */
+    public String getCharacterEncoding() {
+        if (characterEncoding == null) {
+            characterEncoding = getCharsetFromContentType(getContentType());
+        }
+
+        return characterEncoding;
+    }
+
+
+    /**
+     * Get the character encoding used for this request.
+     *
+     * @return The value set via {@link #setCharacterEncoding(String)} or if no call has been made to that method try to
+     * obtain if from the content type.
+     * @throws UnsupportedEncodingException If the user agent has specified an invalid character encoding
+     */
+    public Charset getCharset() throws UnsupportedEncodingException {
+        if (charset == null) {
+            getCharacterEncoding();
+            if (characterEncoding != null) {
+                charset = B2CConverter.getCharset(characterEncoding);
+            }
+        }
+
+        return charset;
+    }
+
+
+    /**
+     * @param enc The new encoding
+     * @throws UnsupportedEncodingException If the encoding is invalid
+     * @deprecated This method will be removed in Tomcat 9.0.x
+     */
+    @Deprecated
+    public void setCharacterEncoding(String enc) throws UnsupportedEncodingException {
+        setCharset(B2CConverter.getCharset(enc));
+    }
+
+
+    public void setCharset(Charset charset) {
+        this.charset = charset;
+        this.characterEncoding = charset.name();
+    }
+
+
+    public void setContentLength(long len) {
+        this.contentLength = len;
+    }
+
+
+    public int getContentLength() {
+        long length = getContentLengthLong();
+
+        if (length < Integer.MAX_VALUE) {
+            return (int) length;
+        }
+        return -1;
+    }
+
+    public long getContentLengthLong() {
+        if (contentLength > -1) {
+            return contentLength;
+        }
+
+        MessageBytes clB = headers.getUniqueValue("content-length");
+        contentLength = (clB == null || clB.isNull()) ? -1 : clB.getLong();
+
+        return contentLength;
+    }
+
+    public String getContentType() {
+        contentType();
+        if ((contentTypeMB == null) || contentTypeMB.isNull()) {
+            return null;
+        }
+        return contentTypeMB.toString();
+    }
+
+
+    public void setContentType(String type) {
+        contentTypeMB.setString(type);
+    }
+
+
+    public MessageBytes contentType() {
+        if (contentTypeMB == null) {
+            contentTypeMB = headers.getValue("content-type");
+        }
+        return contentTypeMB;
+    }
+
+
+    public void setContentType(MessageBytes mb) {
+        contentTypeMB = mb;
+    }
+
+
+    public String getHeader(String name) {
+        return headers.getHeader(name);
+    }
+
+
+    public void setExpectation(boolean expectation) {
+        this.expectation = expectation;
+    }
+
+
+    public boolean hasExpectation() {
+        return expectation;
+    }
+
+
+    // -------------------- Associated response --------------------
+
+    public Response getResponse() {
+        return response;
+    }
+
+    public void setResponse(Response response) {
+        this.response = response;
+    }
+
     protected void setHook(ActionHook hook) {
         this.hook = hook;
     }
-
-
-    // -------------------- Per-Response "notes" --------------------
-
-    public final void setNote(int pos, Object value) {
-        notes[pos] = value;
-    }
-
-
-    public final Object getNote(int pos) {
-        return notes[pos];
-    }
-
-
-    // -------------------- Actions --------------------
 
     public void action(ActionCode actionCode, Object param) {
         if (hook != null) {
@@ -207,541 +346,273 @@ public final class Response {
     }
 
 
-    // -------------------- State --------------------
+    // -------------------- Cookies --------------------
 
-    public int getStatus() {
-        return status;
+    public ServerCookies getCookies() {
+        return serverCookies;
     }
 
 
-    /**
-     * Set the response status.
-     *
-     * @param status The status value to set
-     */
-    public void setStatus(int status) {
-        this.status = status;
+    // -------------------- Parameters --------------------
+
+    public Parameters getParameters() {
+        return parameters;
     }
 
 
-    /**
-     * Get the status message.
-     *
-     * @return The message associated with the current status
-     */
-    public String getMessage() {
-        return message;
+    public void addPathParameter(String name, String value) {
+        pathParameters.put(name, value);
+    }
+
+    public String getPathParameter(String name) {
+        return pathParameters.get(name);
     }
 
 
-    /**
-     * Set the status message.
-     *
-     * @param message The status message to set
-     */
-    public void setMessage(String message) {
-        this.message = message;
+    // -------------------- Other attributes --------------------
+    // We can use notes for most - need to discuss what is of general interest
+
+    public void setAttribute(String name, Object o) {
+        attributes.put(name, o);
     }
 
-
-    public boolean isCommitted() {
-        return committed;
+    public HashMap<String, Object> getAttributes() {
+        return attributes;
     }
 
+    public Object getAttribute(String name) {
+        return attributes.get(name);
+    }
 
-    public void setCommitted(boolean v) {
-        if (v && !this.committed) {
-            this.commitTime = System.currentTimeMillis();
+    public MessageBytes getRemoteUser() {
+        return remoteUser;
+    }
+
+    public boolean getRemoteUserNeedsAuthorization() {
+        return remoteUserNeedsAuthorization;
+    }
+
+    public void setRemoteUserNeedsAuthorization(boolean remoteUserNeedsAuthorization) {
+        this.remoteUserNeedsAuthorization = remoteUserNeedsAuthorization;
+    }
+
+    public MessageBytes getAuthType() {
+        return authType;
+    }
+
+    public int getAvailable() {
+        return available;
+    }
+
+    public void setAvailable(int available) {
+        this.available = available;
+    }
+
+    public boolean getSendfile() {
+        return sendfile;
+    }
+
+    public void setSendfile(boolean sendfile) {
+        this.sendfile = sendfile;
+    }
+
+    public boolean isFinished() {
+        AtomicBoolean result = new AtomicBoolean(false);
+        action(ActionCode.REQUEST_BODY_FULLY_READ, result);
+        return result.get();
+    }
+
+    public boolean getSupportsRelativeRedirects() {
+        if (protocol().equals("") || protocol().equals("HTTP/1.0")) {
+            return false;
         }
-        this.committed = v;
+        return true;
     }
 
-    /**
-     * Return the time the response was committed (based on System.currentTimeMillis).
-     *
-     * @return the time the response was committed
-     */
-    public long getCommitTime() {
-        return commitTime;
+
+    // -------------------- Input Buffer --------------------
+
+    public InputBuffer getInputBuffer() {
+        return inputBuffer;
     }
 
-    // -----------------Error State --------------------
 
-    /**
-     * Set the error Exception that occurred during request processing.
-     *
-     * @param ex The exception that occurred
-     */
-    public void setErrorException(Exception ex) {
-        errorException = ex;
+    public void setInputBuffer(InputBuffer inputBuffer) {
+        this.inputBuffer = inputBuffer;
     }
 
 
     /**
-     * Get the Exception that occurred during request processing.
+     * Read data from the input buffer and put it into a byte chunk.
+     * <p>
+     * The buffer is owned by the protocol implementation - it will be reused on the next read. The Adapter must either
+     * process the data in place or copy it to a separate buffer if it needs to hold it. In most cases this is done
+     * during byte-&gt;char conversions or via InputStream. Unlike InputStream, this interface allows the app to process
+     * data in place, without copy.
      *
-     * @return The exception that occurred
+     * @param chunk The destination to which to copy the data
+     * @return The number of bytes copied
+     * @throws IOException If an I/O error occurs during the copy
+     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doRead(ApplicationBufferHandler)}
      */
-    public Exception getErrorException() {
-        return errorException;
-    }
-
-
-    public boolean isExceptionPresent() {
-        return (errorException != null);
-    }
-
-
-    /**
-     * Set the error flag.
-     *
-     * @return <code>false</code> if the error flag was already set
-     */
-    public boolean setError() {
-        return errorState.compareAndSet(0, 1);
-    }
-
-
-    /**
-     * Error flag accessor.
-     *
-     * @return <code>true</code> if the response has encountered an error
-     */
-    public boolean isError() {
-        return errorState.get() > 0;
-    }
-
-
-    public boolean isErrorReportRequired() {
-        return errorState.get() == 1;
-    }
-
-
-    public boolean setErrorReported() {
-        return errorState.compareAndSet(1, 2);
-    }
-
-
-    // -------------------- Methods --------------------
-
-    public void reset() throws IllegalStateException {
-
-        if (committed) {
-            throw new IllegalStateException();
+    @Deprecated
+    public int doRead(ByteChunk chunk) throws IOException {
+        int n = inputBuffer.doRead(chunk);
+        if (n > 0) {
+            bytesRead += n;
         }
-
-        recycle();
+        return n;
     }
 
 
-    // -------------------- Headers --------------------
-
     /**
-     * Does the response contain the given header.
-     * <br>
-     * Warning: This method always returns <code>false</code> for Content-Type and Content-Length.
+     * Read data from the input buffer and put it into ApplicationBufferHandler.
+     * <p>
+     * The buffer is owned by the protocol implementation - it will be reused on the next read. The Adapter must either
+     * process the data in place or copy it to a separate buffer if it needs to hold it. In most cases this is done
+     * during byte-&gt;char conversions or via InputStream. Unlike InputStream, this interface allows the app to process
+     * data in place, without copy.
      *
-     * @param name The name of the header of interest
-     * @return {@code true} if the response contains the header.
+     * @param handler The destination to which to copy the data
+     * @return The number of bytes copied
+     * @throws IOException If an I/O error occurs during the copy
      */
-    public boolean containsHeader(String name) {
-        return headers.getHeader(name) != null;
-    }
-
-
-    public void setHeader(String name, String value) {
-        char cc = name.charAt(0);
-        if (cc == 'C' || cc == 'c') {
-            if (checkSpecialHeader(name, value))
-                return;
+    public int doRead(ApplicationBufferHandler handler) throws IOException {
+        int n = inputBuffer.doRead(handler);
+        if (n > 0) {
+            bytesRead += n;
         }
-        headers.setValue(name).setString(value);
+        return n;
     }
-
-
-    public void addHeader(String name, String value) {
-        addHeader(name, value, null);
-    }
-
-
-    public void addHeader(String name, String value, Charset charset) {
-        char cc = name.charAt(0);
-        if (cc == 'C' || cc == 'c') {
-            if (checkSpecialHeader(name, value))
-                return;
-        }
-        MessageBytes mb = headers.addValue(name);
-        if (charset != null) {
-            mb.setCharset(charset);
-        }
-        mb.setString(value);
-    }
-
-
-    /**
-     * Set internal fields for special header names. Called from set/addHeader. Return true if the header is special, no
-     * need to set the header.
-     */
-    private boolean checkSpecialHeader(String name, String value) {
-        // XXX Eliminate redundant fields !!!
-        // ( both header and in special fields )
-        if (name.equalsIgnoreCase("Content-Type")) {
-            setContentType(value);
-            return true;
-        }
-        if (name.equalsIgnoreCase("Content-Length")) {
-            try {
-                long cL = Long.parseLong(value);
-                setContentLength(cL);
-                return true;
-            } catch (NumberFormatException ex) {
-                // Do nothing - the spec doesn't have any "throws"
-                // and the user might know what he's doing
+    public boolean isConnection() {
+        // Check connection header
+        MessageBytes connectionValueMB = headers.getValue(priv.bigant.intrance.common.coyote.http11.Constants.CONNECTION);
+        if (connectionValueMB != null) {
+            ByteChunk connectionValueBC = connectionValueMB.getByteChunk();
+            if (Http11Processor.findBytes(connectionValueBC, priv.bigant.intrance.common.coyote.http11.Constants.CLOSE_BYTES) != -1) {
                 return false;
+            } else if (Http11Processor.findBytes(connectionValueBC, priv.bigant.intrance.common.coyote.http11.Constants.KEEPALIVE_BYTES) != -1) {
+                return true;
             }
         }
         return false;
     }
-
-
-    /**
-     * Signal that we're done with the headers, and body will follow. Any implementation needs to notify ContextManager,
-     * to allow interceptors to fix headers.
-     */
-    public void sendHeaders() {
-        action(ActionCode.COMMIT, this);
-        setCommitted(true);
-    }
-
-
-    // -------------------- I18N --------------------
-
-
-    public Locale getLocale() {
-        return locale;
-    }
-
-    /**
-     * Called explicitly by user to set the Content-Language and the default encoding.
-     *
-     * @param locale The locale to use for this response
-     */
-    public void setLocale(Locale locale) {
-
-        if (locale == null) {
-            return;  // throw an exception?
+    public boolean isChunked() {
+        // Parse transfer-encoding header
+        MessageBytes transferEncodingValueMB = headers.getValue("transfer-encoding");
+        if (transferEncodingValueMB != null) {
+            String transferEncodingValue = transferEncodingValueMB.toString();
+            return transferEncodingValue != null && transferEncodingValue.contains("chunked");
         }
-
-        // Save the locale for use by getLocale()
-        this.locale = locale;
-
-        // Set the contentLanguage for header output
-        contentLanguage = locale.toLanguageTag();
+        return false;
     }
 
-    /**
-     * Return the content language.
-     *
-     * @return The language code for the language currently associated with this response
-     */
-    public String getContentLanguage() {
-        return contentLanguage;
+    public long getStartTime() {
+        return startTime;
     }
 
-    /**
-     * Overrides the name of the character encoding used in the body of the response. This method must be called prior
-     * to writing output using getWriter().
-     *
-     * @param characterEncoding String containing the name of the character encoding.
-     */
-    public void setCharacterEncoding(String characterEncoding) {
-        if (isCommitted()) {
-            return;
-        }
-        if (characterEncoding == null) {
-            return;
-        }
-
-        try {
-            this.charset = B2CConverter.getCharset(characterEncoding);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalArgumentException(e);
-        }
-        this.characterEncoding = characterEncoding;
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
+
+    // -------------------- Per-Request "notes" --------------------
 
 
     /**
-     * @return The name of the current encoding
-     */
-    public String getCharacterEncoding() {
-        return characterEncoding;
-    }
-
-
-    public Charset getCharset() {
-        return charset;
-    }
-
-
-    /**
-     * Sets the content type.
+     * Used to store private data. Thread data could be used instead - but if you have the req, getting/setting a note
+     * is just a array access, may be faster than ThreadLocal for very frequent operations.
      * <p>
-     * This method must preserve any response charset that may already have been set via a call to
-     * response.setContentType(), response.setLocale(), or response.setCharacterEncoding().
+     * Example use: Catalina CoyoteAdapter: ADAPTER_NOTES = 1 - stores the HttpServletRequest object ( req/res)
+     * <p>
+     * To avoid conflicts, note in the range 0 - 8 are reserved for the servlet container ( catalina connector, etc ),
+     * and values in 9 - 16 for connector use.
+     * <p>
+     * 17-31 range is not allocated or used.
      *
-     * @param type the content type
+     * @param pos   Index to use to store the note
+     * @param value The value to store at that index
      */
-    public void setContentType(String type) {
-
-        if (type == null) {
-            this.contentType = null;
-            return;
-        }
-
-        MediaType m = null;
-        try {
-            m = MediaType.parseMediaType(new StringReader(type));
-        } catch (IOException e) {
-            // Ignore - null test below handles this
-        }
-        if (m == null) {
-            // Invalid - Assume no charset and just pass through whatever
-            // the user provided.
-            this.contentType = type;
-            return;
-        }
-
-        this.contentType = m.toStringNoCharset();
-
-        String charsetValue = m.getCharset();
-
-        if (charsetValue != null) {
-            charsetValue = charsetValue.trim();
-            if (charsetValue.length() > 0) {
-                try {
-                    charset = B2CConverter.getCharset(charsetValue);
-                } catch (UnsupportedEncodingException e) {
-                    log.warn(sm.getString("response.encoding.invalid", charsetValue), e);
-                }
-            }
-        }
-    }
-
-    public void setContentTypeNoCharset(String type) {
-        this.contentType = type;
-    }
-
-    public String getContentType() {
-
-        String ret = contentType;
-
-        if (ret != null
-                && charset != null) {
-            ret = ret + ";charset=" + characterEncoding;
-        }
-
-        return ret;
-    }
-
-    public void setContentLength(long contentLength) {
-        this.contentLength = contentLength;
-    }
-
-    public int getContentLength() {
-        long length = getContentLengthLong();
-
-        if (length < Integer.MAX_VALUE) {
-            return (int) length;
-        }
-        return -1;
-    }
-
-    public long getContentLengthLong() {
-        return contentLength;
+    public final void setNote(int pos, Object value) {
+        notes[pos] = value;
     }
 
 
-    /**
-     * Write a chunk of bytes.
-     *
-     * @param chunk The bytes to write
-     * @throws IOException If an I/O error occurs during the write
-     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doWrite(ByteBuffer)}
-     */
-    @Deprecated
-    public void doWrite(ByteChunk chunk) throws IOException {
-        outputBuffer.doWrite(chunk);
-        contentWritten += chunk.getLength();
+    public final Object getNote(int pos) {
+        return notes[pos];
     }
 
 
-    /**
-     * Write a chunk of bytes.
-     *
-     * @param chunk The ByteBuffer to write
-     * @throws IOException If an I/O error occurs during the write
-     */
-    public void doWrite(ByteBuffer chunk) throws IOException {
-        int len = chunk.remaining();
-        outputBuffer.doWrite(chunk);
-        contentWritten += len - chunk.remaining();
-    }
+    // -------------------- Recycling --------------------
 
-    // --------------------
 
     public void recycle() {
+        bytesRead = 0;
 
-        contentType = null;
-        contentLanguage = null;
-        locale = DEFAULT_LOCALE;
+        contentLength = -1;
+        contentTypeMB = null;
         charset = null;
         characterEncoding = null;
-        contentLength = -1;
-        status = 200;
-        message = null;
-        committed = false;
-        commitTime = -1;
-        errorException = null;
-        errorState.set(0);
-        headers.clear();
-        // Servlet 3.1 non-blocking write listener
-        //listener = null;
-        fireListener = false;
-        registeredForWrite = false;
+        expectation = false;
+        headers.recycle();
+        serverNameMB.recycle();
+        serverPort = -1;
+        localPort = -1;
+        remotePort = -1;
+        available = 0;
+        sendfile = true;
 
-        // update counters
-        contentWritten = 0;
+        serverCookies.recycle();
+        parameters.recycle();
+        pathParameters.clear();
+
+        protoMB.recycle();
+
+
+        remoteUser.recycle();
+        remoteUserNeedsAuthorization = false;
+        authType.recycle();
+        attributes.clear();
+
+        allDataReadEventSent.set(false);
+
+        startTime = -1;
     }
 
-    /**
-     * Bytes written by application - i.e. before compression, chunking, etc.
-     *
-     * @return The total number of bytes written to the response by the application. This will not be the number of
-     * bytes written to the network which may be more or less than this value.
-     */
-    public long getContentWritten() {
-        return contentWritten;
+
+    public long getBytesRead() {
+        return bytesRead;
     }
 
-    /**
-     * Bytes written to socket - i.e. after compression, chunking, etc.
-     *
-     * @param flush Should any remaining bytes be flushed before returning the total? If {@code false} bytes remaining
-     *              in the buffer will not be included in the returned value
-     * @return The total number of bytes written to the socket for this response
-     */
-    public long getBytesWritten(boolean flush) {
-        if (flush) {
-            action(ActionCode.CLIENT_FLUSH, this);
-        }
-        return outputBuffer.getBytesWritten();
-    }
-
-    /*
-     * State for non-blocking output is maintained here as it is the one point
-     * easily reachable from the CoyoteOutputStream and the Processor which both
-     * need access to state.
-     */
-    //volatile WriteListener listener;
-    private boolean fireListener = false;
-    private boolean registeredForWrite = false;
-    private final Object nonBlockingStateLock = new Object();
-
-/*    public WriteListener getWriteListener() {
-        return listener;
-    }
-
-    public void setWriteListener(WriteListener listener) {
-        if (listener == null) {
-            throw new NullPointerException(
-                    sm.getString("response.nullWriteListener"));
-        }
-        if (getWriteListener() != null) {
-            throw new IllegalStateException(
-                    sm.getString("response.writeListenerSet"));
-        }
-        // Note: This class is not used for HTTP upgrade so only need to test
-        //       for async
-        AtomicBoolean result = new AtomicBoolean(false);
-        action(ActionCode.ASYNC_IS_ASYNC, result);
-        if (!result.get()) {
-            throw new IllegalStateException(
-                    sm.getString("response.notAsync"));
-        }
-
-        this.listener = listener;
-
-        // The container is responsible for the first call to
-        // listener.onWritePossible(). If isReady() returns true, the container
-        // needs to call listener.onWritePossible() from a new thread. If
-        // isReady() returns false, the socket will be registered for write and
-        // the container will call listener.onWritePossible() once data can be
-        // written.
-        if (isReady()) {
-            synchronized (nonBlockingStateLock) {
-                // Ensure we don't get multiple write registrations if
-                // ServletOutputStream.isReady() returns false during a call to
-                // onDataAvailable()
-                registeredForWrite = true;
-                // Need to set the fireListener flag otherwise when the
-                // container tries to trigger onWritePossible, nothing will
-                // happen
-                fireListener = true;
-            }
-            action(ActionCode.DISPATCH_WRITE, null);
-            if (!ContainerThreadMarker.isContainerThread()) {
-                // Not on a container thread so need to execute the dispatch
-                action(ActionCode.DISPATCH_EXECUTE, null);
-            }
-        }
+    /*public boolean isProcessing() {
+        return reqProcessorMX.getStage() == org.apache.coyote.Constants.STAGE_SERVICE;
     }*/
 
-    public boolean isReady() {
-        /*if (listener == null) {
-            if (log.isDebugEnabled()) {
-                log.debug(sm.getString("response.notNonBlocking"));
-            }
-            return false;
-        }*/
-        // Assume write is not possible
-        boolean ready = false;
-        synchronized (nonBlockingStateLock) {
-            if (registeredForWrite) {
-                fireListener = true;
-                return false;
-            }
-            ready = checkRegisterForWrite();
-            fireListener = !ready;
-        }
-        return ready;
-    }
+    /**
+     * Parse the character encoding from the specified content type header. If the content type is null, or there is no
+     * explicit character encoding,
+     * <code>null</code> is returned.
+     *
+     * @param contentType a content type header
+     */
+    private static String getCharsetFromContentType(String contentType) {
 
-    public boolean checkRegisterForWrite() {
-        AtomicBoolean ready = new AtomicBoolean(false);
-        synchronized (nonBlockingStateLock) {
-            if (!registeredForWrite) {
-                action(ActionCode.NB_WRITE_INTEREST, ready);
-                registeredForWrite = !ready.get();
-            }
+        if (contentType == null) {
+            return null;
         }
-        return ready.get();
-    }
+        int start = contentType.indexOf("charset=");
+        if (start < 0) {
+            return null;
+        }
+        String encoding = contentType.substring(start + 8);
+        int end = encoding.indexOf(';');
+        if (end >= 0) {
+            encoding = encoding.substring(0, end);
+        }
+        encoding = encoding.trim();
+        if ((encoding.length() > 2) && (encoding.startsWith("\"")) && (encoding.endsWith("\""))) {
+            encoding = encoding.substring(1, encoding.length() - 1);
+        }
 
-    public void onWritePossible() throws IOException {
-        // Any buffered data left over from a previous non-blocking write is
-        // written in the Processor so if this point is reached the app is able
-        // to write data.
-        boolean fire = false;
-        synchronized (nonBlockingStateLock) {
-            registeredForWrite = false;
-            if (fireListener) {
-                fireListener = false;
-                fire = true;
-            }
-        }
-        /*if (fire) {
-            listener.onWritePossible();
-        }*/
+        return encoding.trim();
     }
 }

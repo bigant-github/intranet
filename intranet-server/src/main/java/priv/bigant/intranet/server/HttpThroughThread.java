@@ -10,7 +10,6 @@ import priv.bigant.intrance.common.communication.CommunicationResponse;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.UUID;
 
 /**
  * Created by GaoHan on 2018/5/22.
@@ -40,7 +39,7 @@ public class HttpThroughThread extends Thread {
             socketBean.setDomainName(host);
             boolean exist = HttpSocketManager.isExist(host);
             if (exist) {
-                boolean b = HttpSocketManager.get(host).sendUrgentData();
+                boolean b = HttpSocketManager.get(host).isClose();
                 if (b) {
                     HttpSocketManager.get(host).close();
                     HttpSocketManager.remove(host);

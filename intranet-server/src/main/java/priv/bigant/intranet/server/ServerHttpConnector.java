@@ -3,8 +3,7 @@ package priv.bigant.intranet.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.SocketBean;
-import priv.bigant.intrance.common.http.HttpProcessor;
-import priv.bigant.intrance.common.http.RequestProcessor;
+import priv.bigant.intrance.common.http.HttpProcessorAbs;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -36,7 +35,7 @@ public class ServerHttpConnector extends Thread {
                     LOGGER.debug("接受到http请求");
                     if (serverConfig.getSocketTimeOut() > 0)
                         accept.setSoTimeout(serverConfig.getSocketTimeOut());
-                    HttpProcessor serverHttpProcessor = new ServerHttpProcessor(new SocketBean(accept));
+                    HttpProcessorAbs serverHttpProcessor = new ServerHttpProcessor(new SocketBean(accept));
                     //serverHttpProcessor.run();
                     executor.execute(serverHttpProcessor);
                 } catch (IOException e) {

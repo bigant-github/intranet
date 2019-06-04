@@ -31,7 +31,8 @@ public class HttpSocketManager {
     }
 
     public static ServerCommunication get(String host) {
-        return throughMap.get(host);
+        ServerCommunication serverCommunication = throughMap.get(host);
+        return serverCommunication;
     }
 
     public static ServerCommunication remove(String host) {

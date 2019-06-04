@@ -16,6 +16,7 @@
  */
 package priv.bigant.intrance.common.coyote;
 
+import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 import priv.bigant.intrance.common.util.buf.B2CConverter;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
@@ -308,6 +309,72 @@ public final class Request {
         this.contentLength = len;
     }
 
+    public boolean isConnection() {
+        // Check connection header
+        MessageBytes connectionValueMB = headers.getValue(priv.bigant.intrance.common.coyote.http11.Constants.CONNECTION);
+        if (connectionValueMB != null) {
+            ByteChunk connectionValueBC = connectionValueMB.getByteChunk();
+            if (Http11Processor.findBytes(connectionValueBC, priv.bigant.intrance.common.coyote.http11.Constants.CLOSE_BYTES) != -1) {
+                return false;
+            } else if (Http11Processor.findBytes(connectionValueBC, priv.bigant.intrance.common.coyote.http11.Constants.KEEPALIVE_BYTES) != -1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取Host请求头 过滤端口号
+     */
+    public String getHost() {
+        try {
+            MessageBytes hostValueMB = headers.getUniqueValue("host");
+            String host = hostValueMB.getByteChunk().toString();
+            if (host == null)
+                return null;
+
+            int n = host.indexOf(':');//过滤端口号
+            if (n > 0) {
+                host = host.substring(0, n).trim();
+            } else {
+                host = host.trim();
+            }
+            return host;
+        } catch (IllegalArgumentException iae) {
+            return null;
+        }
+    }
+
+    public boolean isChunked() {
+        // Parse transfer-encoding header
+        MessageBytes transferEncodingValueMB = headers.getValue("transfer-encoding");
+        if (transferEncodingValueMB != null) {
+            String transferEncodingValue = transferEncodingValueMB.toString();
+            return transferEncodingValue != null && transferEncodingValue.contains("chunked");
+        }
+        return false;
+    }
+
+    public boolean isHttp11() {
+
+        //TODO
+        // if (endpoint.isSSLEnabled()) {
+        //    request.scheme().setString("https");
+        //}
+        if (protoMB.equals(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_11)) {
+            protoMB.setString(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_11);
+            return true;
+        } else if (protoMB.equals(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_10)) {
+            protoMB.setString(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_10);
+            return false;
+        } else if (protoMB.equals("")) {
+            // HTTP/0.9
+            return false;
+        } else {
+            // Unsupported protocol
+            return false;
+        }
+    }
 
     public int getContentLength() {
         long length = getContentLengthLong();
@@ -379,7 +446,7 @@ public final class Request {
 
     public void setResponse(Response response) {
         this.response = response;
-        response.setRequest(this);
+        //TODO response.setRequest(this);
     }
 
     protected void setHook(ActionHook hook) {
