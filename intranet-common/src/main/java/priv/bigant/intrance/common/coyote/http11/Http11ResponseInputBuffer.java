@@ -344,7 +344,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
      * @throws IOException If an exception occurs during the underlying socket read operations, or if the given buffer
      *                     is not big enough to accommodate the whole line.
      */
-    public boolean parseRequestLine(boolean keptAlive) throws IOException {
+    public boolean parseResponseLine(boolean keptAlive) throws IOException {
 
         // check state
         if (!parsingResponseLine) {
@@ -363,7 +363,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                         // timeout.
                         wrapper.setReadTimeout(wrapper.getEndpoint().getKeepAliveTimeout());
                     }
-                    if (!fill(false)) {
+                    if (!fill(true)) {
                         // A read is pending, so no longer in initial state
                         parsingRequestLinePhase = 1;
                         return false;
@@ -397,6 +397,11 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
             if (log.isDebugEnabled()) {
+                byte[] array = byteBuffer.array();
+                for (int i = 0; i < array.length; i++) {
+                    System.out.print(array[i]);
+                }
+                System.out.println();
                 log.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
             }
         }
@@ -596,7 +601,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
             return false;
         }
     }
-
 
 
     public int getParsingRequestLinePhase() {

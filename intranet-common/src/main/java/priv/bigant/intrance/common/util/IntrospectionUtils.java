@@ -50,11 +50,9 @@ public final class IntrospectionUtils {
     }
 
     @SuppressWarnings("null") // setPropertyMethodVoid is not null when used
-    public static boolean setProperty(Object o, String name, String value,
-                                      boolean invokeSetProperty) {
+    public static boolean setProperty(Object o, String name, String value, boolean invokeSetProperty) {
         if (log.isDebugEnabled())
-            log.debug("IntrospectionUtils: setProperty(" +
-                    o.getClass() + " " + name + "=" + value + ")");
+            log.debug("IntrospectionUtils: setProperty(" + o.getClass() + " " + name + "=" + value + ")");
 
         String setter = "set" + capitalize(name);
 
@@ -66,10 +64,8 @@ public final class IntrospectionUtils {
             // First, the ideal case - a setFoo( String ) method
             for (int i = 0; i < methods.length; i++) {
                 Class<?> paramT[] = methods[i].getParameterTypes();
-                if (setter.equals(methods[i].getName()) && paramT.length == 1
-                        && "java.lang.String".equals(paramT[0].getName())) {
-
-                    methods[i].invoke(o, new Object[]{value});
+                if (setter.equals(methods[i].getName()) && paramT.length == 1 && "java.lang.String".equals(paramT[0].getName())) {
+                    methods[i].invoke(o, value);
                     return true;
                 }
             }
@@ -77,24 +73,21 @@ public final class IntrospectionUtils {
             // Try a setFoo ( int ) or ( boolean )
             for (int i = 0; i < methods.length; i++) {
                 boolean ok = true;
-                if (setter.equals(methods[i].getName())
-                        && methods[i].getParameterTypes().length == 1) {
+                if (setter.equals(methods[i].getName()) && methods[i].getParameterTypes().length == 1) {
 
                     // match - find the type and invoke it
                     Class<?> paramType = methods[i].getParameterTypes()[0];
                     Object params[] = new Object[1];
 
                     // Try a setFoo ( int )
-                    if ("java.lang.Integer".equals(paramType.getName())
-                            || "int".equals(paramType.getName())) {
+                    if ("java.lang.Integer".equals(paramType.getName()) || "int".equals(paramType.getName())) {
                         try {
                             params[0] = Integer.valueOf(value);
                         } catch (NumberFormatException ex) {
                             ok = false;
                         }
                         // Try a setFoo ( long )
-                    } else if ("java.lang.Long".equals(paramType.getName())
-                            || "long".equals(paramType.getName())) {
+                    } else if ("java.lang.Long".equals(paramType.getName()) || "long".equals(paramType.getName())) {
                         try {
                             params[0] = Long.valueOf(value);
                         } catch (NumberFormatException ex) {
@@ -102,13 +95,11 @@ public final class IntrospectionUtils {
                         }
 
                         // Try a setFoo ( boolean )
-                    } else if ("java.lang.Boolean".equals(paramType.getName())
-                            || "boolean".equals(paramType.getName())) {
+                    } else if ("java.lang.Boolean".equals(paramType.getName()) || "boolean".equals(paramType.getName())) {
                         params[0] = Boolean.valueOf(value);
 
                         // Try a setFoo ( InetAddress )
-                    } else if ("java.net.InetAddress".equals(paramType
-                            .getName())) {
+                    } else if ("java.net.InetAddress".equals(paramType.getName())) {
                         try {
                             params[0] = InetAddress.getByName(value);
                         } catch (UnknownHostException exc) {
@@ -120,8 +111,7 @@ public final class IntrospectionUtils {
                         // Unknown type
                     } else {
                         if (log.isDebugEnabled())
-                            log.debug("IntrospectionUtils: Unknown type " +
-                                    paramType.getName());
+                            log.debug("IntrospectionUtils: Unknown type " + paramType.getName());
                     }
 
                     if (ok) {
@@ -149,8 +139,7 @@ public final class IntrospectionUtils {
                 params[1] = value;
                 if (setPropertyMethodBool != null) {
                     try {
-                        return ((Boolean) setPropertyMethodBool.invoke(o,
-                                params)).booleanValue();
+                        return (Boolean) setPropertyMethodBool.invoke(o, params);
                     } catch (IllegalArgumentException biae) {
                         //the boolean method had the wrong
                         //parameter types. lets try the other
@@ -170,15 +159,12 @@ public final class IntrospectionUtils {
         } catch (IllegalArgumentException ex2) {
             log.warn("IAE " + o + " " + name + " " + value, ex2);
         } catch (SecurityException ex1) {
-            log.warn("IntrospectionUtils: SecurityException for " +
-                    o.getClass() + " " + name + "=" + value + ")", ex1);
+            log.warn("IntrospectionUtils: SecurityException for " + o.getClass() + " " + name + "=" + value + ")", ex1);
         } catch (IllegalAccessException iae) {
-            log.warn("IntrospectionUtils: IllegalAccessException for " +
-                    o.getClass() + " " + name + "=" + value + ")", iae);
+            log.warn("IntrospectionUtils: IllegalAccessException for " + o.getClass() + " " + name + "=" + value + ")", iae);
         } catch (InvocationTargetException ie) {
             ExceptionUtils.handleThrowable(ie.getCause());
-            log.warn("IntrospectionUtils: InvocationTargetException for " +
-                    o.getClass() + " " + name + "=" + value + ")", ie);
+            log.warn("IntrospectionUtils: InvocationTargetException for " + o.getClass() + " " + name + "=" + value + ")", ie);
         }
         return false;
     }

@@ -16,6 +16,7 @@ import priv.bigant.intrance.common.util.net.SocketBufferHandler;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
     public HttpIntranetServiceProcess() {
         stack = new Stack<>();
         ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.executor = new ThreadPoolExecutor(10, 10, serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+        this.executor = new ThreadPoolExecutor(1, 10, serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
     }
 
     @Override
@@ -49,15 +50,21 @@ public class HttpIntranetServiceProcess extends ProcessBase {
     }
 
     @Override
-    public void read(Connector.ConnectorThread connectorThread, SocketChannel socketChannel) throws IOException {
+    public void read(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+        selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
+        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+        LOG.debug("HttpIntranetServiceProcess read " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
         executor.execute(new ReadProcessThread(socketChannel));
     }
 
     @Override
-    public void accept(Connector.ConnectorThread connectorThread, SocketChannel socketChannel) throws IOException {
-        /*socketChannel.configureBlocking(false);
-        connectorThread.register(socketChannel, SelectionKey.OP_READ);*/
-        executor.execute(new ReadProcessThread(socketChannel));
+    public void accept(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+        SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
+
+        LOG.debug("HttpIntranetServiceProcess accept " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
+        socketChannel.configureBlocking(false);
+        connectorThread.register(socketChannel, SelectionKey.OP_READ);
+        //executor.execute(new ReadProcessThread(socketChannel));
     }
 
     class ReadProcessThread implements Runnable {

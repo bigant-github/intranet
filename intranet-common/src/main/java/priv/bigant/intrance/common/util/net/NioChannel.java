@@ -62,7 +62,7 @@ public class NioChannel implements ByteChannel {
     }
 
 
-    void setSocketWrapper(SocketWrapperBase<NioChannel> socketWrapper) {
+    public void setSocketWrapper(SocketWrapperBase<NioChannel> socketWrapper) {
         this.socketWrapper = socketWrapper;
     }
 

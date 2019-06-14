@@ -1,6 +1,4 @@
-import priv.bigant.intrance.common.coyote.Request;
 import priv.bigant.intrance.common.coyote.Response;
-import priv.bigant.intrance.common.coyote.http11.Http11InputBuffer;
 import priv.bigant.intrance.common.coyote.http11.Http11ResponseInputBuffer;
 import priv.bigant.intrance.common.util.http.parser.HttpParser;
 import priv.bigant.intrance.common.util.net.NioChannel;
@@ -44,7 +42,7 @@ public class ResponseTest {
         NioEndpoint.NioSocketWrapper nioSocketWrapper = new NioEndpoint.NioSocketWrapper(nioChannel, nioEndpoint);
         http11ResponseInputBuffer.init(nioSocketWrapper);
 
-        boolean b = http11ResponseInputBuffer.parseRequestLine(false);
+        boolean b = http11ResponseInputBuffer.parseResponseLine(false);
         boolean b1 = http11ResponseInputBuffer.parseHeaders();
         ByteBuffer byteBuffer = http11ResponseInputBuffer.getByteBuffer();
         while (byteBuffer.position() < byteBuffer.limit()) {

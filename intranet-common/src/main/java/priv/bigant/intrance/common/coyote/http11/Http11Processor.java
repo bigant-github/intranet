@@ -23,7 +23,6 @@ import priv.bigant.intrance.common.HttpServletResponse;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.*;
 import priv.bigant.intrance.common.coyote.http11.filters.*;
-import priv.bigant.intrance.common.http.SocketInputStream;
 import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.Ascii;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
@@ -35,11 +34,8 @@ import priv.bigant.intrance.common.util.log.UserDataHelper;
 import priv.bigant.intrance.common.util.net.*;
 import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
 import priv.bigant.intrance.common.util.res.StringManager;
-import sun.rmi.runtime.Log;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
@@ -633,7 +629,7 @@ public abstract class Http11Processor extends AbstractProcessor {
         openSocket = false;
         readComplete = true;
         boolean keptAlive = false;
-        SocketWrapperBase<?> responseSocketWrapper = null;
+        SocketWrapperBase<NioChannel> responseSocketWrapper = null;
 
         do {
 
@@ -699,8 +695,10 @@ public abstract class Http11Processor extends AbstractProcessor {
                 if (receiver == null) {
                     log.error("receiver is null error");
                 }
+
                 NioChannel nioChannel = new NioChannel(receiver.getSocketChannel(), new SocketBufferHandler(2048, 2048, true));
                 responseSocketWrapper = new NioEndpoint.NioSocketWrapper(nioChannel, (NioEndpoint) endpoint);
+                nioChannel.setSocketWrapper(responseSocketWrapper);
                 responseInputBuffer.init(responseSocketWrapper);
             }
 
@@ -712,7 +710,7 @@ public abstract class Http11Processor extends AbstractProcessor {
             }
 
             try {
-                if (!responseInputBuffer.parseRequestLine(keptAlive)) {//解析http请求第一行
+                if (!responseInputBuffer.parseResponseLine(keptAlive)) {//解析http请求第一行
                     if (responseInputBuffer.getParsingRequestLinePhase() == -1) {
                         return AbstractEndpoint.Handler.SocketState.UPGRADING;
                     } else if (handleIncompleteRequestLineRead()) {
@@ -942,12 +940,17 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     //数据传输使用
     private void mutual(SocketWrapperBase socketWrapperBase, ByteBuffer byteBuffer, SocketChannel socketChannel, boolean chunked, int contentLength) throws IOException {
-        byteBuffer.flip();
+        int bodySize = byteBuffer.limit() - byteBuffer.position();
+        byteBuffer.position(0);
         socketChannel.write(byteBuffer);
         if (log.isDebugEnabled()) {
-            log.debug("write:" + new String(byteBuffer.array()));
+            byte[] array = byteBuffer.array();
+            for (int i = 0; i < array.length; i++) {
+                System.out.print(array[i]);
+            }
+            System.out.println();
+            log.debug("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
         }
-
         int by = 0;
         if (chunked) {
             byte[] subArray = null;
@@ -956,8 +959,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 byteBuffer.limit(byteBuffer.capacity());//展开内存
                 int read = socketWrapperBase.read(false, byteBuffer);
                 by += read;
-                byteBuffer.position(0);
-                byteBuffer.limit(read);
+                byteBuffer.flip();
                 socketChannel.write(byteBuffer);
                 if (log.isDebugEnabled()) {
                     log.debug("write:" + new String(byteBuffer.array(), 0, read));
@@ -966,19 +968,17 @@ public abstract class Http11Processor extends AbstractProcessor {
                 subArray = ArrayUtils.subarray(array, read - 5, read);
             } while (!Arrays.equals(subArray, chunkedEndByte));
         } else {
-            int readSize = inputBuffer.getByteBuffer().limit() - inputBuffer.getByteBuffer().position();
-            if (contentLength > 0) {
-                do {
-                    byteBuffer.clear();
-                    byteBuffer.flip();
-                    readSize += socketWrapperBase.read(false, byteBuffer);
-                    byteBuffer.flip();
-                    socketChannel.write(byteBuffer);
-                    if (log.isDebugEnabled()) {
-                        byteBuffer.flip();
-                        log.debug("write:" + new String(byteBuffer.array()));
-                    }
-                } while (readSize < contentLength);
+            while (bodySize < contentLength) {
+                byteBuffer.position(0);
+                byteBuffer.limit(byteBuffer.capacity());//展开内存
+                int read = socketWrapperBase.read(false, byteBuffer);
+                bodySize += read;
+                byteBuffer.flip();
+                socketChannel.write(byteBuffer);
+                if (log.isDebugEnabled()) {
+                    log.debug("write:" + new String(byteBuffer.array(), 0, read));
+
+                }
             }
         }
 

@@ -1,6 +1,7 @@
 package priv.bigant.intranet.server;
 
 import java.io.IOException;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 public interface Process extends BigAnt {
@@ -11,7 +12,7 @@ public interface Process extends BigAnt {
 
     Connector getConnector();
 
-    void read(Connector.ConnectorThread connectorThread, SocketChannel socketChannel) throws IOException;
+    void read(Connector.ConnectorThread connectorThread, SelectionKey socketChannel) throws IOException;
 
-    void accept(Connector.ConnectorThread connectorThread, SocketChannel channel) throws IOException;
+    void accept(Connector.ConnectorThread connectorThread, SelectionKey channel) throws IOException;
 }

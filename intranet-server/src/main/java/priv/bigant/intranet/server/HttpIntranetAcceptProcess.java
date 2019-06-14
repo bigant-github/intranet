@@ -12,6 +12,8 @@ import priv.bigant.intrance.common.communication.CommunicationResponse;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Stack;
 import java.util.concurrent.SynchronousQueue;
@@ -43,13 +45,14 @@ public class HttpIntranetAcceptProcess extends ProcessBase {
     }
 
     @Override
-    public void read(Connector.ConnectorThread connectorThread, SocketChannel socketChannel) {
+    public void read(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
     }
 
     @Override
-    public void accept(Connector.ConnectorThread connectorThread, SocketChannel channel) throws IOException {
-        //connectorThread.register(channel, SelectionKey.OP_READ);
-        executor.execute(new ReadProcessThread(channel));
+    public void accept(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+        SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
+        executor.execute(new ReadProcessThread(socketChannel));
     }
 
     class ReadProcessThread implements Runnable {

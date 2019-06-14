@@ -92,12 +92,9 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
                         selectionKeys.remove();
 
                         if (selectionKey.isAcceptable()) {
-                            SocketChannel socketChannel = server.accept();
-                            //socketChannel.configureBlocking(false);
-                            process.accept(this, socketChannel);
+                            process.accept(this, selectionKey);
                         } else if (selectionKey.isReadable()) {
-                            SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                            process.read(this, socketChannel);
+                            process.read(this, selectionKey);
                         }
                     }
 

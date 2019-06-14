@@ -21,7 +21,11 @@ public class Http11ProcessorServer extends Http11Processor {
 
     @Override
     public SocketBean getSocketBean() {
+
         String host = super.request.getHost();
+
+        LOGGER.debug("获取socketBean host=" + host);
+
         serverCommunication = HttpSocketManager.get(host);
         if (serverCommunication == null)
             return null;
