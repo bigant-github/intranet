@@ -737,6 +737,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                         socketWrapper.setReadTimeout(connectionUploadTimeout);
                     }
                 }
+
             } catch (IOException e) {
                 if (log.isDebugEnabled()) {
                     log.debug(sm.getString("http11processor.header.parse"), e);
@@ -944,11 +945,6 @@ public abstract class Http11Processor extends AbstractProcessor {
         byteBuffer.position(0);
         socketChannel.write(byteBuffer);
         if (log.isDebugEnabled()) {
-            byte[] array = byteBuffer.array();
-            for (int i = 0; i < array.length; i++) {
-                System.out.print(array[i]);
-            }
-            System.out.println();
             log.debug("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
         }
         int by = 0;

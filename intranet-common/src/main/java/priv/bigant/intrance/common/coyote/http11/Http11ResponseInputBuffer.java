@@ -16,6 +16,7 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.coyote.InputBuffer;
@@ -397,11 +398,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
             if (log.isDebugEnabled()) {
-                byte[] array = byteBuffer.array();
-                for (int i = 0; i < array.length; i++) {
-                    System.out.print(array[i]);
-                }
-                System.out.println();
                 log.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
             }
         }
@@ -822,10 +818,11 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                 return skipLine();
             }
 
-            // chr is next byte of header name. Convert to lowercase.
+            // chr is next byte of header name. Convert to lowercase.将大写转为小写
+            /* TODO
             if ((chr >= Constants.A) && (chr <= Constants.Z)) {
                 byteBuffer.put(pos, (byte) (chr - Constants.LC_OFFSET));
-            }
+            }*/
         }
 
         // Skip the line and ignore the header
@@ -855,6 +852,9 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                         headerParsePos = HeaderParsePosition.HEADER_VALUE;
                         byteBuffer.position(byteBuffer.position() - 1);
                         break;
+                    } else {
+                        headerData.start++;
+                        headerData.realPos++;
                     }
                 }
             }
@@ -878,10 +878,11 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                     } else if (chr == Constants.LF) {
                         eol = true;
                     } else if (chr == Constants.SP || chr == Constants.HT) {
-                        byteBuffer.put(headerData.realPos, chr);
+                        //byteBuffer.put(headerData.realPos, chr);
+                        //headerData.start++;
                         headerData.realPos++;
                     } else {
-                        byteBuffer.put(headerData.realPos, chr);
+                        //byteBuffer.put(headerData.realPos, chr);
                         headerData.realPos++;
                         headerData.lastSignificantChar = headerData.realPos;
                     }
@@ -910,7 +911,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                 } else {
                     // Copying one extra space in the buffer (since there must
                     // be at least one space inserted between the lines)
-                    byteBuffer.put(headerData.realPos, chr);
+                    //TODO byteBuffer.put(headerData.realPos, chr);
                     headerData.realPos++;
                     headerParsePos = HeaderParsePosition.HEADER_VALUE_START;
                 }

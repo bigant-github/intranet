@@ -274,6 +274,7 @@ public final class Response {
         }
 
         MessageBytes clB = headers.getUniqueValue("content-length");
+
         contentLength = (clB == null || clB.isNull()) ? -1 : clB.getLong();
 
         return contentLength;
