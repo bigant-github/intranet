@@ -124,7 +124,7 @@ public abstract class HttpProcessorAbs implements Runnable, HttpProcessor {
                     by = socketInputStream.is.read(bytes);
                     readSize += by;
                     os.write(bytes, 0, by);
-                    LOGGER.debug("write:" + new String(bytes));
+                    LOGGER.debug("write:" + new String(bytes, 0, by));
                 } while (readSize < contentLength);
             }
         }

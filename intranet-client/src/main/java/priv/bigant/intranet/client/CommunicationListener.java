@@ -15,7 +15,7 @@ public class CommunicationListener extends Thread {
     @Override
     public void run() {
         while (true) {
-            Boolean aBoolean = clientCommunication.isClose();
+            /*Boolean aBoolean = clientCommunication.isClose();
             if (aBoolean) {
                 LOGGER.info("CommunicationListener 连接已断开");
             } else {
@@ -25,7 +25,7 @@ public class CommunicationListener extends Thread {
                 sleep(6000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
+            }*/
         }
     }
 }
