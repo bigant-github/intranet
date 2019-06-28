@@ -242,6 +242,15 @@ public class HttpParser {
     }
 
 
+    public static boolean isSeparator(int c) {
+        // Fast for correct values, slower for incorrect ones
+        try {
+            return IS_SEPARATOR[c];
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            return false;
+        }
+    }
+
     public static boolean isToken(int c) {
         // Fast for correct values, slower for incorrect ones
         try {

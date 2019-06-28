@@ -1344,9 +1344,6 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                 }
                 try {
                     NioSocketWrapper att = this;//TODO (NioSocketWrapper) channel.getAttachment();
-                    if (att == null) {
-                        throw new IOException("Key must be cancelled.");
-                    }
                     nRead = pool.read(to, channel, selector, att.getReadTimeout());
                 } finally {
                     if (selector != null) {

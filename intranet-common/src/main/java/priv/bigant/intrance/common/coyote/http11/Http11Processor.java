@@ -632,6 +632,11 @@ public abstract class Http11Processor extends AbstractProcessor {
         SocketWrapperBase<NioChannel> responseSocketWrapper = null;
 
         do {
+            if (request.isConnection() && response.isConnection()) {
+                log.debug("keep-alive");
+                responseInputBuffer.nextRequest();
+                inputBuffer.nextRequest();
+            }
 
             // Parsing the request header
             try {
@@ -703,7 +708,7 @@ public abstract class Http11Processor extends AbstractProcessor {
             }
 
             try {
-                mutual(socketWrapper, inputBuffer.getByteBuffer().duplicate(), receiver.getSocketChannel(), request.isChunked(), request.getContentLength());
+                mutual(socketWrapper, inputBuffer.getByteBuffer(), receiver.getSocketChannel(), request.isChunked(), request.getContentLength());
             } catch (IOException e) {
                 log.error("request mutual error", e);
                 throw e;
@@ -768,14 +773,13 @@ public abstract class Http11Processor extends AbstractProcessor {
 
             try {
                 NioChannel socket = (NioChannel) socketWrapper.getSocket();
-                mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer().duplicate(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
+                mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
             } catch (IOException e) {
                 log.error("request mutual error", e);
                 throw e;
             }
 
-            responseInputBuffer.nextRequest();
-            inputBuffer.nextRequest();
+
             //TODO 目测剩下的都没用
 
 
@@ -904,8 +908,13 @@ public abstract class Http11Processor extends AbstractProcessor {
             rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_KEEPALIVE);
 
             sendfileState = processSendfile(socketWrapper);*/
+
+            boolean connection = request.isConnection();
+            boolean connection1 = response.isConnection();
+            System.out.println();
         }
         while (!getErrorState().isError() && request.isConnection() && response.isConnection() && upgradeToken == null && !endpoint.isPaused());
+        log.debug("http 完成");
         close();
         /*rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_ENDED);
 
@@ -939,6 +948,8 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     private static final byte[] chunkedEndByte = "0\r\n\r\n".getBytes(StandardCharsets.UTF_8);
 
+    private ByteBuffer thisBuffer = ByteBuffer.allocate(2048);
+
     //数据传输使用
     private void mutual(SocketWrapperBase socketWrapperBase, ByteBuffer byteBuffer, SocketChannel socketChannel, boolean chunked, int contentLength) throws IOException {
         int bodySize = byteBuffer.limit() - byteBuffer.position();
@@ -951,28 +962,28 @@ public abstract class Http11Processor extends AbstractProcessor {
         if (chunked) {
             byte[] subArray = null;
             do {
-                byteBuffer.position(0);
-                byteBuffer.limit(byteBuffer.capacity());//展开内存
-                int read = socketWrapperBase.read(false, byteBuffer);
+                thisBuffer.position(0);
+                thisBuffer.limit(thisBuffer.capacity());//展开内存
+                int read = socketWrapperBase.read(false, thisBuffer);
                 by += read;
-                byteBuffer.flip();
-                socketChannel.write(byteBuffer);
+                thisBuffer.flip();
+                socketChannel.write(thisBuffer);
                 if (log.isDebugEnabled()) {
-                    log.debug("write:" + new String(byteBuffer.array(), 0, read));
+                    log.debug("write:" + new String(thisBuffer.array(), 0, read));
                 }
-                byte[] array = byteBuffer.array();
+                byte[] array = thisBuffer.array();
                 subArray = ArrayUtils.subarray(array, read - 5, read);
             } while (!Arrays.equals(subArray, chunkedEndByte));
         } else {
             while (bodySize < contentLength) {
-                byteBuffer.position(0);
-                byteBuffer.limit(byteBuffer.capacity());//展开内存
-                int read = socketWrapperBase.read(false, byteBuffer);
+                thisBuffer.position(0);
+                thisBuffer.limit(thisBuffer.capacity());//展开内存
+                int read = socketWrapperBase.read(false, thisBuffer);
                 bodySize += read;
-                byteBuffer.flip();
-                socketChannel.write(byteBuffer);
+                thisBuffer.flip();
+                socketChannel.write(thisBuffer);
                 if (log.isDebugEnabled()) {
-                    log.debug("write:" + new String(byteBuffer.array(), 0, read));
+                    log.debug("write:" + new String(thisBuffer.array(), 0, read));
 
                 }
             }

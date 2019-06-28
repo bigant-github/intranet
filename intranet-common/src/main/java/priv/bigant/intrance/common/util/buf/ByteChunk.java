@@ -114,7 +114,7 @@ public final class ByteChunk extends AbstractChunk {
      * Default encoding used to convert to strings. It should be UTF8, as most standards seem to converge, but the
      * servlet API requires 8859_1, and this object is used mostly for servlets.
      */
-    public static final Charset DEFAULT_CHARSET = StandardCharsets.ISO_8859_1;
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     private transient Charset charset;
 

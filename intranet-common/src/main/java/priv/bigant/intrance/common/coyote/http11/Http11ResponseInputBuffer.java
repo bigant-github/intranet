@@ -426,7 +426,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                     response.protocol().setString(Constants.HTTP_11);
                     // %nn decoding will be checked at the point of decoding
                     throw new IllegalArgumentException(sm.getString("iib.invalidRequestTarget"));
-                } else if (!httpParser.isHttpProtocol(chr)) {
+                } else if (!HttpParser.isHttpProtocol(chr)) {
                     // Avoid unknown protocol triggering an additional error
                     response.protocol().setString(Constants.HTTP_11);
                     // This is a general check that aims to catch problems early
@@ -542,7 +542,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                         end = pos;
                     }
                     parsingRequestLineEol = true;
-                } else if (!HttpParser.isToken(chr)) {
+                } else if (!(HttpParser.isAlpha(chr) || HttpParser.isSeparator(chr))) {
                     byteBuffer.position(byteBuffer.position() - 1);
                     // Avoid unknown protocol triggering an additional error
                     response.protocol().setString(Constants.HTTP_11);
