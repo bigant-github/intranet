@@ -245,12 +245,12 @@ public class NioSelectorPool {
         SelectionKey key = null;
         int read = 0;
         boolean timedout = false;
-        int keycount = 1; //assume we can write
+        int keyCount = 1; //assume we can write
         long time = System.currentTimeMillis(); //start the timeout timer
         try {
             while ((!timedout)) {
                 int cnt = 0;
-                if (keycount > 0) { //only read if we were registered for a read
+                if (keyCount > 0) { //only read if we were registered for a read
                     cnt = socket.read(buf);
                     if (cnt == -1) {
                         if (read == 0) {
@@ -260,7 +260,7 @@ public class NioSelectorPool {
                     }
                     read += cnt;
                     if (cnt > 0)
-                        continue; //read some more
+                        break; //read some more
                     if (cnt == 0 && (read > 0 || (!block)))
                         break; //we are done reading
                 }
@@ -274,12 +274,12 @@ public class NioSelectorPool {
                     if (readTimeout == 0) {
                         timedout = (read == 0);
                     } else if (readTimeout < 0) {
-                        keycount = selector.select();
+                        keyCount = selector.select();
                     } else {
-                        keycount = selector.select(readTimeout);
+                        keyCount = selector.select(readTimeout);
                     }
                 }
-                if (readTimeout > 0 && (selector == null || keycount == 0))
+                if (readTimeout > 0 && (selector == null || keyCount == 0))
                     timedout = (System.currentTimeMillis() - time) >= readTimeout;
             }//while
             if (timedout)
