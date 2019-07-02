@@ -55,12 +55,12 @@ public abstract class AbstractEndpoint<S> {
 
     protected static final StringManager sm = StringManager.getManager(AbstractEndpoint.class);
 
-    public static interface Handler<S> {
+    public interface Handler<S> {
 
         /**
          * Different types of socket states to react upon.
          */
-        public enum SocketState {
+        enum SocketState {
             // TODO Add a new state to the AsyncStateMachine and remove
             //      ASYNC_END (if possible)
             OPEN, CLOSED, LONG, ASYNC_END, SENDFILE, UPGRADING, UPGRADED, SUSPENDED

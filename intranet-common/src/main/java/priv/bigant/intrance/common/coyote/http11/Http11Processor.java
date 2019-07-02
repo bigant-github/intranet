@@ -42,6 +42,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static java.lang.System.arraycopy;
+
 public abstract class Http11Processor extends AbstractProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(Http11Processor.class);
@@ -958,21 +960,31 @@ public abstract class Http11Processor extends AbstractProcessor {
         if (log.isDebugEnabled()) {
             log.debug("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
         }
-        int by = 0;
         if (chunked) {
             byte[] subArray = null;
             do {
                 thisBuffer.position(0);
                 thisBuffer.limit(thisBuffer.capacity());//展开内存
                 int read = socketWrapperBase.read(false, thisBuffer);
-                by += read;
                 thisBuffer.flip();
                 socketChannel.write(thisBuffer);
                 if (log.isDebugEnabled()) {
                     log.debug("write:" + new String(thisBuffer.array(), 0, read));
                 }
-                byte[] array = thisBuffer.array();
-                subArray = ArrayUtils.subarray(array, read - 5, read);
+
+
+                //校验是否为最后的分块
+                if (thisBuffer.position() > 4) {
+                    byte[] array = thisBuffer.array();
+                    subArray = ArrayUtils.subarray(array, read - 5, read);
+                } else {
+                    if (subArray == null)
+                        continue;
+                    int position = thisBuffer.position();
+                    arraycopy(subArray, position, subArray, 0, 5 - position);
+                    arraycopy(thisBuffer.array(), 0, subArray, 5 - position, position);
+                }
+
             } while (!Arrays.equals(subArray, chunkedEndByte));
         } else {
             while (bodySize < contentLength) {
@@ -989,6 +1001,25 @@ public abstract class Http11Processor extends AbstractProcessor {
             }
         }
 
+    }
+
+    public static void main(String[] args) {
+        byte[] bytes = new byte[5];
+        bytes[0] = 0;
+        bytes[1] = 0;
+        bytes[2] = 0;
+        bytes[3] = 1;
+        bytes[4] = 2;
+
+
+        ByteBuffer thisBuffer = ByteBuffer.allocate(100);
+        thisBuffer.put((byte) 3);
+        thisBuffer.put((byte) 4);
+        thisBuffer.put((byte) 5);
+
+        int position = thisBuffer.position();
+
+        System.out.println(Arrays.toString(bytes));
     }
 
     private Request cloneRequest(Request source) throws IOException {
@@ -1578,8 +1609,7 @@ public abstract class Http11Processor extends AbstractProcessor {
     }
 
     private void prepareSendfile(OutputFilter[] outputFilters) {
-        String fileName = (String) request.getAttribute(
-                priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILENAME_ATTR);
+        String fileName = (String) request.getAttribute(priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILENAME_ATTR);
         if (fileName == null) {
             sendFileData = null;
         } else {

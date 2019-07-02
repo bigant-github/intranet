@@ -543,7 +543,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 if (param == null) {
                     return;
                 }
-                long timeout = ((Long) param).longValue();
+                long timeout = (Long) param;
                 setAsyncTimeout(timeout);
                 break;
             }
@@ -827,8 +827,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     @Override
     public UpgradeToken getUpgradeToken() {
         // Should never reach this code but in case we do...
-        throw new IllegalStateException(
-                sm.getString("abstractProcessor.httpupgrade.notsupported"));
+        throw new IllegalStateException(sm.getString("abstractProcessor.httpupgrade.notsupported"));
     }
 
 

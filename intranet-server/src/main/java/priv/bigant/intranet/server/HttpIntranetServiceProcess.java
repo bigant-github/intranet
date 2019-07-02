@@ -91,6 +91,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
                 NioEndpoint.NioSocketWrapper nioSocketWrapper = new NioEndpoint.NioSocketWrapper(nioChannel, nioEndpoint);
                 AbstractEndpoint.Handler.SocketState service = http11Processor.service(nioSocketWrapper);
             } catch (Exception e) {
+                LOG.error("service error");
                 e.printStackTrace();
             }
         }
