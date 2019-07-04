@@ -7,11 +7,12 @@ import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.communication.CodeEnum;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intrance.common.communication.CommunicationResponse;
+import priv.bigant.intrance.common.coyote.AbstractProtocol;
+import priv.bigant.intrance.common.coyote.Processor;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
-import priv.bigant.intrance.common.util.net.AbstractEndpoint;
-import priv.bigant.intrance.common.util.net.NioChannel;
-import priv.bigant.intrance.common.util.net.NioEndpoint;
-import priv.bigant.intrance.common.util.net.SocketBufferHandler;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.collections.SynchronizedStack;
+import priv.bigant.intrance.common.util.net.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -21,22 +22,21 @@ import java.nio.channels.SocketChannel;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HttpIntranetServiceProcess extends ProcessBase {
 
     public static final Logger LOG = LoggerFactory.getLogger(HttpIntranetServiceProcess.class);
     private static final String NAME = "HttpIntranetConnectorProcess";
-    private Stack stack;
     private ThreadPoolExecutor executor;
+    protected SynchronizedStack<SocketProcessorBase> processorCache;
+    protected NioEndpoint nioEndpoint = new NioEndpoint();
 
     public HttpIntranetServiceProcess() {
-        stack = new Stack<>();
+        this.processorCache = new SynchronizedStack<>();
         ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.executor = new ThreadPoolExecutor(1, 10, serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+        this.executor = new ThreadPoolExecutor(1, 10, serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
     @Override
@@ -83,7 +83,6 @@ public class HttpIntranetServiceProcess extends ProcessBase {
         @Override
         public void run() {
             try {
-                NioEndpoint nioEndpoint = new NioEndpoint();
                 Http11Processor http11Processor = new Http11ProcessorServer(8 * 1024,
                         true, false, nioEndpoint, 8192,
                         Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>()), 8192, 2 * 1024 * 1024, new HashMap<>(), true, null, null);
@@ -97,4 +96,52 @@ public class HttpIntranetServiceProcess extends ProcessBase {
         }
     }
 
+
+    /*protected static class RecycledProcessors extends SynchronizedStack<Processor> {
+
+        private final transient AbstractProtocol.ConnectionHandler<?> handler;
+        protected final AtomicInteger size = new AtomicInteger(0);
+
+        public RecycledProcessors(AbstractProtocol.ConnectionHandler<?> handler) {
+            this.handler = handler;
+        }
+
+        @SuppressWarnings("sync-override") // Size may exceed cache size a bit
+        @Override
+        public boolean push(Processor processor) {
+            int cacheSize = handler.getProtocol().getProcessorCache();
+            boolean offer = cacheSize == -1 ? true : size.get() < cacheSize;
+            //avoid over growing our cache or add after we have stopped
+            boolean result = false;
+            if (offer) {
+                result = super.push(processor);
+                if (result) {
+                    size.incrementAndGet();
+                }
+            }
+            if (!result) handler.unregister(processor);
+            return result;
+        }
+
+        @SuppressWarnings("sync-override") // OK if size is too big briefly
+        @Override
+        public Processor pop() {
+            Processor result = super.pop();
+            if (result != null) {
+                size.decrementAndGet();
+            }
+            return result;
+        }
+
+        @Override
+        public synchronized void clear() {
+            Processor next = pop();
+            while (next != null) {
+                handler.unregister(next);
+                next = pop();
+            }
+            super.clear();
+            size.set(0);
+        }
+    }*/
 }

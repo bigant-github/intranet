@@ -125,9 +125,6 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
      */
     private boolean useInheritedChannel = false;
 
-    public void setUseInheritedChannel(boolean useInheritedChannel) {
-        this.useInheritedChannel = useInheritedChannel;
-    }
 
     public boolean getUseInheritedChannel() {
         return useInheritedChannel;

@@ -485,9 +485,12 @@ public final class Response {
         }
         return n;
     }
+
     public boolean isConnection() {
         // Check connection header
         MessageBytes connectionValueMB = headers.getValue(priv.bigant.intrance.common.coyote.http11.Constants.CONNECTION);
+        if (connectionValueMB == null)
+            connectionValueMB = headers.getValue(priv.bigant.intrance.common.coyote.http11.Constants.PROXY_CONNECTION);
         if (connectionValueMB != null) {
             ByteChunk connectionValueBC = connectionValueMB.getByteChunk();
             if (Http11Processor.findBytes(connectionValueBC, priv.bigant.intrance.common.coyote.http11.Constants.CLOSE_BYTES) != -1) {
@@ -498,6 +501,7 @@ public final class Response {
         }
         return false;
     }
+
     public boolean isChunked() {
         // Parse transfer-encoding header
         MessageBytes transferEncodingValueMB = headers.getValue("transfer-encoding");

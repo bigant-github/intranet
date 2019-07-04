@@ -102,14 +102,16 @@ public final class Constants {
 
     /* Various constant "strings" */
     public static final String CONNECTION = "Connection";
+    public static final String PROXY_CONNECTION = "Proxy-Connection";
+
+
     public static final String CLOSE = "close";
     public static final byte[] CLOSE_BYTES = ByteChunk.convertToBytes(CLOSE);
     public static final String KEEPALIVE = "keep-alive";
     public static final byte[] KEEPALIVE_BYTES = ByteChunk.convertToBytes(KEEPALIVE);
     public static final String CHUNKED = "chunked";
     /**
-     * @deprecated This option will be removed in Tomcat 9. Reason phrase will
-     *             not be sent.
+     * @deprecated This option will be removed in Tomcat 9. Reason phrase will not be sent.
      */
     @Deprecated
     public static final byte[] ACK_BYTES_REASON =

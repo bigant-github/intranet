@@ -36,6 +36,7 @@ import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
@@ -671,7 +672,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 }
             } catch (IOException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug(sm.getString("http11processor.header.parse"), e);
+                    log.debug("Error parsing HTTP request header", e);
                 }
                 setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
                 break;
@@ -713,7 +714,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 mutual(socketWrapper, inputBuffer.getByteBuffer(), receiver.getSocketChannel(), request.isChunked(), request.getContentLength());
             } catch (IOException e) {
                 log.error("request mutual error", e);
-                throw e;
+                break;
             }
 
             try {
@@ -745,10 +746,12 @@ public abstract class Http11Processor extends AbstractProcessor {
                     }
                 }
 
+            } catch (SocketTimeoutException e) {
+                //log.debug("Error parsing HTTP request header time out", e);
+                setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
+                break;
             } catch (IOException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug(sm.getString("http11processor.header.parse"), e);
-                }
+                log.debug("Error parsing HTTP request header", e);
                 setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
                 break;
             } catch (Throwable t) {
@@ -778,7 +781,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
             } catch (IOException e) {
                 log.error("request mutual error", e);
-                throw e;
+                break;
             }
 
 
@@ -911,9 +914,6 @@ public abstract class Http11Processor extends AbstractProcessor {
 
             sendfileState = processSendfile(socketWrapper);*/
 
-            boolean connection = request.isConnection();
-            boolean connection1 = response.isConnection();
-            System.out.println();
         }
         while (!getErrorState().isError() && request.isConnection() && response.isConnection() && upgradeToken == null && !endpoint.isPaused());
         log.debug("http 完成");
