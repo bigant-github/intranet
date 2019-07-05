@@ -1042,17 +1042,12 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                         long count = registerCount.incrementAndGet();
                         RequestInfo rp = processor.getRequest().getRequestProcessor();
                         rp.setGlobalProcessor(global);
-                        ObjectName rpName = new ObjectName(
-                                getProtocol().getDomain() +
-                                        ":type=RequestProcessor,worker="
-                                        + getProtocol().getName() +
-                                        ",name=" + getProtocol().getProtocolName() +
-                                        "Request" + count);
+                        ObjectName rpName = new ObjectName(getProtocol().getDomain() + ":type=RequestProcessor,worker=" + getProtocol().getName() +
+                                ",name=" + getProtocol().getProtocolName() + "Request" + count);
                         if (getLog().isDebugEnabled()) {
                             getLog().debug("Register " + rpName);
                         }
-                        Registry.getRegistry(null, null).registerComponent(rp,
-                                rpName, null);
+                        Registry.getRegistry(null, null).registerComponent(rp, rpName, null);
                         rp.setRpName(rpName);
                     } catch (Exception e) {
                         getLog().warn("Error registering request");
@@ -1076,8 +1071,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                         if (getLog().isDebugEnabled()) {
                             getLog().debug("Unregister " + rpName);
                         }
-                        Registry.getRegistry(null, null).unregisterComponent(
-                                rpName);
+                        Registry.getRegistry(null, null).unregisterComponent(rpName);
                         rp.setRpName(null);
                     } catch (Exception e) {
                         getLog().warn("Error unregistering request", e);
@@ -1103,7 +1097,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
         }
     }
 
-    protected static class RecycledProcessors extends SynchronizedStack<Processor> {
+    public static class RecycledProcessors extends SynchronizedStack<Processor> {
 
         private final transient ConnectionHandler<?> handler;
         protected final AtomicInteger size = new AtomicInteger(0);
@@ -1116,7 +1110,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
         @Override
         public boolean push(Processor processor) {
             int cacheSize = handler.getProtocol().getProcessorCache();
-            boolean offer = cacheSize == -1 ? true : size.get() < cacheSize;
+            boolean offer = cacheSize == -1 || size.get() < cacheSize;
             //avoid over growing our cache or add after we have stopped
             boolean result = false;
             if (offer) {

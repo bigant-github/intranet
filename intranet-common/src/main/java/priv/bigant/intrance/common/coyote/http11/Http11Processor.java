@@ -1904,10 +1904,13 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     @Override
     public final void recycle() {
-        getAdapter().checkRecycled(request, response);
+        //getAdapter().checkRecycled(request, response);
+        request.recycle();
+        response.recycle();
         super.recycle();
         inputBuffer.recycle();
         outputBuffer.recycle();
+        responseInputBuffer.recycle();
         upgradeToken = null;
         socketWrapper = null;
         sendFileData = null;

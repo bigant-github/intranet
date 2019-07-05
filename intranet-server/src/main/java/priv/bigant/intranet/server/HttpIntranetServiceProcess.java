@@ -32,6 +32,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
     private ThreadPoolExecutor executor;
     protected SynchronizedStack<SocketProcessorBase> processorCache;
     protected NioEndpoint nioEndpoint = new NioEndpoint();
+    private RecycledProcessors recycledProcessors = new RecycledProcessors();
 
     public HttpIntranetServiceProcess() {
         this.processorCache = new SynchronizedStack<>();
@@ -83,34 +84,38 @@ public class HttpIntranetServiceProcess extends ProcessBase {
         @Override
         public void run() {
             try {
-                Http11Processor http11Processor = new Http11ProcessorServer(8 * 1024,
-                        true, false, nioEndpoint, 8192,
-                        Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>()), 8192, 2 * 1024 * 1024, new HashMap<>(), true, null, null);
+                Processor pop = recycledProcessors.pop();
+                if (pop == null) {
+                    pop = new Http11ProcessorServer(8 * 1024,
+                            true, false, nioEndpoint, 8192,
+                            Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>()), 8192, 2 * 1024 * 1024, new HashMap<>(), true, null, null);
+                }
                 NioChannel nioChannel = new NioChannel(socketChannel, new SocketBufferHandler(2048, 2048, true));
                 NioEndpoint.NioSocketWrapper nioSocketWrapper = new NioEndpoint.NioSocketWrapper(nioChannel, nioEndpoint);
-                AbstractEndpoint.Handler.SocketState service = http11Processor.service(nioSocketWrapper);
+                AbstractEndpoint.Handler.SocketState service = pop.process(nioSocketWrapper, SocketEvent.OPEN_READ);
+                pop.recycle();
+                //recycledProcessors.push(pop);
             } catch (Exception e) {
-                LOG.error("service error");
-                e.printStackTrace();
+                LOG.error("service error", e);
             }
         }
     }
 
+    public static class RecycledProcessors extends SynchronizedStack<Processor> {
 
-    /*protected static class RecycledProcessors extends SynchronizedStack<Processor> {
-
-        private final transient AbstractProtocol.ConnectionHandler<?> handler;
+        private static final Logger LOG = LoggerFactory.getLogger(RecycledProcessors.class);
         protected final AtomicInteger size = new AtomicInteger(0);
 
-        public RecycledProcessors(AbstractProtocol.ConnectionHandler<?> handler) {
-            this.handler = handler;
+        private int processorCacheSize = 200;
+
+        public RecycledProcessors() {
         }
 
         @SuppressWarnings("sync-override") // Size may exceed cache size a bit
         @Override
         public boolean push(Processor processor) {
-            int cacheSize = handler.getProtocol().getProcessorCache();
-            boolean offer = cacheSize == -1 ? true : size.get() < cacheSize;
+            int cacheSize = processorCacheSize;
+            boolean offer = cacheSize == -1 || size.get() < cacheSize;
             //avoid over growing our cache or add after we have stopped
             boolean result = false;
             if (offer) {
@@ -119,7 +124,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
                     size.incrementAndGet();
                 }
             }
-            if (!result) handler.unregister(processor);
+            LOG.debug("回收 process 当前数量：" + size);
             return result;
         }
 
@@ -130,6 +135,7 @@ public class HttpIntranetServiceProcess extends ProcessBase {
             if (result != null) {
                 size.decrementAndGet();
             }
+            LOG.debug("从回收站中获取 process 当前数量：" + size);
             return result;
         }
 
@@ -137,11 +143,13 @@ public class HttpIntranetServiceProcess extends ProcessBase {
         public synchronized void clear() {
             Processor next = pop();
             while (next != null) {
-                handler.unregister(next);
                 next = pop();
             }
             super.clear();
             size.set(0);
+            LOG.debug("清空 process 当前数量");
+
         }
-    }*/
+    }
+
 }
