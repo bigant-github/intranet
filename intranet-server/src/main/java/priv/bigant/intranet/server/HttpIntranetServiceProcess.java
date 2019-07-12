@@ -31,8 +31,8 @@ public class HttpIntranetServiceProcess extends ProcessBase {
     private static final String NAME = "HttpIntranetConnectorProcess";
     private ThreadPoolExecutor executor;
     protected SynchronizedStack<SocketProcessorBase> processorCache;
-    protected NioEndpoint nioEndpoint = new NioEndpoint();
     private RecycledProcessors recycledProcessors = new RecycledProcessors();
+    private NioSelectorPool nioSelectorPool = new NioSelectorPool();
 
     public HttpIntranetServiceProcess() {
         this.processorCache = new SynchronizedStack<>();
@@ -86,12 +86,10 @@ public class HttpIntranetServiceProcess extends ProcessBase {
             try {
                 Processor pop = recycledProcessors.pop();
                 if (pop == null) {
-                    pop = new Http11ProcessorServer(8 * 1024,
-                            true, false, nioEndpoint, 8192,
-                            Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>()), 8192, 2 * 1024 * 1024, new HashMap<>(), true, null, null);
+                    pop = new Http11ProcessorServer(8 * 1024, true, false, new HashMap<>(), true, null, null);
                 }
                 NioChannel nioChannel = new NioChannel(socketChannel, new SocketBufferHandler(2048, 2048, true));
-                NioEndpoint.NioSocketWrapper nioSocketWrapper = new NioEndpoint.NioSocketWrapper(nioChannel, nioEndpoint);
+                NioSocketWrapper nioSocketWrapper = new NioSocketWrapper(nioChannel, nioSelectorPool);
                 AbstractEndpoint.Handler.SocketState service = pop.process(nioSocketWrapper, SocketEvent.OPEN_READ);
                 pop.recycle();
                 //recycledProcessors.push(pop);

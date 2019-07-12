@@ -13,10 +13,11 @@ import java.util.*;
 public class Http11ProcessorServer extends Http11Processor {
     private ServerCommunication serverCommunication;
     private SocketBean receiver;
-    Logger LOGGER = LoggerFactory.getLogger(Http11ProcessorServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Http11ProcessorServer.class);
+    private NioSelectorPool nioSelectorPool = new NioSelectorPool();
 
-    public Http11ProcessorServer(int maxHttpHeaderSize, boolean allowHostHeaderMismatch, boolean rejectIllegalHeaderName, AbstractEndpoint<?> endpoint, int maxTrailerSize, Set<String> allowedTrailerHeaders, int maxExtensionSize, int maxSwallowSize, Map<String, UpgradeProtocol> httpUpgradeProtocols, boolean sendReasonPhrase, String relaxedPathChars, String relaxedQueryChars) {
-        super(maxHttpHeaderSize, allowHostHeaderMismatch, rejectIllegalHeaderName, endpoint, maxTrailerSize, allowedTrailerHeaders, maxExtensionSize, maxSwallowSize, httpUpgradeProtocols, sendReasonPhrase, relaxedPathChars, relaxedQueryChars);
+    public Http11ProcessorServer(int maxHttpHeaderSize, boolean allowHostHeaderMismatch, boolean rejectIllegalHeaderName, Map<String, UpgradeProtocol> httpUpgradeProtocols, boolean sendReasonPhrase, String relaxedPathChars, String relaxedQueryChars) {
+        super(maxHttpHeaderSize, allowHostHeaderMismatch, rejectIllegalHeaderName, httpUpgradeProtocols, sendReasonPhrase, relaxedPathChars, relaxedQueryChars);
     }
 
     @Override
@@ -24,18 +25,33 @@ public class Http11ProcessorServer extends Http11Processor {
 
         String host = super.request.getHost();
 
-        LOGGER.debug("获取socketBean host=" + host);
+        LOG.debug("获取socketBean host=" + host);
 
         serverCommunication = HttpSocketManager.get(host);
         if (serverCommunication == null)
             return null;
         if (serverCommunication.isClose()) {
-            LOGGER.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
+            LOG.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
             serverCommunication.close();
             return null;
         }
         receiver = checkSocketBean();
         return receiver;
+    }
+
+    @Override
+    public int getMaxHeaderCount() {
+        return 50;
+    }
+
+    @Override
+    public boolean isPaused() {
+        return false;
+    }
+
+    @Override
+    public NioSelectorPool getNioSelectorPool() {
+        return nioSelectorPool;
     }
 
     protected SocketBean checkSocketBean() {
@@ -44,7 +60,7 @@ public class Http11ProcessorServer extends Http11Processor {
             if (socketBean != null) {
                 boolean b = socketBean.sendUrgentData();
                 if (!b) {
-                    LOGGER.warn("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
+                    LOG.warn("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
                     serverCommunication.close();
                     serverCommunication.createSocketBean();
                     continue;
@@ -58,12 +74,12 @@ public class Http11ProcessorServer extends Http11Processor {
 
     @Override
     public void close() throws IOException {
-        LOGGER.debug("server close.............." + serverCommunication);
+        LOG.debug("server close.............." + serverCommunication);
         if (receiver != null) {
             receiver.skip();
             receiver.close();
             if (serverCommunication != null) {
-                LOGGER.debug("server close add client socket..............");
+                LOG.debug("server close add client socket..............");
                 serverCommunication.createSocketBean();
             }
         }

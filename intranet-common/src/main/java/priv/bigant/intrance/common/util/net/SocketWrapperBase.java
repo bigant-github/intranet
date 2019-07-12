@@ -36,7 +36,6 @@ public abstract class SocketWrapperBase<E> {
     protected static final StringManager sm = StringManager.getManager(SocketWrapperBase.class);
 
     private final E socket;
-    private final AbstractEndpoint<E> endpoint;
 
     // Volatile because I/O and setting the timeout values occurs on a different
     // thread to the thread checking the timeout.
@@ -89,9 +88,8 @@ public abstract class SocketWrapperBase<E> {
      */
     protected final WriteBuffer nonBlockingWriteBuffer = new WriteBuffer(bufferedWriteSize);
 
-    public SocketWrapperBase(E socket, AbstractEndpoint<E> endpoint) {
+    public SocketWrapperBase(E socket) {
         this.socket = socket;
-        this.endpoint = endpoint;
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
         this.blockingStatusReadLock = lock.readLock();
         this.blockingStatusWriteLock = lock.writeLock();
@@ -99,10 +97,6 @@ public abstract class SocketWrapperBase<E> {
 
     public E getSocket() {
         return socket;
-    }
-
-    public AbstractEndpoint<E> getEndpoint() {
-        return endpoint;
     }
 
     public IOException getError() {
@@ -333,9 +327,9 @@ public abstract class SocketWrapperBase<E> {
             remaining = Math.min(remaining, len);
             readBuffer.get(b, off, remaining);
 
-            if (log.isDebugEnabled()) {
+            /*if (log.isDebugEnabled()) {
                 log.debug("Socket: [" + this + "], Read from buffer: [" + remaining + "]");
-            }
+            }*/
         }
         return remaining;
     }
@@ -347,9 +341,9 @@ public abstract class SocketWrapperBase<E> {
         socketBufferHandler.configureReadBufferForRead();
         int nRead = transfer(socketBufferHandler.getReadBuffer(), to);
 
-        if (log.isDebugEnabled()) {
+        /*if (log.isDebugEnabled()) {
             log.debug("Socket: [" + this + "], Read from buffer: [" + nRead + "]");
-        }
+        }*/
         return nRead;
     }
 
@@ -742,9 +736,9 @@ public abstract class SocketWrapperBase<E> {
     protected abstract void doWrite(boolean block, ByteBuffer from) throws IOException;
 
 
-    public void processSocket(SocketEvent socketStatus, boolean dispatch) {
+    /*public void processSocket(SocketEvent socketStatus, boolean dispatch) {
         endpoint.processSocket(this, socketStatus, dispatch);
-    }
+    }*/
 
 
     public abstract void registerReadInterest();

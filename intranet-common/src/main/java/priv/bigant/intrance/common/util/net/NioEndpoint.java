@@ -16,15 +16,12 @@
  */
 package priv.bigant.intrance.common.util.net;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
@@ -619,7 +616,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                         // processed. Count down the connections at this point
                         // since it won't have been counted down when the socket
                         // closed.
-                        socket.socketWrapper.getEndpoint().countDownConnection();
+                        //socket.socketWrapper.getEndpoint().countDownConnection();
                         ((NioSocketWrapper) socket.socketWrapper).closed = true;
                     } else {
                         final NioSocketWrapper socketWrapper = (NioSocketWrapper) key.attachment();
@@ -743,7 +740,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
          * @param socket The newly created socket
          */
         public void register(final NioChannel socket) {
-            socket.setPoller(this);
+            /*socket.setPoller(this);
             NioSocketWrapper ka = new NioSocketWrapper(socket, NioEndpoint.this);
             socket.setSocketWrapper(ka);
             ka.setPoller(this);
@@ -762,7 +759,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
             else
                 r.reset(socket, ka, OP_REGISTER);
 
-            addEvent(r);
+            addEvent(r);*/
         }
 
         public NioSocketWrapper cancelledKey(SelectionKey key) {
@@ -1114,7 +1111,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
     }
 
     // ---------------------------------------------------- Key Attachment Class
-    public static class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
+    /*public static class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
 
         private final NioSelectorPool pool;
 
@@ -1246,13 +1243,13 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
             int nRead = populateReadBuffer(b, off, len);
             if (nRead > 0) {
                 return nRead;
-                /*
-                 * Since more bytes may have arrived since the buffer was last
-                 * filled, it is an option at this point to perform a
-                 * non-blocking read. However correctly handling the case if
-                 * that read returns end of stream adds complexity. Therefore,
-                 * at the moment, the preference is for simplicity.
-                 */
+                *//*
+     * Since more bytes may have arrived since the buffer was last
+     * filled, it is an option at this point to perform a
+     * non-blocking read. However correctly handling the case if
+     * that read returns end of stream adds complexity. Therefore,
+     * at the moment, the preference is for simplicity.
+     *//*
             }
 
             // Fill the read buffer as best we can.
@@ -1275,13 +1272,13 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
             int nRead = populateReadBuffer(to);
             if (nRead > 0) {
                 return nRead;
-                /*
-                 * Since more bytes may have arrived since the buffer was last
-                 * filled, it is an option at this point to perform a
-                 * non-blocking read. However correctly handling the case if
-                 * that read returns end of stream adds complexity. Therefore,
-                 * at the moment, the preference is for simplicity.
-                 */
+                *//*
+     * Since more bytes may have arrived since the buffer was last
+     * filled, it is an option at this point to perform a
+     * non-blocking read. However correctly handling the case if
+     * that read returns end of stream adds complexity. Therefore,
+     * at the moment, the preference is for simplicity.
+     *//*
             }
 
             // The socket read buffer capacity is socket.appReadBufSize
@@ -1467,11 +1464,11 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
         }
 
 
-        /**
-         * {@inheritDoc}
-         *
-         * @param clientCertProvider Ignored for this implementation
-         */
+        *//**
+     * {@inheritDoc}
+     *
+     * @param clientCertProvider Ignored for this implementation
+     *//*
         @Override
         public SSLSupport getSslSupport(String clientCertProvider) {
             if (getSocket() instanceof SecureNioChannel) {
@@ -1501,7 +1498,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
         public void setAppReadBufHandler(ApplicationBufferHandler handler) {
             getSocket().setAppReadBufHandler(handler);
         }
-    }
+    }*/
 
 
     // ---------------------------------------------- SocketProcessor Inner Class

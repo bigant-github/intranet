@@ -66,18 +66,6 @@ public abstract class UpgradeProcessorBase extends AbstractProcessorLight implem
 
 
     @Override
-    public final SocketState asyncPostProcess() {
-        return null;
-    }
-
-
-    @Override
-    public final boolean isAsync() {
-        return false;
-    }
-
-
-    @Override
     public final Request getRequest() {
         return null;
     }
@@ -88,15 +76,4 @@ public abstract class UpgradeProcessorBase extends AbstractProcessorLight implem
         return null;
     }
 
-
-    @Override
-    public void timeoutAsync(long now) {
-        // NO-OP
-    }
-
-
-    @Override
-    public boolean checkAsyncTimeoutGeneration() {
-        return false;
-    }
 }

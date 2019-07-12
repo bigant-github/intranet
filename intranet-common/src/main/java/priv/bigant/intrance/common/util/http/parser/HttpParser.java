@@ -113,8 +113,7 @@ public class HttpParser {
             // The characters that are normally not permitted for which the
             // restrictions may be relaxed when used in the path and/or query
             // string
-            if (i == '\"' || i == '<' || i == '>' || i == '[' || i == '\\' || i == ']' ||
-                    i == '^' || i == '`' || i == '{' || i == '|' || i == '}') {
+            if (i == '\"' || i == '<' || i == '>' || i == '[' || i == '\\' || i == ']' || i == '^' || i == '`' || i == '{' || i == '|' || i == '}') {
                 IS_RELAXABLE[i] = true;
             }
         }
@@ -126,8 +125,7 @@ public class HttpParser {
                 if (c == '{' || c == '}' || c == '|') {
                     REQUEST_TARGET_ALLOW[c] = true;
                 } else {
-                    log.warn(sm.getString("http.invalidRequestTargetCharacter",
-                            Character.valueOf(c)));
+                    log.warn(sm.getString("http.invalidRequestTargetCharacter", Character.valueOf(c)));
                 }
             }
         }
@@ -168,7 +166,7 @@ public class HttpParser {
              *
              * Note query allows everything absolute-path allows plus "?"
              */
-            if (IS_ABSOLUTEPATH_RELAXED[i] || i == '?' || REQUEST_TARGET_ALLOW[i]) {
+            if (IS_ABSOLUTEPATH_RELAXED[i] || (i == '?') || (i == '[') || (i == ']') || REQUEST_TARGET_ALLOW[i]) {
                 IS_QUERY_RELAXED[i] = true;
             }
         }

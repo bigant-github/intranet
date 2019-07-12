@@ -183,10 +183,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
     }
 
 
-    public AsyncTimeout getAsyncTimeout() {
-        return asyncTimeout;
-    }
-
     /**
      * Specifies whether the reason phrase will be sent in the response. By default a reason phrase will not be sent in
      * the response.
@@ -768,7 +764,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
             // dispatched. Because of delays in the dispatch process, the
             // timeout may no longer be required. Check here and avoid
             // unnecessary processing.
-            if (SocketEvent.TIMEOUT == status && (processor == null || !processor.isAsync() || !processor.checkAsyncTimeoutGeneration())) {
+            if (SocketEvent.TIMEOUT == status && (processor == null)) {
                 // This is effectively a NO-OP
                 return SocketState.OPEN;
             }
@@ -897,9 +893,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                     // socket associated with the processor. Exact requirements
                     // depend on type of long poll
                     longPoll(wrapper, processor);
-                    if (processor.isAsync()) {
-                        getProtocol().addWaitingProcessor(processor);
-                    }
                 } else if (state == SocketState.OPEN) {
                     // In keep-alive but between requests. OK to recycle
                     // processor. Continue to poll for the next request.
@@ -986,14 +979,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
 
 
         protected void longPoll(SocketWrapperBase<?> socket, Processor processor) {
-            if (!processor.isAsync()) {
-                // This is currently only used with HTTP
-                // Either:
-                //  - this is an upgraded connection
-                //  - the request line/headers have not been completely
-                //    read
-                socket.registerReadInterest();
-            }
         }
 
 
@@ -1167,9 +1152,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                     // Ignore
                 }
                 long now = System.currentTimeMillis();
-                for (Processor processor : waitingProcessors) {
-                    processor.timeoutAsync(now);
-                }
 
                 // Loop if endpoint is paused
                 while (endpoint.isPaused() && asyncTimeoutRunning) {
@@ -1186,10 +1168,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
         protected void stop() {
             asyncTimeoutRunning = false;
 
-            // Timeout any pending async request
-            for (Processor processor : waitingProcessors) {
-                processor.timeoutAsync(-1);
-            }
         }
     }
 }

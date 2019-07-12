@@ -54,7 +54,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
      * current async generation. This prevents the response mix-up.
      */
     private volatile long asyncTimeoutGeneration = 0;
-    protected final AbstractEndpoint<?> endpoint;
     protected final Request request;
     protected final Response response;
     protected volatile SocketWrapperBase<?> socketWrapper = null;
@@ -68,13 +67,12 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
     protected final UserDataHelper userDataHelper;
 
-    public AbstractProcessor(AbstractEndpoint<?> endpoint) {
-        this(endpoint, new Request(), new Response());
+    public AbstractProcessor() {
+        this(new Request(), new Response());
     }
 
 
-    protected AbstractProcessor(AbstractEndpoint<?> endpoint, Request coyoteRequest, Response coyoteResponse) {
-        this.endpoint = endpoint;
+    protected AbstractProcessor(Request coyoteRequest, Response coyoteResponse) {
         asyncStateMachine = new AsyncStateMachine(this);
         request = coyoteRequest;
         response = coyoteResponse;
@@ -106,7 +104,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
         /*if (t != null) {
             request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, t);
         }*/
-        if (blockIo && isAsync()) {
+        /*if (blockIo) {
             // The error occurred on a non-container thread during async
             // processing which means not all of the necessary clean-up will
             // have been completed. Dispatch to a container thread to do the
@@ -117,7 +115,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 getLog().debug(sm.getString("abstractProcessor.nonContainerThreadError"), t);
             }
             processSocketEvent(SocketEvent.ERROR, true);
-        }
+        }*/
     }
 
 
@@ -180,19 +178,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
      * @return the Executor used by the underlying endpoint.
      */
     protected Executor getExecutor() {
-        return endpoint.getExecutor();
-    }
-
-
-    @Override
-    public boolean isAsync() {
-        return asyncStateMachine.isAsync();
-    }
-
-
-    @Override
-    public AbstractEndpoint.Handler.SocketState asyncPostProcess() {
-        return asyncStateMachine.asyncPostProcess();
+        return null;//TODO endpoint.getExecutor();
     }
 
 
@@ -254,8 +240,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
         if (getErrorState().isError()) {
             request.updateCounters();
             return AbstractEndpoint.Handler.SocketState.CLOSED;
-        } else if (isAsync()) {
-            return AbstractEndpoint.Handler.SocketState.LONG;
         } else {
             request.updateCounters();
             return dispatchEndRequest();
@@ -614,47 +598,8 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     }
 
 
-    @Override
-    public void timeoutAsync(long now) {
-        if (now < 0) {
-            doTimeoutAsync();
-        } else {
-            long asyncTimeout = getAsyncTimeout();
-            if (asyncTimeout > 0) {
-                long asyncStart = asyncStateMachine.getLastAsyncStart();
-                if ((now - asyncStart) > asyncTimeout) {
-                    doTimeoutAsync();
-                }
-            } else if (!asyncStateMachine.isAvailable()) {
-                // Timeout the async process if the associated web application
-                // is no longer running.
-                doTimeoutAsync();
-            }
-        }
-    }
-
-
-    private void doTimeoutAsync() {
-        // Avoid multiple timeouts
-        setAsyncTimeout(-1);
-        asyncTimeoutGeneration = asyncStateMachine.getCurrentGeneration();
-        processSocketEvent(SocketEvent.TIMEOUT, true);
-    }
-
-
-    @Override
-    public boolean checkAsyncTimeoutGeneration() {
-        return asyncTimeoutGeneration == asyncStateMachine.getCurrentGeneration();
-    }
-
-
     public void setAsyncTimeout(long timeout) {
         asyncTimeout = timeout;
-    }
-
-
-    public long getAsyncTimeout() {
-        return asyncTimeout;
     }
 
 
@@ -663,9 +608,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
         errorState = ErrorState.NONE;
         asyncStateMachine.recycle();
     }
-
-
-    protected abstract void prepareResponse() throws IOException;
 
 
     protected abstract void finishResponse() throws IOException;
@@ -762,7 +704,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     protected void processSocketEvent(SocketEvent event, boolean dispatch) {
         SocketWrapperBase<?> socketWrapper = getSocketWrapper();
         if (socketWrapper != null) {
-            socketWrapper.processSocket(event, dispatch);
+            //socketWrapper.processSocket(event, dispatch);
         }
     }
 
@@ -814,7 +756,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                  */
                 while (dispatches != null && dispatches.hasNext()) {
                     DispatchType dispatchType = dispatches.next();
-                    socketWrapper.processSocket(dispatchType.getSocketStatus(), false);
+                    //socketWrapper.processSocket(dispatchType.getSocketStatus(), false);
                 }
             }
         }

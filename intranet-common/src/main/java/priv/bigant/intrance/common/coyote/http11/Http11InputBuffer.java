@@ -18,6 +18,7 @@ package priv.bigant.intrance.common.coyote.http11;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.coyote.InputBuffer;
 import priv.bigant.intrance.common.coyote.Request;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
@@ -142,7 +143,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     // ----------------------------------------------------------- Constructors
-
     public Http11InputBuffer(Request request, int headerBufferSize, boolean rejectIllegalHeaderName, HttpParser httpParser) {
 
         this.request = request;
@@ -348,7 +348,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                     if (keptAlive) {
                         // Haven't read any request data yet so use the keep-alive
                         // timeout.
-                        wrapper.setReadTimeout(wrapper.getEndpoint().getKeepAliveTimeout());
+                        wrapper.setReadTimeout(Config.getSoTimeout());
                     }
                     if (!fill(keptAlive)) {
                         // A read is pending, so no longer in initial state
@@ -357,7 +357,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                     }
                     // At least one byte of the request has been received.
                     // Switch to the socket timeout.
-                    wrapper.setReadTimeout(wrapper.getEndpoint().getConnectionTimeout());
+                    wrapper.setReadTimeout(Config.getSoTimeout());
                 }
                 if (!keptAlive && byteBuffer.position() == 0 && byteBuffer.limit() >= CLIENT_PREFACE_START.length - 1) {
                     boolean prefaceMatch = true;
@@ -384,7 +384,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
             if (log.isDebugEnabled()) {
-
                 log.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
             }
         }
@@ -466,7 +465,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                     // Avoid unknown protocol triggering an additional error
                     request.protocol().setString(Constants.HTTP_11);
                     // %nn decoding will be checked at the point of decoding
-                    throw new IllegalArgumentException(sm.getString("iib.invalidRequestTarget"));
+                    throw new IllegalArgumentException("Invalid character found in the request target. The valid characters are defined in RFC 7230 and RFC 3986   " + chr);
                 } else if (httpParser.isNotRequestTargetRelaxed(chr)) {
                     // Avoid unknown protocol triggering an additional error
                     request.protocol().setString(Constants.HTTP_11);

@@ -16,8 +16,7 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-
-import priv.bigant.intrance.common.util.net.AbstractEndpoint;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
 import priv.bigant.intrance.common.util.net.SSLSupport;
 import priv.bigant.intrance.common.util.net.SocketEvent;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
@@ -39,7 +38,7 @@ public interface Processor {
      * @return The state the caller should put the socket in when this method returns
      * @throws IOException If an I/O error occurs during the processing of the request
      */
-    AbstractEndpoint.Handler.SocketState process(SocketWrapperBase<?> socketWrapper, SocketEvent status) throws IOException;
+    SocketState process(SocketWrapperBase<?> socketWrapper, SocketEvent status) throws IOException;
 
     /**
      * Generate an upgrade token.
@@ -54,16 +53,6 @@ public interface Processor {
      */
     boolean isUpgrade();
 
-    boolean isAsync();
-
-    /**
-     * Check this processor to see if the async timeout has expired and process a timeout if that is that case.
-     *
-     * @param now The time (as returned by {@link System#currentTimeMillis()} to use as the current time to determine
-     *            whether the async timeout has expired. If negative, the timeout will always be treated as if it has
-     *            expired.
-     */
-    void timeoutAsync(long now);
 
     /**
      * @return The request associated with this processor.
@@ -104,5 +93,5 @@ public interface Processor {
      *
      * @return {@code true} If the async generation has not changed since the async timeout was triggered
      */
-    boolean checkAsyncTimeoutGeneration();
+    /*boolean checkAsyncTimeoutGeneration();*/
 }

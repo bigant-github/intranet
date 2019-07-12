@@ -61,8 +61,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class Request {
 
-    private static final StringManager sm = StringManager.getManager(Request.class);
-
     // Expected maximum typical number of cookies per request.
     private static final int INITIAL_COOKIE_SIZE = 4;
 

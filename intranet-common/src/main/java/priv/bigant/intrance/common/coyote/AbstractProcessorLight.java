@@ -36,7 +36,6 @@ public abstract class AbstractProcessorLight implements Processor {
 
     private Set<DispatchType> dispatches = new CopyOnWriteArraySet<>();
 
-
     @Override
     public SocketState process(SocketWrapperBase<?> socketWrapper, SocketEvent status) throws IOException {
 
@@ -48,7 +47,7 @@ public abstract class AbstractProcessorLight implements Processor {
                 state = dispatch(nextDispatch.getSocketStatus());
             } else if (status == SocketEvent.DISCONNECT) {
                 // Do nothing here, just wait for it to get recycled
-            } else if (isAsync() || isUpgrade() || state == SocketState.ASYNC_END) {
+            } else if (isUpgrade() || state == SocketState.ASYNC_END) {
                 state = dispatch(status);
                 if (state == SocketState.OPEN) {
                     // There may be pipe-lined data to read. If the data isn't
@@ -73,12 +72,12 @@ public abstract class AbstractProcessorLight implements Processor {
                 getLog().debug("Socket: [" + socketWrapper + "], Status in: [" + status + "], State out: [" + state + "]");
             }
 
-            if (state != SocketState.CLOSED && isAsync()) {
+            /*if (state != SocketState.CLOSED) {
                 state = asyncPostProcess();
                 if (getLog().isDebugEnabled()) {
                     getLog().debug("Socket: [" + socketWrapper + "], State after async post processing: [" + state + "]");
                 }
-            }
+            }*/
 
             if (dispatches == null || !dispatches.hasNext()) {
                 // Only returns non-null iterator if there are
@@ -146,8 +145,6 @@ public abstract class AbstractProcessorLight implements Processor {
      * @throws IOException If an I/O error occurs during the processing of the request
      */
     protected abstract SocketState dispatch(SocketEvent status) throws IOException;
-
-    protected abstract SocketState asyncPostProcess();
 
     protected abstract Logger getLog();
 }

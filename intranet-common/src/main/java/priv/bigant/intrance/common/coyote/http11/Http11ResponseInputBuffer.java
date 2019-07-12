@@ -18,6 +18,7 @@ package priv.bigant.intrance.common.coyote.http11;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.coyote.InputBuffer;
 import priv.bigant.intrance.common.coyote.Response;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
@@ -282,8 +283,8 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
         for (int i = 0; i <= lastActiveFilter; i++) {
             activeFilters[i].recycle();
         }
-
-        byteBuffer.limit(0).position(0);
+        if (byteBuffer != null)
+            byteBuffer.limit(0).position(0);
         lastActiveFilter = -1;
         parsingHeader = true;
         swallowInput = true;
@@ -361,7 +362,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                     if (keptAlive) {
                         // Haven't read any response data yet so use the keep-alive
                         // timeout.
-                        wrapper.setReadTimeout(wrapper.getEndpoint().getKeepAliveTimeout());
+                        wrapper.setReadTimeout(Config.getSoTimeout());
                     }
                     if (!fill(true)) {
                         // A read is pending, so no longer in initial state
@@ -370,7 +371,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
                     }
                     // At least one byte of the response has been received.
                     // Switch to the socket timeout.
-                    wrapper.setReadTimeout(wrapper.getEndpoint().getConnectionTimeout());
+                    wrapper.setReadTimeout(Config.getSoTimeout());
                 }
                 if (!keptAlive && byteBuffer.position() == 0 && byteBuffer.limit() >= CLIENT_PREFACE_START.length - 1) {
                     boolean prefaceMatch = true;
