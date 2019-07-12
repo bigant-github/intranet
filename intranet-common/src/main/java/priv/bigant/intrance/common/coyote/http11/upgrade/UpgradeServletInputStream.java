@@ -18,11 +18,9 @@ package priv.bigant.intrance.common.coyote.http11.upgrade;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.coyote.ContainerThreadMarker;
 import priv.bigant.intrance.common.coyote.http11.servlet.ReadListener;
 import priv.bigant.intrance.common.coyote.http11.servlet.ServletInputStream;
 import priv.bigant.intrance.common.util.ExceptionUtils;
-import priv.bigant.intrance.common.util.net.DispatchType;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 import priv.bigant.intrance.common.util.res.StringManager;
 
@@ -86,58 +84,10 @@ public class UpgradeServletInputStream extends ServletInputStream {
 
 
     @Override
-    public final void setReadListener(ReadListener listener) {
-        if (listener == null) {
-            throw new IllegalArgumentException(
-                    sm.getString("upgrade.sis.readListener.null"));
-        }
-        if (this.listener != null) {
-            throw new IllegalArgumentException(
-                    sm.getString("upgrade.sis.readListener.set"));
-        }
-        if (closed) {
-            throw new IllegalStateException(sm.getString("upgrade.sis.read.closed"));
-        }
-
-        this.listener = listener;
-
-        // Container is responsible for first call to onDataAvailable().
-        if (ContainerThreadMarker.isContainerThread()) {
-            processor.addDispatch(DispatchType.NON_BLOCKING_READ);
-        } else {
-            socketWrapper.registerReadInterest();
-        }
-
-        // Switching to non-blocking. Don't know if data is available.
-        ready = null;
-    }
-
-
-    @Override
     public final int read() throws IOException {
         preReadChecks();
 
         return readInternal();
-    }
-
-
-    @Override
-    public final int readLine(byte[] b, int off, int len) throws IOException {
-        preReadChecks();
-
-        if (len <= 0) {
-            return 0;
-        }
-        int count = 0, c;
-
-        while ((c = readInternal()) != -1) {
-            b[off++] = (byte) c;
-            count++;
-            if (c == '\n' || count == len) {
-                break;
-            }
-        }
-        return count > 0 ? count : -1;
     }
 
 

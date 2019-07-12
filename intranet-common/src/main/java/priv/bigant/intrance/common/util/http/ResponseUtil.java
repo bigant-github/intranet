@@ -16,7 +16,6 @@
  */
 package priv.bigant.intrance.common.util.http;
 
-import priv.bigant.intrance.common.coyote.http11.servlet.http.HttpServletResponse;
 import priv.bigant.intrance.common.util.http.parser.Vary;
 
 import java.io.IOException;
@@ -43,10 +42,6 @@ public class ResponseUtil {
         addVaryFieldName(new HeaderAdapter(headers), name);
     }
 
-
-    public static void addVaryFieldName(HttpServletResponse response, String name) {
-        addVaryFieldName(new ResponseAdapter(response), name);
-    }
 
 
     private static void addVaryFieldName(Adapter adapter, String name) {
@@ -145,26 +140,4 @@ public class ResponseUtil {
     }
 
 
-    private static final class ResponseAdapter implements Adapter {
-        private final HttpServletResponse response;
-
-        public ResponseAdapter(HttpServletResponse response) {
-            this.response = response;
-        }
-
-        @Override
-        public Collection<String> getHeaders(String name) {
-            return response.getHeaders(name);
-        }
-
-        @Override
-        public void setHeader(String name, String value) {
-            response.setHeader(name, value);
-        }
-
-        @Override
-        public void addHeader(String name, String value) {
-            response.addHeader(name, value);
-        }
-    }
 }

@@ -31,8 +31,7 @@ import java.io.IOException;
 public class UpgradeServletOutputStream extends ServletOutputStream {
 
     private static final Logger log = LoggerFactory.getLogger(UpgradeServletOutputStream.class);
-    private static final StringManager sm =
-            StringManager.getManager(UpgradeServletOutputStream.class);
+    private static final StringManager sm = StringManager.getManager(UpgradeServletOutputStream.class);
 
     private final UpgradeProcessorBase processor;
     private final SocketWrapperBase<?> socketWrapper;

@@ -30,8 +30,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Input filter responsible for reading and buffering the request body, so that
- * it does not interfere with client SSL handshake messages.
+ * Input filter responsible for reading and buffering the request body, so that it does not interfere with client SSL
+ * handshake messages.
  */
 public class BufferedInputFilter implements InputFilter, ApplicationBufferHandler {
 
@@ -52,8 +52,7 @@ public class BufferedInputFilter implements InputFilter, ApplicationBufferHandle
     // ----------------------------------------------------- Static Initializer
 
     static {
-        ENCODING.setBytes(ENCODING_NAME.getBytes(StandardCharsets.ISO_8859_1),
-                0, ENCODING_NAME.length());
+        ENCODING.setBytes(ENCODING_NAME.getBytes(StandardCharsets.ISO_8859_1), 0, ENCODING_NAME.length());
     }
 
 
@@ -61,8 +60,7 @@ public class BufferedInputFilter implements InputFilter, ApplicationBufferHandle
 
 
     /**
-     * Set the buffering limit. This should be reset every time the buffer is
-     * used.
+     * Set the buffering limit. This should be reset every time the buffer is used.
      *
      * @param limit The maximum number of bytes that will be buffered
      */
@@ -90,7 +88,7 @@ public class BufferedInputFilter implements InputFilter, ApplicationBufferHandle
                 buffered.limit(buffered.position()).reset();
                 tempRead = null;
             }
-        } catch(IOException | BufferOverflowException ioe) {
+        } catch (IOException | BufferOverflowException ioe) {
             // No need for i18n - this isn't going to get logged anywhere
             throw new IllegalStateException(
                     "Request body too large for buffer");
@@ -100,8 +98,7 @@ public class BufferedInputFilter implements InputFilter, ApplicationBufferHandle
     /**
      * Fills the given ByteChunk with the buffered request body.
      *
-     * @deprecated Unused. Will be removed in Tomcat 9. Use
-     *             {@link #doRead(ApplicationBufferHandler)}
+     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doRead(ApplicationBufferHandler)}
      */
     @Deprecated
     @Override

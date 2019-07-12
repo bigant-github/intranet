@@ -952,10 +952,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
             } catch (java.io.IOException e) {
                 // IOExceptions are normal
                 getLog().debug(sm.getString("abstractConnectionHandler.ioexception.debug"), e);
-            } catch (ProtocolException e) {
-                // Protocol exceptions normally mean the client sent invalid or
-                // incomplete data.
-                getLog().debug(sm.getString("abstractConnectionHandler.protocolexception.debug"), e);
             }
             // Future developers: if you discover any other
             // rare-but-nonfatal exceptions, catch them here, and log as

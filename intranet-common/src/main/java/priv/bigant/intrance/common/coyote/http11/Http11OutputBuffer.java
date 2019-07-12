@@ -531,8 +531,7 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
         // "+ 4": BZ 57509. Reserve space for CR/LF/COLON/SP characters that
         // are put directly into the buffer following this write operation.
         if (headerBuffer.position() + length + 4 > headerBuffer.capacity()) {
-            throw new HeadersTooLargeException(
-                    sm.getString("iob.responseheadertoolarge.error"));
+            throw new HeadersTooLargeException(sm.getString("iob.responseheadertoolarge.error"));
         }
     }
 
