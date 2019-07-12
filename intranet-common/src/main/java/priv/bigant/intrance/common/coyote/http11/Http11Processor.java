@@ -626,6 +626,7 @@ public abstract class Http11Processor extends AbstractProcessor {
         openSocket = false;
         readComplete = true;
         boolean keptAlive = false;
+        boolean keep = false;
         SocketWrapperBase<NioChannel> responseSocketWrapper = null;
 
         do {
@@ -633,6 +634,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 log.debug("keep-alive");
                 responseInputBuffer.nextRequest();
                 inputBuffer.nextRequest();
+                keep = true;
             }
 
             // Parsing the request header
@@ -644,6 +646,8 @@ public abstract class Http11Processor extends AbstractProcessor {
                         break;
                     }
                 }
+
+                log.debug("keep parseRequestLine");
 
                 if (isPaused()) {
                     // 503 - Service unavailable

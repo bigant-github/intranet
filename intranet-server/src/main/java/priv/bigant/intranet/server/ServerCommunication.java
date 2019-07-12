@@ -102,7 +102,7 @@ public class ServerCommunication extends Communication {
         }
         HttpSocketManager.addKey(id, host);
         try {
-            super.write(communicationRequest);
+            super.writeN(communicationRequest);
             CommunicationResponse.CommunicationResponseHttpAdd communicationResponseHttpAdd = super.readResponse().toJavaObject(CommunicationResponse.CommunicationResponseHttpAdd.class);
             if (communicationResponseHttpAdd.isSuccess()) {
                 LOGGER.debug(host + "新建http连接");

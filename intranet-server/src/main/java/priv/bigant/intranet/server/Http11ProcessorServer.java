@@ -75,6 +75,8 @@ public class Http11ProcessorServer extends Http11Processor {
     @Override
     public void close() throws IOException {
         LOG.debug("server close.............." + serverCommunication);
+        socketWrapper.close();
+
         if (receiver != null) {
             receiver.skip();
             receiver.close();
