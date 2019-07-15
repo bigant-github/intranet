@@ -664,9 +664,9 @@ public abstract class Http11Processor extends AbstractProcessor {
                         readComplete = false;
                         break;
                     }
-                    if (!disableUploadTimeout) {
+                    /*if (!disableUploadTimeout) {
                         socketWrapper.setReadTimeout(connectionUploadTimeout);
-                    }
+                    }*/
                 }
             } catch (IOException e) {
                 if (log.isDebugEnabled()) {
@@ -788,7 +788,7 @@ public abstract class Http11Processor extends AbstractProcessor {
         return null;
     }
 
-    public abstract SocketBean getSocketBean();
+    public abstract SocketBean getSocketBean() throws IOException;
 
     public abstract int getMaxHeaderCount();
 

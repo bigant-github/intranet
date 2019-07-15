@@ -1,5 +1,7 @@
 package priv.bigant.test.Integral;
 
+import priv.bigant.intrance.common.Connector;
+import priv.bigant.intrance.common.HttpIntranetServiceProcessAbs;
 import priv.bigant.intrance.common.LifecycleException;
 import priv.bigant.intranet.server.*;
 

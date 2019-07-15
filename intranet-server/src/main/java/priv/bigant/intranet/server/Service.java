@@ -1,5 +1,7 @@
 package priv.bigant.intranet.server;
 
+import priv.bigant.intrance.common.BigAnt;
+import priv.bigant.intrance.common.Connector;
 import priv.bigant.intrance.common.Lifecycle;
 
 public interface Service extends Lifecycle, BigAnt {

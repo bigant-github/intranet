@@ -16,7 +16,10 @@ public abstract class Config {
      */
     private int httpAcceptPort = 45679;
     private int bufferSize = 16;
-
+    /**
+     * 线程池等待时间
+     */
+    private int threadKeepAliveTime =5000;
     protected Config() {
 
     }
@@ -409,5 +412,11 @@ public abstract class Config {
         this.httpAcceptPort = httpAcceptPort;
     }
 
+    public int getThreadKeepAliveTime() {
+        return threadKeepAliveTime;
+    }
 
+    public void setThreadKeepAliveTime(int threadKeepAliveTime) {
+        this.threadKeepAliveTime = threadKeepAliveTime;
+    }
 }

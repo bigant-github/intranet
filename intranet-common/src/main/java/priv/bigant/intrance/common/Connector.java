@@ -1,10 +1,7 @@
-package priv.bigant.intranet.server;
+package priv.bigant.intrance.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.LifecycleException;
-import priv.bigant.intrance.common.LifecycleMBeanBase;
-import priv.bigant.intrance.common.LifecycleState;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -17,6 +14,7 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
     private Process process;
     private int port;
     private ServerSocketChannel server;
+    private ConnectorThread connectorThread;
 
     public Connector(String name, Process process, int port) {
         this.name = name;
@@ -44,7 +42,7 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
         setState(LifecycleState.STARTING);
         try {
             build();
-            ConnectorThread connectorThread = new ConnectorThread();
+            connectorThread = new ConnectorThread(process);
             connectorThread.register(server, SelectionKey.OP_ACCEPT);
             connectorThread.start();
         } catch (IOException e) {
@@ -63,11 +61,13 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
 
     }
 
-    class ConnectorThread extends Thread {
+    public static class ConnectorThread extends Thread {
         private final Logger LOG = LoggerFactory.getLogger(ConnectorThread.class);
         private Selector selector;
+        private Process process;
 
-        public ConnectorThread() throws IOException {
+        public ConnectorThread(Process process) throws IOException {
+            this.process = process;
             this.selector = Selector.open();
         }
 
