@@ -647,8 +647,6 @@ public abstract class Http11Processor extends AbstractProcessor {
                     }
                 }
 
-                log.debug("keep parseRequestLine");
-
                 if (isPaused()) {
                     // 503 - Service unavailable
                     //TODO response.setStatus(503);
@@ -669,9 +667,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                     }*/
                 }
             } catch (IOException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error parsing HTTP request header:", e);
-                }
+                log.debug("Error parsing HTTP request header:", e);
                 setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
                 break;
             } catch (Throwable t) {

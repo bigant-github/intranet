@@ -83,7 +83,7 @@ public class Connector extends LifecycleMBeanBase implements BigAnt {
         public void run() {
             while (true) {
                 try {
-                    if (selector.select() < 1)
+                    if (selector.selectNow() < 1)
                         continue;
                     Iterator<SelectionKey> selectionKeys = selector.selectedKeys().iterator();
                     while (selectionKeys.hasNext()) {

@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * 客户端与服务端通信的工具
  */
-public abstract class Communication extends Thread {
+public class Communication extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(Communication.class);
 
     protected byte[] bytes = new byte[1024];
@@ -43,6 +43,7 @@ public abstract class Communication extends Thread {
 
     public synchronized void close() {
         try {
+            LOGGER.debug("communication close");
             if (socket != null)
                 socket.close();
             if (inputStream != null)
@@ -60,6 +61,7 @@ public abstract class Communication extends Thread {
 
     public synchronized byte[] readN() throws IOException {
         byteBuffer.clear();
+        //socketChannel.socket().sendUrgentData(1);
         int readNum = socketChannel.read(byteBuffer);
         byte[] subArray = ArrayUtils.subarray(byteBuffer.array(), 0, readNum);
         byteBuffer.flip();
@@ -122,9 +124,12 @@ public abstract class Communication extends Thread {
      */
     public Boolean isClose() {
         try {
-            socketChannel.socket().sendUrgentData(0xFF);//发送1个字节的紧急数据，默认情况下，服务器端没有开启紧急数据处理，不影响正常通信
+            socketChannel.socket().sendUrgentData(12123123);//发送1个字节的紧急数据，默认情况下，服务器端没有开启紧急数据处理，不影响正常通信
+            LOGGER.debug("isClose false");
             return false;
         } catch (Exception se) {
+            LOGGER.error("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", se);
+            LOGGER.debug("isClose true");
             return true;
         }
     }

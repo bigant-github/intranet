@@ -25,7 +25,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
     public HttpIntranetServiceProcessAbs() {
         this.processorCache = new SynchronizedStack<>();
-        this.executor = new ThreadPoolExecutor(1, 10, Config.getConfig().getThreadKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+        this.executor = new ThreadPoolExecutor(1, 20, Config.getConfig().getThreadKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
     public abstract Http11Processor createHttp11Processor();

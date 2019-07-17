@@ -4,11 +4,15 @@ package priv.bigant.intranet.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Connector;
+import priv.bigant.intrance.common.communication.Communication;
+import priv.bigant.intrance.common.communication.CommunicationEnum;
+import priv.bigant.intrance.common.communication.CommunicationRequest;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Properties;
 
@@ -21,27 +25,9 @@ public class Start {
     private static ClientConfig clientConfig;
 
     public static void main(String[] args) {
-        createdConfig();
-
-        HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
-        Connector.ConnectorThread serviceConnectorThread;
-        try {
-            serviceConnectorThread = new Connector.ConnectorThread(httpIntranetServiceProcess);
-            serviceConnectorThread.start();
-        } catch (IOException e) {
-            LOG.error("http 处理器启动失败");
-            return;
-        }
-        HttpIntranetConnectorProcess httpIntranetConnectorProcess = new HttpIntranetConnectorProcess(serviceConnectorThread);
-        try {
-            serviceConnectorThread = new Connector.ConnectorThread(httpIntranetConnectorProcess);
-            serviceConnectorThread.start();
-            SocketChannel open = SocketChannel.open(InetSocketAddress.createUnresolved(clientConfig.getDomainName(), clientConfig.getPort()));
-
-        } catch (IOException e) {
-            LOG.error("http 接收器启动失败");
-        }
-
+        boolean b = createdConfig();
+        if (b)
+            new ClientCommunication().start();
     }
 
     public static boolean createdConfig() {

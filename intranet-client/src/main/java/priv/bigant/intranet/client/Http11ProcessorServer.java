@@ -55,10 +55,5 @@ public class Http11ProcessorServer extends Http11Processor {
             receiver.skip();
             receiver.close();
         }
-
-        /*if (socketBean != null) {
-            socketBean.skip();
-            super.socketBean.close();
-        }*/
     }
 }
