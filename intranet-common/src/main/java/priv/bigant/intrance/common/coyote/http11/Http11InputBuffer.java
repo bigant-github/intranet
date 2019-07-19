@@ -41,7 +41,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
     // -------------------------------------------------------------- Constants
 
-    private static final Logger log = LoggerFactory.getLogger(Http11InputBuffer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Http11InputBuffer.class);
 
     /**
      * The string manager for this package.
@@ -350,7 +350,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                         // timeout.
                         wrapper.setReadTimeout(Config.getSoTimeout());
                     }
-                    if (!fill(false)) {
+                    LOG.debug("first read isKeep=" + keptAlive);
+                    if (!fill(keptAlive)) {
                         // A read is pending, so no longer in initial state
                         parsingRequestLinePhase = 1;
                         return false;
@@ -383,8 +384,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
-            if (log.isDebugEnabled()) {
-                log.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
             }
         }
         if (parsingRequestLinePhase == 2) {
@@ -618,8 +619,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                 available = byteBuffer.remaining();
             }
         } catch (IOException ioe) {
-            if (log.isDebugEnabled()) {
-                log.debug(sm.getString("iib.available.readFail"), ioe);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(sm.getString("iib.available.readFail"), ioe);
             }
             // Not ideal. This will indicate that data is available which should
             // trigger a read which in turn will trigger another IOException and
@@ -715,7 +716,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         if (nRead > 0) {
             return true;
         } else if (nRead == -1) {
-            throw new EOFException(sm.getString("iib.eof.error"));
+            throw new EOFException("Unexpected EOF read on the socket");
         } else {
             return false;
         }
@@ -928,7 +929,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                 headerData.lastSignificantChar = pos;
             }
         }
-        if (rejectIllegalHeaderName || log.isDebugEnabled()) {
+        if (rejectIllegalHeaderName || LOG.isDebugEnabled()) {
             String message = sm.getString("iib.invalidheader",
                     new String(byteBuffer.array(), headerData.start,
                             headerData.lastSignificantChar - headerData.start + 1,
@@ -936,7 +937,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             if (rejectIllegalHeaderName) {
                 throw new IllegalArgumentException(message);
             }
-            log.debug(message);
+            LOG.debug(message);
         }
 
         headerParsePos = HeaderParsePosition.HEADER_START;

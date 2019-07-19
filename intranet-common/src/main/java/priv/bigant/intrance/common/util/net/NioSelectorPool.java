@@ -25,6 +25,7 @@ import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,7 +43,7 @@ public class NioSelectorPool {
     public NioSelectorPool() {
     }
 
-    private static final Logger log = LoggerFactory.getLogger(NioSelectorPool.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NioSelectorPool.class);
 
     protected static final boolean SHARED = Boolean.parseBoolean(System.getProperty("org.apache.tomcat.util.net.NioSelectorShared", "true"));
 
@@ -63,7 +64,7 @@ public class NioSelectorPool {
             synchronized (NioSelectorPool.class) {
                 if (SHARED_SELECTOR == null) {
                     SHARED_SELECTOR = Selector.open();
-                    log.info("Using a shared selector for servlet write/read");
+                    LOG.info("Using a shared selector for servlet write/read");
                 }
             }
         }
@@ -248,7 +249,7 @@ public class NioSelectorPool {
         int keyCount = 1; //assume we can write
         long time = System.currentTimeMillis(); //start the timeout timer
         try {
-            while ((!timedout)) {
+            while ((!timedout) && buf.hasRemaining()) {
                 int cnt = 0;
                 if (keyCount > 0) { //only read if we were registered for a read
                     cnt = socket.read(buf);
@@ -266,9 +267,10 @@ public class NioSelectorPool {
                 }
                 if (selector != null) {//perform a blocking read
                     //register OP_WRITE to the selector
-                    if (key == null)
+                    if (key == null) {
                         key = socket.getIOChannel().register(selector, SelectionKey.OP_READ);
-                    else
+                        continue;
+                    } else
                         key.interestOps(SelectionKey.OP_READ);
 
                     if (readTimeout == 0) {
@@ -276,14 +278,24 @@ public class NioSelectorPool {
                     } else if (readTimeout < 0) {
                         keyCount = selector.select();
                     } else {
-                        keyCount = selector.select(readTimeout);
+                        keyCount = selector.selectNow();
+                        //keyCount = selector.select(readTimeout);
                     }
                 }
                 if (readTimeout > 0 && (selector == null || keyCount == 0))
                     timedout = (System.currentTimeMillis() - time) >= readTimeout;
             }//while
-            if (timedout)
+            if (timedout) {
+                try {
+                    int i = selector.selectNow();
+                    ByteBuffer allocate = ByteBuffer.allocate(1024);
+                    int read1 = socket.read(allocate);
+                    LOG.debug("socket time out selectNum:" + i + " read:" + read1 + " array:" + Arrays.toString(allocate.array()) + " string:" + new String(allocate.array()));
+                } catch (Exception e) {
+                    LOG.error("asd");
+                }
                 throw new SocketTimeoutException();
+            }
         } finally {
             if (key != null) {
                 key.cancel();

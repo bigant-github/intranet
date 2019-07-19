@@ -37,7 +37,8 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
     @Override
     public void read(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
-        selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
+        //selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
+        selectionKey.cancel();
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
         LOG.debug("HttpIntranetServiceProcessAbs read " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
         executor.execute(new ReadProcessThread(socketChannel));

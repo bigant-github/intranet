@@ -41,11 +41,11 @@ public abstract class HttpProcessorAbs implements Runnable, HttpProcessor {
                     LOGGER.warn("send ack service last");
 
                 if (receiver != null) {
-                    boolean b = receiver.sendUrgentData();
+                    /*boolean b = receiver.sendUrgentData();
                     if (!b) {
                         LOGGER.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
                         close();
-                    }
+                    }*/
                 }
 
                 if (receiver == null) {

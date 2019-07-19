@@ -626,15 +626,14 @@ public abstract class Http11Processor extends AbstractProcessor {
         openSocket = false;
         readComplete = true;
         boolean keptAlive = false;
-        boolean keep = false;
+        int keepCount = 0;
         SocketWrapperBase<NioChannel> responseSocketWrapper = null;
 
         do {
             if (request.isConnection() && response.isConnection()) {
-                log.debug("keep-alive");
+                log.debug("http keep alive" + (keepCount++));
                 responseInputBuffer.nextRequest();
                 inputBuffer.nextRequest();
-                keep = true;
             }
 
             // Parsing the request header

@@ -88,11 +88,11 @@ public class SocketBean {
     }
 
     public boolean sendUrgentData() {
-        try {
+        /*try {
             socket.sendUrgentData(0);
         } catch (IOException e) {
             return false;
-        }
+        }*/
         return true;
     }
 

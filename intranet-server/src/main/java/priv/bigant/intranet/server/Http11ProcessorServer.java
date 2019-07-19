@@ -58,13 +58,13 @@ public class Http11ProcessorServer extends Http11Processor {
         while (true) {
             SocketBean socketBean = serverCommunication.getSocketBean();
             if (socketBean != null) {
-                boolean b = socketBean.sendUrgentData();
+                /*boolean b = socketBean.sendUrgentData();
                 if (!b) {
                     LOG.warn("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
                     serverCommunication.close();
                     serverCommunication.createSocketBean();
                     continue;
-                }
+                }*/
                 return socketBean;
             } else {
                 return null;
