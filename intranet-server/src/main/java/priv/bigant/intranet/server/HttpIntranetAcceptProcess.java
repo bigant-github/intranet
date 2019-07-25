@@ -3,12 +3,10 @@ package priv.bigant.intranet.server;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.Config;
-import priv.bigant.intrance.common.Connector;
-import priv.bigant.intrance.common.ProcessBase;
-import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.*;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intrance.common.communication.CommunicationResponse;
+import priv.bigant.intrance.common.communication.HttpCommunication;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -58,7 +56,6 @@ public class HttpIntranetAcceptProcess extends ProcessBase {
     class ReadProcessThread implements Runnable {
 
         private SocketChannel socketChannel;
-        private ServerCommunication serverCommunication;
         private SocketBean socketBean;
 
         public ReadProcessThread(SocketChannel socketChannel) throws IOException {
@@ -75,7 +72,7 @@ public class HttpIntranetAcceptProcess extends ProcessBase {
                 CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = CommunicationResponse.createCommunicationResponse(ArrayUtils.subarray(byteBuffer.array(), 0, read)).toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
                 String id = communicationRequestHttpAdd.getId();
                 socketBean.setId(id);
-                ServerCommunication serverCommunication = HttpSocketManager.get(HttpSocketManager.getKey(id));
+                HttpCommunication serverCommunication = HttpSocketManager.get(HttpSocketManager.getKey(id));
                 serverCommunication.putSocketBean(socketBean);
             } catch (Exception e) {
                 e.printStackTrace();

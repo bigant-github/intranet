@@ -2,114 +2,47 @@ package priv.bigant.intranet.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.communication.Communication;
-import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.Config;
-import priv.bigant.intrance.common.communication.CommunicationRequest;
-import priv.bigant.intrance.common.communication.CommunicationResponse;
+import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.communication.HttpCommunication;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
-import java.util.Stack;
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ServerCommunication extends Communication {
+public class ServerCommunication extends HttpCommunication {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerCommunication.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerCommunication.class);
+    public static final Map<String, SocketBean> MAP = new HashMap<>();
     private ServerConfig serverConfig;
-    private String host;
-    private Stack<SocketBean> socketStack;
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public ServerCommunication(Socket socket) throws IOException {
-        super(socket);
-        serverConfig = (ServerConfig) Config.getConfig();
-        socketStack = new Stack<>();
-    }
 
     public ServerCommunication(SocketChannel socketChannel) throws IOException {
         super(socketChannel);
         serverConfig = (ServerConfig) Config.getConfig();
-        socketStack = new Stack<>();
-    }
-
-    /**
-     * 获取socketBean 超时则返回Null
-     *
-     * @throws InterruptedException
-     */
-    public synchronized SocketBean getSocketBean() {
-        long time = System.currentTimeMillis();
-        do {
-            if (!socketStack.empty()) {
-                SocketBean pop = socketStack.pop();
-                if (pop != null) {
-                    LOGGER.debug("获取到http连接 :" + pop.getId() + "剩余" + socketStack.size());
-                    return pop;
-                }
-            }
-            try {
-                LOGGER.debug("未获取到客户端http连接 等待。。。。");
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                LOGGER.error("get socket bean sleep error");
-            }
-        } while ((time + serverConfig.getWaitSocketTime()) < System.currentTimeMillis());
-        return null;
-    }
-
-    /**
-     * 获取socketBean 还回socketBean
-     */
-    public synchronized void putSocketBean(SocketBean socketBean) {
-        LOGGER.debug("归还http连接 :" + socketBean.getId());
-        LOGGER.debug("before num :" + socketStack.size());
-        socketStack.push(socketBean);
-        LOGGER.debug("after num :" + socketStack.size());
     }
 
     @Override
-    public synchronized void close() {
-        super.close();
-        Iterator<SocketBean> iterator = socketStack.iterator();
-        while (iterator.hasNext()) {
-            SocketBean next = iterator.next();
-            next.close();
+    public SocketBean getSocketBean() {
+        long time = System.currentTimeMillis();
+        String id = super.createSocketBean();
+        while ((time + serverConfig.getWaitSocketTime()) > System.currentTimeMillis()) {
+            SocketBean socketBean = MAP.get(id);
+            if (socketBean != null)
+                return socketBean;
         }
+        LOG.debug("getSocketBean TIMEOUT: createTime=" + time + "    endTime=" + System.currentTimeMillis());
+        return null;
     }
 
-    public void connect() {
-        LOGGER.warn("服务端不能连接");
+    @Override
+    public void putSocketBean(SocketBean socketBean) {
+        String id = socketBean.getId();
+        MAP.put(id, socketBean);
     }
 
-    public void createSocketBean() {
-        String id = UUID.randomUUID().toString();
-        CommunicationRequest communicationRequest = null;
-        CommunicationRequest.CommunicationRequestP communicationRequestHttpAdd = new CommunicationRequest.CommunicationRequestHttpAdd(id);
-        try {
-            communicationRequest = CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        HttpSocketManager.addKey(id, host);
-        try {
-            super.writeN(communicationRequest);
-            CommunicationResponse.CommunicationResponseHttpAdd communicationResponseHttpAdd = super.readResponse().toJavaObject(CommunicationResponse.CommunicationResponseHttpAdd.class);
-            if (communicationResponseHttpAdd.isSuccess()) {
-                LOGGER.debug(host + "新建http连接");
-            } else
-                LOGGER.warn(host + "新建http失败");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public String createSocketBean() {
+        return null;
     }
 }

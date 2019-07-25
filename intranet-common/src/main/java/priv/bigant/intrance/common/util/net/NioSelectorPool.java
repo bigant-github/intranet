@@ -270,16 +270,16 @@ public class NioSelectorPool {
                     if (key == null) {
                         key = socket.getIOChannel().register(selector, SelectionKey.OP_READ);
                         continue;
-                    } else
-                        key.interestOps(SelectionKey.OP_READ);
-
+                    } /*else
+                        key.interestOps(SelectionKey.OP_READ);*/
                     if (readTimeout == 0) {
                         timedout = (read == 0);
                     } else if (readTimeout < 0) {
                         keyCount = selector.select();
                     } else {
-                        keyCount = selector.selectNow();
-                        //keyCount = selector.select(readTimeout);
+                        //keyCount = selector.selectNow();
+                        keyCount = selector.select(readTimeout);
+                        LOG.debug("select read:" + keyCount);
                     }
                 }
                 if (readTimeout > 0 && (selector == null || keyCount == 0))

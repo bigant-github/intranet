@@ -1,4 +1,6 @@
-package priv.bigant.intranet.server;
+package priv.bigant.intrance.common;
+
+import priv.bigant.intrance.common.communication.HttpCommunication;
 
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -9,8 +11,8 @@ import java.util.Map;
  */
 public class HttpSocketManager {
 
-    private final static Map<String, ServerCommunication> throughMap;
-    private static Iterator<Map.Entry<String, ServerCommunication>> iterator;
+    private final static Map<String, HttpCommunication> throughMap;
+    private static Iterator<Map.Entry<String, HttpCommunication>> iterator;
     private final static Map<String, String> keyMap = new Hashtable<>();
 
     static {
@@ -18,7 +20,7 @@ public class HttpSocketManager {
         iterator = throughMap.entrySet().iterator();
     }
 
-    public static void add(String host, ServerCommunication serverCommunication) {
+    public static void add(String host, HttpCommunication serverCommunication) {
         throughMap.put(host, serverCommunication);
     }
 
@@ -30,12 +32,12 @@ public class HttpSocketManager {
         return keyMap.get(key);
     }
 
-    public static ServerCommunication get(String host) {
-        ServerCommunication serverCommunication = throughMap.get(host);
+    public static HttpCommunication get(String host) {
+        HttpCommunication serverCommunication = throughMap.get(host);
         return serverCommunication;
     }
 
-    public static ServerCommunication remove(String host) {
+    public static HttpCommunication remove(String host) {
         return throughMap.remove(host);
     }
 
@@ -47,7 +49,7 @@ public class HttpSocketManager {
     }
 
 
-    public synchronized static Map.Entry<String, ServerCommunication> nextSocketBeans() {
+    public synchronized static Map.Entry<String, HttpCommunication> nextSocketBeans() {
 
         if (iterator.hasNext())
             return iterator.next();

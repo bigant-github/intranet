@@ -19,7 +19,8 @@ public abstract class Config {
     /**
      * 线程池等待时间
      */
-    private int threadKeepAliveTime =5000;
+    private int threadKeepAliveTime = 5000;
+
     protected Config() {
 
     }
@@ -113,7 +114,7 @@ public abstract class Config {
     /**
      * SO_TIMEOUT option. default is 20000.
      */
-    protected static Integer soTimeout = Integer.valueOf(20000);
+    protected static Integer soTimeout = 2000;
 
     /**
      * Performance preferences according to http://docs.oracle.com/javase/1.5.0/docs/api/java/net/Socket.html#setPerformancePreferences(int,%20int,%20int)

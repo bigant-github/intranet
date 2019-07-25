@@ -2,7 +2,9 @@ package priv.bigant.intranet.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.HttpSocketManager;
 import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.communication.HttpCommunication;
 import priv.bigant.intrance.common.coyote.UpgradeProtocol;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 import priv.bigant.intrance.common.util.net.*;
@@ -11,7 +13,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class Http11ProcessorServer extends Http11Processor {
-    private ServerCommunication serverCommunication;
+    private HttpCommunication httpCommunication;
     private SocketBean receiver;
     private static final Logger LOG = LoggerFactory.getLogger(Http11ProcessorServer.class);
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
@@ -27,15 +29,15 @@ public class Http11ProcessorServer extends Http11Processor {
 
         LOG.debug("获取socketBean host=" + host);
 
-        serverCommunication = HttpSocketManager.get(host);
-        if (serverCommunication == null)
+        httpCommunication = HttpSocketManager.get(host);
+        if (httpCommunication == null)
             return null;
-        if (serverCommunication.isClose()) {
+        if (httpCommunication.isClose()) {
             LOG.info("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
-            serverCommunication.close();
+            httpCommunication.close();
             return null;
         }
-        receiver = checkSocketBean();
+        receiver = httpCommunication.getSocketBean();
         return receiver;
     }
 
@@ -54,41 +56,19 @@ public class Http11ProcessorServer extends Http11Processor {
         return nioSelectorPool;
     }
 
-    protected SocketBean checkSocketBean() {
-        while (true) {
-            SocketBean socketBean = serverCommunication.getSocketBean();
-            if (socketBean != null) {
-                /*boolean b = socketBean.sendUrgentData();
-                if (!b) {
-                    LOG.warn("客户端已关闭。。。。。。。。。。。。。。。。。。。。。。。。");
-                    serverCommunication.close();
-                    serverCommunication.createSocketBean();
-                    continue;
-                }*/
-                return socketBean;
-            } else {
-                return null;
-            }
-        }
-    }
 
     @Override
     public void close() throws IOException {
-        LOG.debug("server close.............." + serverCommunication);
+        LOG.debug("server close.............." + httpCommunication);
         socketWrapper.close();
 
         if (receiver != null) {
             receiver.skip();
             receiver.close();
-            if (serverCommunication != null) {
+            if (httpCommunication != null) {
                 LOG.debug("server close add client socket..............");
-                serverCommunication.createSocketBean();
+                httpCommunication.createSocketBean();
             }
         }
-
-        /*if (socketBean != null) {
-            socketBean.skip();
-            super.socketBean.close();
-        }*/
     }
 }
