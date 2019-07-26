@@ -1,6 +1,8 @@
 package priv.bigant.intranet.client;
 
 
+import ch.qos.logback.core.joran.util.beans.BeanUtil;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Connector;
@@ -10,11 +12,13 @@ import priv.bigant.intrance.common.communication.CommunicationRequest;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by GaoHan on 2018/5/23.
@@ -31,6 +35,7 @@ public class Start {
     }
 
     public static boolean createdConfig() {
+        clientConfig = (ClientConfig) ClientConfig.getConfig();
         //new Home().showHome();
         FileInputStream inputStream = null;
         try {
@@ -38,11 +43,13 @@ public class Start {
             inputStream = new FileInputStream(Start.class.getResource("/conf.properties").getPath());
             //inputStream = new FileInputStream(new File(userPath + "/conf.properties"));
             Properties properties = new Properties();
+
             properties.load(inputStream);
             String hostName = properties.getProperty("hostName");
             String localPort = properties.getProperty("localPort");
             String localHost = properties.getProperty("localHost");
-            clientConfig = (ClientConfig) ClientConfig.getConfig();
+            BeanUtils.copyProperties(clientConfig, properties);
+
             clientConfig.setHostName(hostName);
             clientConfig.setLocalHost(localHost);
             clientConfig.setDomainName(hostName);
@@ -51,6 +58,10 @@ public class Start {
         } catch (IOException e) {
             LOG.error("config file error", e);
             return false;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
         } finally {
             if (inputStream != null) {
                 try {

@@ -19,6 +19,7 @@ package priv.bigant.intrance.common.coyote.http11;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.HttpServletResponse;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.*;
@@ -189,13 +190,9 @@ public abstract class Http11Processor extends AbstractProcessor {
     protected SendfileDataBase sendFileData = null;
 
 
-    /**
-     * UpgradeProtocol information
-     */
-    private final Map<String, UpgradeProtocol> httpUpgradeProtocols;
-
     private final boolean allowHostHeaderMismatch;
 
+    private Config config;
 
     public Http11Processor(int maxHttpHeaderSize, boolean allowHostHeaderMismatch,
                            boolean rejectIllegalHeaderName,
@@ -203,7 +200,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                            String relaxedPathChars, String relaxedQueryChars) {
 
         super();
-
+        config = Config.getConfig();
         httpParser = new HttpParser(relaxedPathChars, relaxedQueryChars);
 
         inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
@@ -237,7 +234,6 @@ public abstract class Http11Processor extends AbstractProcessor {
 
         plugGableFilterIndex = inputBuffer.getFilters().length;
 
-        this.httpUpgradeProtocols = httpUpgradeProtocols;
         this.allowHostHeaderMismatch = allowHostHeaderMismatch;
     }
 
@@ -697,7 +693,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                     log.error("receiver is null error");
                 }
 
-                NioChannel nioChannel = new NioChannel(receiver.getSocketChannel(), new SocketBufferHandler(2048, 2048, true));
+                NioChannel nioChannel = new NioChannel(receiver.getSocketChannel(), new SocketBufferHandler(config.getHttpProcessReadBufferSize(), config.getHttpProcessWriteBufferSize(), true));
                 responseSocketWrapper = new NioSocketWrapper(nioChannel, getNioSelectorPool());
                 nioChannel.setSocketWrapper(responseSocketWrapper);
                 responseInputBuffer.init(responseSocketWrapper);

@@ -22,10 +22,12 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
     protected SynchronizedStack<SocketProcessorBase> processorCache;
     private RecycledProcessors recycledProcessors = new RecycledProcessors();
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
+    private Config config;
 
     public HttpIntranetServiceProcessAbs() {
+        this.config = Config.getConfig();
         this.processorCache = new SynchronizedStack<>();
-        this.executor = new ThreadPoolExecutor(1, 20, Config.getConfig().getThreadKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+        this.executor = new ThreadPoolExecutor(config.getHttpProcessCoreSize(), config.getHttpProcessMaxSize(), Config.getConfig().getHttpProcessWaitTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
     public abstract Http11Processor createHttp11Processor();
@@ -56,13 +58,9 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
     class ReadProcessThread implements Runnable {
 
         private SocketChannel socketChannel;
-        private SocketBean socketBean;
-
-        private ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 
         public ReadProcessThread(SocketChannel socketChannel) throws IOException {
             this.socketChannel = socketChannel;
-            this.socketBean = new SocketBean(socketChannel);
         }
 
         @Override
@@ -72,7 +70,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
                 if (pop == null) {
                     pop = createHttp11Processor();
                 }
-                NioChannel nioChannel = new NioChannel(socketChannel, new SocketBufferHandler(2048, 2048, true));
+                NioChannel nioChannel = new NioChannel(socketChannel, new SocketBufferHandler(config.getHttpProcessReadBufferSize(), config.getHttpProcessWriteBufferSize(), true));
                 NioSocketWrapper nioSocketWrapper = new NioSocketWrapper(nioChannel, nioSelectorPool);
                 AbstractEndpoint.Handler.SocketState service = pop.process(nioSocketWrapper, SocketEvent.OPEN_READ);
                 pop.recycle();

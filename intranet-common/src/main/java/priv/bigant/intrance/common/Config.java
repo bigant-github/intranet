@@ -19,7 +19,45 @@ public abstract class Config {
     /**
      * 线程池等待时间
      */
-    private int threadKeepAliveTime = 5000;
+    private int httpProcessWaitTime = 5000;
+    private int httpProcessCoreSize = 1;
+    private int httpProcessMaxSize = 20;
+
+
+    private int httpProcessReadBufferSize = 2048;
+    private int httpProcessWriteBufferSize = 2048;
+
+    public int getHttpProcessReadBufferSize() {
+        return httpProcessReadBufferSize;
+    }
+
+    public void setHttpProcessReadBufferSize(int httpProcessReadBufferSize) {
+        this.httpProcessReadBufferSize = httpProcessReadBufferSize;
+    }
+
+    public int getHttpProcessWriteBufferSize() {
+        return httpProcessWriteBufferSize;
+    }
+
+    public void setHttpProcessWriteBufferSize(int httpProcessWriteBufferSize) {
+        this.httpProcessWriteBufferSize = httpProcessWriteBufferSize;
+    }
+
+    public int getHttpProcessCoreSize() {
+        return httpProcessCoreSize;
+    }
+
+    public void setHttpProcessCoreSize(int httpProcessCoreSize) {
+        this.httpProcessCoreSize = httpProcessCoreSize;
+    }
+
+    public int getHttpProcessMaxSize() {
+        return httpProcessMaxSize;
+    }
+
+    public void setHttpProcessMaxSize(int httpProcessMaxSize) {
+        this.httpProcessMaxSize = httpProcessMaxSize;
+    }
 
     protected Config() {
 
@@ -413,11 +451,11 @@ public abstract class Config {
         this.httpAcceptPort = httpAcceptPort;
     }
 
-    public int getThreadKeepAliveTime() {
-        return threadKeepAliveTime;
+    public int getHttpProcessWaitTime() {
+        return httpProcessWaitTime;
     }
 
-    public void setThreadKeepAliveTime(int threadKeepAliveTime) {
-        this.threadKeepAliveTime = threadKeepAliveTime;
+    public void setHttpProcessWaitTime(int httpProcessWaitTime) {
+        this.httpProcessWaitTime = httpProcessWaitTime;
     }
 }
