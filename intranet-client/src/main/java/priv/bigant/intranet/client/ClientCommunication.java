@@ -20,11 +20,12 @@ public class ClientCommunication extends Communication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommunication.class);
     private ClientConfig clientConfig;
-    ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+    private ByteBuffer byteBuffer;
     private Connector.ConnectorThread serviceConnectorThread;
 
     public ClientCommunication() {
         clientConfig = (ClientConfig) ClientConfig.getConfig();
+        byteBuffer = ByteBuffer.allocate(clientConfig.getCommunicationByteBufferSize());
         HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
         try {
             serviceConnectorThread = new Connector.ConnectorThread(httpIntranetServiceProcess);

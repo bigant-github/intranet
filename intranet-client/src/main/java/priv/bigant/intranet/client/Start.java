@@ -1,24 +1,15 @@
 package priv.bigant.intranet.client;
 
 
-import ch.qos.logback.core.joran.util.beans.BeanUtil;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.Connector;
-import priv.bigant.intrance.common.communication.Communication;
-import priv.bigant.intrance.common.communication.CommunicationEnum;
-import priv.bigant.intrance.common.communication.CommunicationRequest;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.SocketChannel;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * Created by GaoHan on 2018/5/23.
@@ -26,7 +17,6 @@ import java.util.Set;
 public class Start {
 
     private final static Logger LOG = LoggerFactory.getLogger(Start.class);
-    private static ClientConfig clientConfig;
 
     public static void main(String[] args) {
         boolean b = createdConfig();
@@ -34,43 +24,32 @@ public class Start {
             new ClientCommunication().start();
     }
 
+    /**
+     * 加载配置文件
+     */
     public static boolean createdConfig() {
-        clientConfig = (ClientConfig) ClientConfig.getConfig();
-        //new Home().showHome();
-        FileInputStream inputStream = null;
-        try {
-            //inputStream = new FileInputStream(new File("/tmp/conf.properties"));
-            inputStream = new FileInputStream(Start.class.getResource("/conf.properties").getPath());
-            //inputStream = new FileInputStream(new File(userPath + "/conf.properties"));
-            Properties properties = new Properties();
-
+        ClientConfig clientConfig = (ClientConfig) ClientConfig.getConfig();
+        String configFile = System.getProperty("configFile");//通过启动参数指定配置文件位置
+        if (StringUtils.isBlank(configFile))
+            configFile = System.getProperty("user.dir") + "/conf.properties";
+        Properties properties;
+        try (FileInputStream inputStream = new FileInputStream(configFile)) {//properties 文件
+            properties = new Properties();
             properties.load(inputStream);
-            String hostName = properties.getProperty("hostName");
-            String localPort = properties.getProperty("localPort");
-            String localHost = properties.getProperty("localHost");
-            BeanUtils.copyProperties(clientConfig, properties);
-
-            clientConfig.setHostName(hostName);
-            clientConfig.setLocalHost(localHost);
-            clientConfig.setDomainName(hostName);
-            clientConfig.setLocalPort(Integer.valueOf(localPort));
-            LOG.info("请求穿透域名" + hostName + "本地端口" + localPort);
         } catch (IOException e) {
-            LOG.error("config file error", e);
+            LOG.error("加载配置文件错误", e);
             return false;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
+
+        try {
+            properties.putAll(System.getProperties());
+            System.getProperties().putAll(properties);
+            BeanUtils.copyProperties(clientConfig, properties);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            LOG.error("加载配置文件错误", e);
+            return false;
+        }
+        LOG.info("请求穿透域名" + clientConfig.getHostName() + "本地端口" + clientConfig.getHostName());
         return true;
     }
 }

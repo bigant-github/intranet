@@ -26,6 +26,15 @@ public abstract class Config {
 
     private int httpProcessReadBufferSize = 2048;
     private int httpProcessWriteBufferSize = 2048;
+    private int communicationByteBufferSize = 1024;
+
+    public int getCommunicationByteBufferSize() {
+        return communicationByteBufferSize;
+    }
+
+    public void setCommunicationByteBufferSize(int communicationByteBufferSize) {
+        this.communicationByteBufferSize = communicationByteBufferSize;
+    }
 
     public int getHttpProcessReadBufferSize() {
         return httpProcessReadBufferSize;
