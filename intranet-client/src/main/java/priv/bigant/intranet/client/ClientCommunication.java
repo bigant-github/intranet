@@ -7,8 +7,6 @@ import priv.bigant.intrance.common.communication.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -21,14 +19,14 @@ public class ClientCommunication extends Communication {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommunication.class);
     private ClientConfig clientConfig;
     private ByteBuffer byteBuffer;
-    private Connector.ConnectorThread serviceConnectorThread;
+    private ServerConnector.ConnectorThread serviceConnectorThread;
 
     public ClientCommunication() {
         clientConfig = (ClientConfig) ClientConfig.getConfig();
         byteBuffer = ByteBuffer.allocate(clientConfig.getCommunicationByteBufferSize());
         HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
         try {
-            serviceConnectorThread = new Connector.ConnectorThread(httpIntranetServiceProcess);
+            serviceConnectorThread = new ServerConnector.ConnectorThread(httpIntranetServiceProcess);
             serviceConnectorThread.start();
         } catch (IOException e) {
             LOGGER.error("http 处理器启动失败");
@@ -51,6 +49,11 @@ public class ClientCommunication extends Communication {
         //while (true) {//监控是否断开
         try {
             CommunicationResponse.CommunicationResponseP communicationResponseP = connect();
+
+            if (!(socketChannel != null && socketChannel.isConnected())) {
+                LOGGER.error("连接服务器失败");
+            }
+
             //new CommunicationListener(this).start();
             if (communicationResponseP.isSuccess()) {
                 LOGGER.info("connect success:host=" + clientConfig.getDomainName());
@@ -109,5 +112,4 @@ public class ClientCommunication extends Communication {
             //write(new CommunicationResponse(CodeEnum.ERROR));
         }
     }
-
 }

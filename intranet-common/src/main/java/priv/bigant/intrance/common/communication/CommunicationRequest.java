@@ -99,4 +99,27 @@ public class CommunicationRequest extends CommunicationReturn {
             this.id = id;
         }
     }
+
+    public static class CommunicationRequestHttpReturn extends CommunicationRequestP {
+
+        public static enum Status {
+            SUCCESS,//成功
+            DOMAIN_OCCUPIED//域名已被占用
+        }
+
+        private Status status;
+
+        public CommunicationRequestHttpReturn(Status status) {
+            super(CommunicationEnum.HTTP_RETURN);
+            this.status = status;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+    }
 }

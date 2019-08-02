@@ -1,7 +1,7 @@
 package priv.bigant.intranet.server;
 
 import priv.bigant.intrance.common.BigAnt;
-import priv.bigant.intrance.common.Connector;
+import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.Lifecycle;
 
 public interface Service extends Lifecycle, BigAnt {
@@ -43,11 +43,11 @@ public interface Service extends Lifecycle, BigAnt {
     // --------------------------------------------------------- Public Methods
 
     /**
-     * Add a new Connector to the set of defined Connectors, and associate it with this Service's Container.
+     * Add a new ServerConnector to the set of defined Connectors, and associate it with this Service's Container.
      *
-     * @param connector The Connector to be added
+     * @param connector The ServerConnector to be added
      */
-    public void addConnector(Connector connector);
+    public void addConnector(ServerConnector connector);
 
     /**
      * Find and return the set of Connectors associated with this Service.
@@ -55,15 +55,15 @@ public interface Service extends Lifecycle, BigAnt {
      * @return the set of associated Connectors
      */
 /*
-    public Connector[] findConnectors();
+    public ServerConnector[] findConnectors();
 */
 
     /**
-     * Remove the specified Connector from the set associated from this Service.  The removed Connector will also be
+     * Remove the specified ServerConnector from the set associated from this Service.  The removed ServerConnector will also be
      * disassociated from our Container.
      *
-     * @param connector The Connector to be removed
+     * @param connector The ServerConnector to be removed
      */
-    public void removeConnector(Connector connector);
+    public void removeConnector(ServerConnector connector);
 
 }

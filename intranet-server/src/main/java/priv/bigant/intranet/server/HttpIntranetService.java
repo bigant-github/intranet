@@ -1,6 +1,6 @@
 package priv.bigant.intranet.server;
 
-import priv.bigant.intrance.common.Connector;
+import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.LifecycleException;
 import priv.bigant.intrance.common.LifecycleMBeanBase;
 
@@ -11,7 +11,7 @@ public class HttpIntranetService extends LifecycleMBeanBase implements Service {
 
     private static final String NAME = "HttpIntranetService";
     private Server server;
-    private Map<String, Connector> connectors = new HashMap();
+    private Map<String, ServerConnector> connectors = new HashMap();
 
 
     @Override
@@ -25,12 +25,12 @@ public class HttpIntranetService extends LifecycleMBeanBase implements Service {
     }
 
     @Override
-    public void addConnector(Connector connector) {
+    public void addConnector(ServerConnector connector) {
         connectors.put(connector.getName(), connector);
     }
 
     @Override
-    public void removeConnector(Connector connector) {
+    public void removeConnector(ServerConnector connector) {
 
     }
 

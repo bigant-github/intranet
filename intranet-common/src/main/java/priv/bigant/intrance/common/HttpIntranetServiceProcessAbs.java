@@ -8,7 +8,6 @@ import priv.bigant.intrance.common.util.collections.SynchronizedStack;
 import priv.bigant.intrance.common.util.net.*;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -38,7 +37,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
     }
 
     @Override
-    public void read(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         //selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
         selectionKey.cancel();
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
@@ -47,7 +46,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
     }
 
     @Override
-    public void accept(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void accept(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
         LOG.debug("HttpIntranetServiceProcessAbs accept " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
         socketChannel.configureBlocking(false);

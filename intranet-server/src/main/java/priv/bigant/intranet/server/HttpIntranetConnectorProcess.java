@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
 import priv.bigant.intrance.common.communication.*;
 
-import javax.xml.ws.http.HTTPBinding;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -16,15 +15,15 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static priv.bigant.intrance.common.communication.CommunicationRequest.*;
+
 public class HttpIntranetConnectorProcess extends ProcessBase {
 
     public static final Logger LOG = LoggerFactory.getLogger(HttpIntranetConnectorProcess.class);
     private static final String NAME = "HttpIntranetConnectorProcess";
-    private Stack stack;
     private ThreadPoolExecutor executor;
 
     public HttpIntranetConnectorProcess() {
-        stack = new Stack<>();
         ServerConfig serverConfig = (ServerConfig) Config.getConfig();
         this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
     }
@@ -40,23 +39,21 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
     }
 
     @Override
-    public void read(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
     }
 
     @Override
-    public void accept(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void accept(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
         executor.execute(new ReadProcessThread(socketChannel));
     }
 
     class ReadProcessThread implements Runnable {
-
+        final Logger LOG = LoggerFactory.getLogger(ReadProcessThread.class);
         private SocketChannel socketChannel;
         private HttpCommunication serverCommunication;
         private SocketBean socketBean;
-
-        private ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
 
         public ReadProcessThread(SocketChannel socketChannel) throws IOException {
             this.socketChannel = socketChannel;
@@ -65,11 +62,18 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
 
         @Override
         public void run() {
+            CommunicationRequestHttpFirst communicationRequestHttpFirst = null;
+            try {
+                communicationRequestHttpFirst = serverCommunication.readRequest().toJavaObject(CommunicationRequestHttpFirst.class);
+            } catch (IOException e) {
+                LOG.error("解析新建连接请求失败", e);
+                return;
+            }
+
             try {
                 //创建server与客户端通信连接
                 serverCommunication = new ServerCommunication(socketChannel);
                 //读取客户端配置信息
-                CommunicationRequest.CommunicationRequestHttpFirst communicationRequestHttpFirst = serverCommunication.readRequest().toJavaObject(CommunicationRequest.CommunicationRequestHttpFirst.class);
 
                 String host = communicationRequestHttpFirst.getHost();
                 serverCommunication.setHost(host);
@@ -77,23 +81,26 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
                 boolean exist = HttpSocketManager.isExist(host);
                 if (exist) {
                     boolean b = HttpSocketManager.get(host).isClose();
-                    if (b) {
+                    if (b) {//上一个连接已失效
                         HttpSocketManager.get(host).close();
                         HttpSocketManager.remove(host);
-                    } else {
-                        serverCommunication.writeN(CommunicationResponse.create(CodeEnum.HOST_ALREADY_EXIST));
+                    } else {//域名已存在
+                        CommunicationRequestHttpReturn communicationRequestHttpReturn = new CommunicationRequestHttpReturn(CommunicationRequestHttpReturn.Status.DOMAIN_OCCUPIED);
+                        serverCommunication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpReturn));
                         serverCommunication.close();
                         LOG.info(host + CodeEnum.HOST_ALREADY_EXIST.getMsg());
                         return;
                     }
                 }
+                //连接成功
                 HttpSocketManager.add(host, serverCommunication);
-                serverCommunication.writeN(CommunicationResponse.createSuccess());
+                CommunicationRequestHttpReturn communicationRequestHttpReturn = new CommunicationRequestHttpReturn(CommunicationRequestHttpReturn.Status.SUCCESS);
+                serverCommunication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpReturn));
                 LOG.info(host + " 连接成功");
                 for (int a = 0; a < 10; a++)
                     serverCommunication.createSocketBean();
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.error("连接失败", communicationRequestHttpFirst.getHost());
             }
         }
     }

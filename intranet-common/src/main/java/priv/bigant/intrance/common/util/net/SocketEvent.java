@@ -33,7 +33,7 @@ public enum SocketEvent {
     OPEN_WRITE,
 
     /**
-     * The associated Connector/Endpoint is stopping and the connection/socket needs to be closed cleanly.
+     * The associated ServerConnector/Endpoint is stopping and the connection/socket needs to be closed cleanly.
      */
     STOP,
 

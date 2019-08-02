@@ -3,7 +3,7 @@ package priv.bigant.intranet.client;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.Connector;
+import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.ProcessBase;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
@@ -19,10 +19,10 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
     private ByteBuffer byteBuffer;
     private ClientConfig clientConfig;
 
-    private Connector.ConnectorThread serviceConnectorThread;
+    private ServerConnector.ConnectorThread serviceConnectorThread;
     private static final Logger LOG = LoggerFactory.getLogger(HttpIntranetConnectorProcess.class);
 
-    public HttpIntranetConnectorProcess(Connector.ConnectorThread serviceConnectorThread) {
+    public HttpIntranetConnectorProcess(ServerConnector.ConnectorThread serviceConnectorThread) {
         this.byteBuffer = ByteBuffer.allocate(1024);
         clientConfig = (ClientConfig) ClientConfig.getConfig();
         this.serviceConnectorThread = serviceConnectorThread;
@@ -34,7 +34,7 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
     }
 
     @Override
-    public void read(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
         byteBuffer.clear();
         int read = socketChannel.read(byteBuffer);
@@ -63,7 +63,7 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
     }
 
     @Override
-    public void accept(Connector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void accept(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         //没有连接
     }
 
