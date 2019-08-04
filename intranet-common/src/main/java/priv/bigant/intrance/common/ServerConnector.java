@@ -91,9 +91,7 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
         }
 
         public void showdown() {
-            LOG.debug("关闭接收器");
             stopStatus = true;
-            LOG.debug("关闭接收器");
         }
 
         private boolean isShowDown() {
@@ -102,9 +100,7 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
 
         @Override
         public void run() {
-            LOG.debug("怎么会突然启动了呢？");
             while (!isShowDown()) {
-                LOG.debug("dddddd");
                 try {
                     if (selector.selectNow() < 1)
                         continue;

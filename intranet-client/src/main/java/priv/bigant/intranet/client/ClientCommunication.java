@@ -3,6 +3,7 @@ package priv.bigant.intranet.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
 import priv.bigant.intrance.common.communication.*;
 
 import java.io.IOException;
@@ -19,36 +20,37 @@ public class ClientCommunication extends Communication {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommunication.class);
     private ClientConfig clientConfig;
     private ByteBuffer byteBuffer;
-    private ServerConnector.ConnectorThread serviceConnectorThread;
+    private ConnectorThread serviceConnectorThread;
 
-    public ClientCommunication() {
+    public ClientCommunication(ConnectorThread serviceConnectorThread) {
+        this.serviceConnectorThread = serviceConnectorThread;
         clientConfig = (ClientConfig) ClientConfig.getConfig();
         byteBuffer = ByteBuffer.allocate(clientConfig.getCommunicationByteBufferSize());
-        HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
+        /*HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
         try {
             serviceConnectorThread = new ServerConnector.ConnectorThread(httpIntranetServiceProcess);
             serviceConnectorThread.start();
         } catch (IOException e) {
             LOGGER.error("http 处理器启动失败");
-        }
+        }*/
     }
 
 
-    public CommunicationResponse.CommunicationResponseP connect() throws Exception {
+    public void connect() throws Exception {
         this.socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));
         socketChannel.socket().setKeepAlive(true);
         socketChannel.socket().setOOBInline(false);
         CommunicationRequest.CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequest.CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
         communicationHttpFirst.setHost(clientConfig.getDomainName());
         writeN(CommunicationRequest.createCommunicationRequest(communicationHttpFirst));
-        return readResponse().toJavaObject(CommunicationResponse.CommunicationResponseP.class);
     }
 
     @Override
     public void run() {
         //while (true) {//监控是否断开
         try {
-            CommunicationResponse.CommunicationResponseP communicationResponseP = connect();
+            CommunicationResponse.CommunicationResponseP communicationResponseP = null;
+            connect();
 
             if (!(socketChannel != null && socketChannel.isConnected())) {
                 LOGGER.error("连接服务器失败");
