@@ -3,14 +3,13 @@ package priv.bigant.intranet.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
 import priv.bigant.intrance.common.communication.*;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Stack;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -39,20 +38,23 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
     }
 
     @Override
-    public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+        selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+        executor.execute(new ReadProcessThread(socketChannel));
     }
 
     @Override
-    public void accept(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void accept(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
-        executor.execute(new ReadProcessThread(socketChannel));
+        socketChannel.configureBlocking(false);
+        connectorThread.register(socketChannel, SelectionKey.OP_READ);
     }
 
     class ReadProcessThread implements Runnable {
         final Logger LOG = LoggerFactory.getLogger(ReadProcessThread.class);
         private SocketChannel socketChannel;
-        private HttpCommunication serverCommunication;
+        private ServerCommunication serverCommunication;
         private SocketBean socketBean;
 
         public ReadProcessThread(SocketChannel socketChannel) throws IOException {
@@ -63,18 +65,14 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
         @Override
         public void run() {
             CommunicationRequestHttpFirst communicationRequestHttpFirst = null;
-            try {
-                communicationRequestHttpFirst = serverCommunication.readRequest().toJavaObject(CommunicationRequestHttpFirst.class);
-            } catch (IOException e) {
-                LOG.error("解析新建连接请求失败", e);
-                return;
-            }
 
             try {
                 //创建server与客户端通信连接
                 serverCommunication = new ServerCommunication(socketChannel);
-                //读取客户端配置信息
 
+                communicationRequestHttpFirst = serverCommunication.readRequest().toJavaObject(CommunicationRequestHttpFirst.class);
+
+                //读取客户端配置信息
                 String host = communicationRequestHttpFirst.getHost();
                 serverCommunication.setHost(host);
                 socketBean.setDomainName(host);
@@ -100,7 +98,7 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
                 for (int a = 0; a < 10; a++)
                     serverCommunication.createSocketBean();
             } catch (Exception e) {
-                LOG.error("连接失败", communicationRequestHttpFirst.getHost());
+                LOG.error("连接失败", e);
             }
         }
     }

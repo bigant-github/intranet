@@ -109,6 +109,10 @@ public class CommunicationRequest extends CommunicationReturn {
 
         private Status status;
 
+        public CommunicationRequestHttpReturn() {
+            super(CommunicationEnum.HTTP_RETURN);
+        }
+
         public CommunicationRequestHttpReturn(Status status) {
             super(CommunicationEnum.HTTP_RETURN);
             this.status = status;

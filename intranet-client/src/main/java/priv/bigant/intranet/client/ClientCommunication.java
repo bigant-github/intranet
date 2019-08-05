@@ -26,22 +26,20 @@ public class ClientCommunication extends Communication {
         this.serviceConnectorThread = serviceConnectorThread;
         clientConfig = (ClientConfig) ClientConfig.getConfig();
         byteBuffer = ByteBuffer.allocate(clientConfig.getCommunicationByteBufferSize());
-        /*HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
-        try {
-            serviceConnectorThread = new ServerConnector.ConnectorThread(httpIntranetServiceProcess);
-            serviceConnectorThread.start();
-        } catch (IOException e) {
-            LOGGER.error("http 处理器启动失败");
-        }*/
     }
 
 
+    /**
+     * 与服务器进行连接
+     *
+     * @throws Exception
+     */
     public void connect() throws Exception {
         this.socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));
         socketChannel.socket().setKeepAlive(true);
         socketChannel.socket().setOOBInline(false);
         CommunicationRequest.CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequest.CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
-        communicationHttpFirst.setHost(clientConfig.getDomainName());
+        communicationHttpFirst.setHost(clientConfig.getHostName());
         writeN(CommunicationRequest.createCommunicationRequest(communicationHttpFirst));
     }
 
@@ -58,7 +56,7 @@ public class ClientCommunication extends Communication {
 
             //new CommunicationListener(this).start();
             if (communicationResponseP.isSuccess()) {
-                LOGGER.info("connect success:host=" + clientConfig.getDomainName());
+                LOGGER.info("connect success:host=" + clientConfig.getHostName());
                 while (true) {
                     CommunicationRequest communicationRequest = readRequest();
                     CommunicationEnum type = communicationRequest.getType();
@@ -72,7 +70,7 @@ public class ClientCommunication extends Communication {
                 LOGGER.error("connect error:" + code.getMsg());
             }
         } catch (IOException e) {
-            LOGGER.error("connect error: host =" + clientConfig.getDomainName() + "     try connect    ", e);
+            LOGGER.error("connect error: host =" + clientConfig.getHostName() + "     try connect    ", e);
             super.close();
             try {
                 sleep(10000);

@@ -55,11 +55,7 @@ public abstract class HttpCommunication extends Communication {
         HttpSocketManager.addKey(id, host);
         try {
             super.writeN(communicationRequest);
-            CommunicationResponse.CommunicationResponseHttpAdd communicationResponseHttpAdd = super.readResponse().toJavaObject(CommunicationResponse.CommunicationResponseHttpAdd.class);
-            if (communicationResponseHttpAdd.isSuccess()) {
-                LOG.debug(host + "新建http连接");
-            } else
-                LOG.warn(host + "新建http失败");
+            LOG.debug(host + "新建http连接");
         } catch (IOException e) {
             e.printStackTrace();
         }

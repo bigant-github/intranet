@@ -1,5 +1,6 @@
 package priv.bigant.intrance.common.communication;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,10 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 客户端与服务端通信的工具
@@ -25,6 +29,9 @@ public class Communication extends Thread {
     protected OutputStream outputStream;
     protected SocketChannel socketChannel;
 
+    public SocketChannel getSocketChannel() {
+        return socketChannel;
+    }
 
     public Communication(Socket socket) throws IOException {
         this.socket = socket;
@@ -84,25 +91,11 @@ public class Communication extends Thread {
         byteBuffer.clear();
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
-        //if (LOGGER.isDebugEnabled())
-        //    LOGGER.debug("write :" + Charset.forName("UTF-8").decode(byteBuffer).toString());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("write :" + Charset.forName("UTF-8").decode(byteBuffer).toString());
+            byteBuffer.flip();
+        }
         socketChannel.write(byteBuffer);
-    }
-
-
-    public synchronized byte[] read() throws IOException {
-        int readNum = 0;
-        readNum = inputStream.read(bytes);
-        byte[] subArray = ArrayUtils.subarray(bytes, 0, readNum);
-        LOGGER.debug("read :" + new String(subArray, StandardCharsets.UTF_8));
-        return subArray;
-    }
-
-
-    public synchronized void write(CommunicationReturn communicationReturn) throws IOException {
-        byte[] bytes = communicationReturn.toByte();
-        LOGGER.debug("write :" + new String(bytes, StandardCharsets.UTF_8));
-        outputStream.write(bytes);
     }
 
     /**
@@ -112,6 +105,30 @@ public class Communication extends Thread {
      */
     public synchronized CommunicationRequest readRequest() throws IOException {
         return CommunicationRequest.createCommunicationRequest(readN());
+    }
+
+    /**
+     * 读取多个请求 自动封装为 CommunicationRequest 对象
+     *
+     * @throws IOException
+     */
+    public synchronized List<CommunicationRequest> readRequests() throws IOException {
+        byte[] bytes = readN();
+        List<CommunicationRequest> list = new ArrayList<>();
+        String s = new String(bytes, StandardCharsets.UTF_8);
+        int i = s.indexOf("}{");
+        while (i > 1) {
+            list.add(CommunicationRequest.createCommunicationRequest(s.substring(0, i + 1).getBytes()));
+            s = s.substring(i + 1);
+            i = s.indexOf("}{");
+        }
+        list.add(CommunicationRequest.createCommunicationRequest(s.getBytes()));
+        return list;
+    }
+
+    public static void main(String[] args) {
+        String s = "{\"id\":\"17968462-edba-44d0-95d5-b88fa5290c37\",\"type\":\"HTTP_ADD\"}{\"id\":\"755823d1-f5e7-4c32-897d-0fc1ba4faf18\",\"type\":\"HTTP_ADD\"}{\"id\":\"755823d1-f5e7-4c32-897d-0fc1ba4faf18\",\"type\":\"HTTP_ADD\"}";
+
     }
 
     public synchronized CommunicationResponse readResponse() throws IOException {
@@ -128,7 +145,6 @@ public class Communication extends Thread {
             LOGGER.debug("isClose false");
             return false;
         } catch (Exception se) {
-            LOGGER.error("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", se);
             LOGGER.debug("isClose true");
             return true;
         }

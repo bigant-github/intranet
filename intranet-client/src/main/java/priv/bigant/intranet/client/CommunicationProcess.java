@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.List;
 
 public class CommunicationProcess extends ProcessBase {
 
@@ -52,8 +53,8 @@ public class CommunicationProcess extends ProcessBase {
 
     @Override
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
-        CommunicationRequest communicationRequest = clientCommunication.readRequest();
-        communicationDispose.invoke(communicationRequest, clientCommunication);
+        List<CommunicationRequest> communicationRequest = clientCommunication.readRequests();
+        communicationRequest.forEach(x -> communicationDispose.invoke(x, clientCommunication));
     }
 
 
@@ -92,15 +93,20 @@ public class CommunicationProcess extends ProcessBase {
 
         @Override
         protected void httpReturn(CommunicationRequest communicationRequest, Communication communication) {
-            CommunicationRequestHttpReturn communicationRequestHttpReturn = communicationRequest.toJavaObject(CommunicationRequestHttpReturn.class);
-
-            switch (communicationRequestHttpReturn.getStatus()) {
-                case SUCCESS:
-                    break;
-                case DOMAIN_OCCUPIED:
-                    communicationProcess.showdown();
-                    LOG.error("域名已被占用");
-                    break;
+            try {
+                CommunicationRequestHttpReturn communicationRequestHttpReturn = communicationRequest.toJavaObject(CommunicationRequestHttpReturn.class);
+                switch (communicationRequestHttpReturn.getStatus()) {
+                    case SUCCESS:
+                        LOG.info("连接成功");
+                        break;
+                    case DOMAIN_OCCUPIED:
+                        communicationProcess.showdown();
+                        LOG.error("域名已被占用");
+                        break;
+                }
+            } catch (Exception e) {
+                communicationProcess.showdown();
+                LOG.error("连接失败", e);
             }
         }
 
@@ -122,10 +128,11 @@ public class CommunicationProcess extends ProcessBase {
             try {
                 socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getHttpAcceptPort()));
                 socketChannel.socket().setKeepAlive(true);
+                Communication httpAddCommunication = new Communication(socketChannel);
+
                 CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequest.CommunicationRequestHttpAdd();
                 communicationRequestHttpAdd1.setId(id);
-                CommunicationRequest type = CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd1);
-                socketChannel.write(ByteBuffer.wrap(type.toByte()));
+                httpAddCommunication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd1));
                 socketChannel.configureBlocking(false);
                 serviceConnector.register(socketChannel, SelectionKey.OP_READ);
             } catch (Exception e) {

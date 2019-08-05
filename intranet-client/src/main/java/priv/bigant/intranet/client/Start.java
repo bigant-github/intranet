@@ -10,6 +10,7 @@ import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.channels.SelectionKey;
 import java.util.Properties;
 
 /**
@@ -42,10 +43,13 @@ public class Start {
             LOG.error("通信器连接失败", e);
             return;
         }
+
         CommunicationProcess communicationProcess = new CommunicationProcess(clientCommunication, serviceConnectorThread);
         try {
             ConnectorThread connectorThread = new ConnectorThread(communicationProcess);
             communicationProcess.setConnector(connectorThread);/*将当前连接器给与处理器    使处理器拥有管理连接器功能*/
+            clientCommunication.getSocketChannel().configureBlocking(false);
+            connectorThread.register(clientCommunication.getSocketChannel(), SelectionKey.OP_READ);//注册事件
             connectorThread.start();            /*启动当前连接器*/
         } catch (IOException e) {
             e.printStackTrace();

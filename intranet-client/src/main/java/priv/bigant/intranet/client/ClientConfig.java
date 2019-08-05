@@ -19,11 +19,6 @@ public class ClientConfig extends Config {
     private String hostName;
 
     /**
-     * 申请注册域名
-     */
-    private String domainName;
-
-    /**
      * 本地服务地址
      */
     private int localPort;
@@ -52,14 +47,6 @@ public class ClientConfig extends Config {
 
     public void setHostName(String hostName) {
         this.hostName = hostName;
-    }
-
-    public String getDomainName() {
-        return domainName;
-    }
-
-    public void setDomainName(String domainName) {
-        this.domainName = domainName;
     }
 
     public int getLocalPort() {

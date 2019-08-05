@@ -279,7 +279,7 @@ public class NioSelectorPool {
                     } else {
                         //keyCount = selector.selectNow();
                         keyCount = selector.select(readTimeout);
-                        LOG.debug("select read:" + keyCount);
+                        LOG.debug("select read:" + keyCount + "readTimeout:" + readTimeout);
                     }
                 }
                 if (readTimeout > 0 && (selector == null || keyCount == 0))

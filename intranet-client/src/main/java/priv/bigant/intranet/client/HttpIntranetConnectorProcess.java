@@ -43,7 +43,7 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
         String id = communicationRequestHttpAdd.getId();
 
         //创建http accept
-        SocketChannel serviceChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getDomainName(), clientConfig.getHttpAcceptPort()));
+        SocketChannel serviceChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getHttpAcceptPort()));
         SocketBean socketBean = new SocketBean(serviceChannel);
         CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequest.CommunicationRequestHttpAdd();
         communicationRequestHttpAdd1.setId(id);
