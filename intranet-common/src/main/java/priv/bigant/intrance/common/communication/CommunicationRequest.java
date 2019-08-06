@@ -2,6 +2,7 @@ package priv.bigant.intrance.common.communication;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 
@@ -33,6 +34,8 @@ public class CommunicationRequest extends CommunicationReturn {
 
     public static CommunicationRequest createCommunicationRequest(byte[] bytes) {
         String s = new String(bytes, StandardCharsets.UTF_8);
+        if (StringUtils.isEmpty(s))
+            return null;
         JSONObject jsonObject = JSON.parseObject(s);
         return new CommunicationRequest(jsonObject);
     }
@@ -98,6 +101,14 @@ public class CommunicationRequest extends CommunicationReturn {
         public void setId(String id) {
             this.id = id;
         }
+    }
+
+    public static class CommunicationRequestTest extends CommunicationRequestP {
+
+        public CommunicationRequestTest() {
+            super(CommunicationEnum.TEST);
+        }
+
     }
 
     public static class CommunicationRequestHttpReturn extends CommunicationRequestP {

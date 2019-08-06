@@ -5,6 +5,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
 
 import java.io.FileInputStream;
@@ -24,6 +25,7 @@ public class Start {
         boolean b = createdConfig();
         if (!b)
             return;
+        ClientConfig config = (ClientConfig) ClientConfig.getConfig();
 
         ConnectorThread serviceConnectorThread;
         HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
@@ -37,23 +39,16 @@ public class Start {
 
         ClientCommunication clientCommunication = new ClientCommunication(serviceConnectorThread);
         try {
+            clientCommunication.createProcess();
             clientCommunication.connect();
+            new CommunicationListener(clientCommunication, config.getListenerTime()).start();
         } catch (Exception e) {
             serviceConnectorThread.showdown();
             LOG.error("通信器连接失败", e);
             return;
         }
 
-        CommunicationProcess communicationProcess = new CommunicationProcess(clientCommunication, serviceConnectorThread);
-        try {
-            ConnectorThread connectorThread = new ConnectorThread(communicationProcess);
-            communicationProcess.setConnector(connectorThread);/*将当前连接器给与处理器    使处理器拥有管理连接器功能*/
-            clientCommunication.getSocketChannel().configureBlocking(false);
-            connectorThread.register(clientCommunication.getSocketChannel(), SelectionKey.OP_READ);//注册事件
-            connectorThread.start();            /*启动当前连接器*/
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     /**

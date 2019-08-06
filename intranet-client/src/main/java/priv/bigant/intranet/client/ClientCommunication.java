@@ -12,6 +12,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
+import static priv.bigant.intrance.common.communication.CommunicationRequest.*;
+
 /**
  * @author GaoLei 保持客户端与服务端通信
  */
@@ -35,13 +37,35 @@ public class ClientCommunication extends Communication {
      * @throws Exception
      */
     public void connect() throws Exception {
+        //      if (socketChannel == null)
         this.socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));
+/*        else
+            this.socketChannel.connect(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));*/
+
         socketChannel.socket().setKeepAlive(true);
         socketChannel.socket().setOOBInline(false);
-        CommunicationRequest.CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequest.CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
+        CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
         communicationHttpFirst.setHost(clientConfig.getHostName());
-        writeN(CommunicationRequest.createCommunicationRequest(communicationHttpFirst));
+        writeN(createCommunicationRequest(communicationHttpFirst));
+
+        this.getSocketChannel().configureBlocking(false);
+        connectorThread.register(this.getSocketChannel(), SelectionKey.OP_READ);//注册事件
+
     }
+
+    private ConnectorThread connectorThread;
+
+    public void createProcess() {
+        CommunicationProcess communicationProcess = new CommunicationProcess(this, serviceConnectorThread);
+        try {
+            this.connectorThread = new ConnectorThread(communicationProcess);
+            communicationProcess.setConnector(connectorThread);/*将当前连接器给与处理器    使处理器拥有管理连接器功能*/
+            connectorThread.start();            /*启动当前连接器*/
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void run() {
@@ -91,14 +115,14 @@ public class ClientCommunication extends Communication {
      */
     public void add(CommunicationRequest communicationRequest) {
         SocketChannel socketChannel;
-        CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
+        CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequestHttpAdd.class);
         String id = communicationRequestHttpAdd.getId();
         try {
             socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getHttpAcceptPort()));
             socketChannel.socket().setKeepAlive(true);
-            CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequest.CommunicationRequestHttpAdd();
+            CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequestHttpAdd();
             communicationRequestHttpAdd1.setId(id);
-            CommunicationRequest type = CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd1);
+            CommunicationRequest type = createCommunicationRequest(communicationRequestHttpAdd1);
             byteBuffer.clear();
             byteBuffer.put(type.toByte());
             byteBuffer.flip();

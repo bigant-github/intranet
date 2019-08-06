@@ -1,5 +1,6 @@
 package priv.bigant.intranet.client;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
@@ -13,7 +14,6 @@ import priv.bigant.intrance.common.communication.CommunicationRequest.Communicat
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.List;
@@ -54,7 +54,8 @@ public class CommunicationProcess extends ProcessBase {
     @Override
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         List<CommunicationRequest> communicationRequest = clientCommunication.readRequests();
-        communicationRequest.forEach(x -> communicationDispose.invoke(x, clientCommunication));
+        if (CollectionUtils.isNotEmpty(communicationRequest))
+            communicationRequest.forEach(x -> communicationDispose.invoke(x, clientCommunication));
     }
 
 

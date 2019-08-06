@@ -25,6 +25,16 @@ public class ClientConfig extends Config {
 
     private String localHost;
 
+    private int listenerTime;
+
+    public int getListenerTime() {
+        return listenerTime;
+    }
+
+    public void setListenerTime(int listenerTime) {
+        this.listenerTime = listenerTime;
+    }
+
     public String getLocalHost() {
         return localHost;
     }

@@ -101,24 +101,30 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
         @Override
         public void run() {
             while (!isShowDown()) {
+                int i;
                 try {
-                    if (selector.selectNow() < 1)
-                        continue;
-                    Iterator<SelectionKey> selectionKeys = selector.selectedKeys().iterator();
-                    while (selectionKeys.hasNext()) {
+                    i = selector.selectNow();
+                } catch (IOException e) {
+                    i = 0;
+                    LOG.error("select error", e);
+                }
+                if (i < 1)
+                    continue;
+                Iterator<SelectionKey> selectionKeys = selector.selectedKeys().iterator();
+                while (selectionKeys.hasNext()) {
 
-                        SelectionKey selectionKey = selectionKeys.next();
-                        selectionKeys.remove();
-
+                    SelectionKey selectionKey = selectionKeys.next();
+                    selectionKeys.remove();
+                    try {
                         if (selectionKey.isAcceptable()) {
                             process.accept(this, selectionKey);
                         } else if (selectionKey.isReadable()) {
                             process.read(this, selectionKey);
                         }
+                    } catch (IOException e) {
+                        selectionKey.cancel();
+                        LOG.error("处理器处理事件失败", e);
                     }
-
-                } catch (IOException e) {
-                    LOG.error(getName() + "select error", e);
                 }
             }
         }

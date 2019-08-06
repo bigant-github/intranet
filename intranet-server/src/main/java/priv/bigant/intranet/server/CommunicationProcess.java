@@ -1,5 +1,6 @@
 package priv.bigant.intranet.server;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
@@ -10,20 +11,23 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.List;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static priv.bigant.intrance.common.communication.CommunicationRequest.*;
 
-public class HttpIntranetConnectorProcess extends ProcessBase {
+public class CommunicationProcess extends ProcessBase {
 
-    public static final Logger LOG = LoggerFactory.getLogger(HttpIntranetConnectorProcess.class);
-    private static final String NAME = "HttpIntranetConnectorProcess";
+    public static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
+    private static final String NAME = "CommunicationProcess";
     private ThreadPoolExecutor executor;
+    private ServerCommunicationDispose serverCommunicationDispose;
 
-    public HttpIntranetConnectorProcess() {
+    public CommunicationProcess() {
         ServerConfig serverConfig = (ServerConfig) Config.getConfig();
+        this.serverCommunicationDispose = new ServerCommunicationDispose();
         this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
     }
 
@@ -39,43 +43,64 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
 
     @Override
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
-        selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
-        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-        executor.execute(new ReadProcessThread(socketChannel));
+        //selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
+        ServerCommunication serverCommunication = (ServerCommunication) selectionKey.attachment();
+        List<CommunicationRequest> communicationRequests = serverCommunication.readRequests();
+        if (CollectionUtils.isNotEmpty(communicationRequests))
+            communicationRequests.forEach(x -> serverCommunicationDispose.invoke(x, serverCommunication));
+        //executor.execute(new ReadProcessThread(serverCommunication));
     }
 
     @Override
     public void accept(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
         socketChannel.configureBlocking(false);
-        connectorThread.register(socketChannel, SelectionKey.OP_READ);
+        connectorThread.register(socketChannel, SelectionKey.OP_READ, new ServerCommunication(socketChannel));
     }
 
-    class ReadProcessThread implements Runnable {
-        final Logger LOG = LoggerFactory.getLogger(ReadProcessThread.class);
-        private SocketChannel socketChannel;
-        private ServerCommunication serverCommunication;
-        private SocketBean socketBean;
+    /**
+     * 统一处理请求
+     */
+    public static class ServerCommunicationDispose extends CommunicationDispose {
 
-        public ReadProcessThread(SocketChannel socketChannel) throws IOException {
-            this.socketChannel = socketChannel;
-            this.socketBean = new SocketBean(socketChannel);
+        @Override
+        protected void httpReturn(CommunicationRequest communicationRequest, Communication communication) {
+            //服务端没有这个类型请求
+        }
+
+        @Override
+        protected void test(CommunicationRequest communicationRequest, Communication communication) {
+            //test数据暂时不管
+        }
+
+        @Override
+        protected void http(CommunicationRequest communicationRequest, Communication communication) {
+            new ReadProcessThread((ServerCommunication) communication, communicationRequest).run();
+        }
+
+        @Override
+        protected void httpAdd(CommunicationRequest communicationRequest, Communication communication) {
+            //暂不处理客户端此类请求
+        }
+    }
+
+    static class ReadProcessThread implements Runnable {
+        final Logger LOG = LoggerFactory.getLogger(ReadProcessThread.class);
+        private ServerCommunication serverCommunication;
+        private CommunicationRequestHttpFirst communicationRequestHttpFirst;
+
+        public ReadProcessThread(ServerCommunication serverCommunication, CommunicationRequest communicationRequest) {
+            this.serverCommunication = serverCommunication;
+            this.communicationRequestHttpFirst = communicationRequest.toJavaObject(CommunicationRequestHttpFirst.class);
         }
 
         @Override
         public void run() {
-            CommunicationRequestHttpFirst communicationRequestHttpFirst = null;
 
             try {
-                //创建server与客户端通信连接
-                serverCommunication = new ServerCommunication(socketChannel);
-
-                communicationRequestHttpFirst = serverCommunication.readRequest().toJavaObject(CommunicationRequestHttpFirst.class);
-
                 //读取客户端配置信息
                 String host = communicationRequestHttpFirst.getHost();
                 serverCommunication.setHost(host);
-                socketBean.setDomainName(host);
                 boolean exist = HttpSocketManager.isExist(host);
                 if (exist) {
                     boolean b = HttpSocketManager.get(host).isClose();

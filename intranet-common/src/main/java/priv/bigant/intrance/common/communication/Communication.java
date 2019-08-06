@@ -2,13 +2,11 @@ package priv.bigant.intrance.common.communication;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
@@ -24,23 +22,13 @@ public class Communication extends Thread {
 
     protected byte[] bytes = new byte[1024];
     protected ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
-    protected Socket socket;
-    protected InputStream inputStream;
-    protected OutputStream outputStream;
     protected SocketChannel socketChannel;
 
     public SocketChannel getSocketChannel() {
         return socketChannel;
     }
 
-    public Communication(Socket socket) throws IOException {
-        this.socket = socket;
-        inputStream = socket.getInputStream();
-        outputStream = socket.getOutputStream();
-    }
-
     public Communication(SocketChannel socketChannel) throws IOException {
-        this(socketChannel.socket());
         this.socketChannel = socketChannel;
     }
 
@@ -50,32 +38,21 @@ public class Communication extends Thread {
 
     public synchronized void close() {
         try {
-            LOGGER.debug("communication close");
-            if (socket != null)
-                socket.close();
-            if (inputStream != null)
-                inputStream.close();
-            if (outputStream != null)
-                outputStream.close();
+            socketChannel.close();
         } catch (IOException e) {
-            LOGGER.error("communication close error ", e);
+            LOGGER.error("communication 关闭失败");
         }
-        socket = null;
-        inputStream = null;
-        outputStream = null;
-
+        socketChannel = null;
     }
 
     public synchronized byte[] readN() throws IOException {
         byteBuffer.clear();
-        //socketChannel.socket().sendUrgentData(1);
         int readNum = socketChannel.read(byteBuffer);
         byte[] subArray = ArrayUtils.subarray(byteBuffer.array(), 0, readNum);
         byteBuffer.flip();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("读取到数据 :" + new String(subArray, StandardCharsets.UTF_8));
-
         }
 
         return subArray;
@@ -108,14 +85,17 @@ public class Communication extends Thread {
     }
 
     /**
+     * {\"id\":\"17968462-edba-44d0-95d5-b88fa5290c37\",\"type\":\"HTTP_ADD\"}{\"id\":\"755823d1-f5e7-4c32-897d-0fc1ba4faf18\",\"type\":\"HTTP_ADD\"}{\"id\":\"755823d1-f5e7-4c32-897d-0fc1ba4faf18\",\"type\":\"HTTP_ADD\"}
      * 读取多个请求 自动封装为 CommunicationRequest 对象
      *
      * @throws IOException
      */
     public synchronized List<CommunicationRequest> readRequests() throws IOException {
         byte[] bytes = readN();
-        List<CommunicationRequest> list = new ArrayList<>();
         String s = new String(bytes, StandardCharsets.UTF_8);
+        if (StringUtils.isEmpty(s))
+            return null;
+        List<CommunicationRequest> list = new ArrayList<>();
         int i = s.indexOf("}{");
         while (i > 1) {
             list.add(CommunicationRequest.createCommunicationRequest(s.substring(0, i + 1).getBytes()));
@@ -124,11 +104,6 @@ public class Communication extends Thread {
         }
         list.add(CommunicationRequest.createCommunicationRequest(s.getBytes()));
         return list;
-    }
-
-    public static void main(String[] args) {
-        String s = "{\"id\":\"17968462-edba-44d0-95d5-b88fa5290c37\",\"type\":\"HTTP_ADD\"}{\"id\":\"755823d1-f5e7-4c32-897d-0fc1ba4faf18\",\"type\":\"HTTP_ADD\"}{\"id\":\"755823d1-f5e7-4c32-897d-0fc1ba4faf18\",\"type\":\"HTTP_ADD\"}";
-
     }
 
     public synchronized CommunicationResponse readResponse() throws IOException {
@@ -141,7 +116,8 @@ public class Communication extends Thread {
      */
     public Boolean isClose() {
         try {
-            //socketChannel.socket().sendUrgentData(12123123);//发送1个字节的紧急数据，默认情况下，服务器端没有开启紧急数据处理，不影响正常通信
+            CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
+            writeN(CommunicationRequest.createCommunicationRequest(communicationRequestTest));
             LOGGER.debug("isClose false");
             return false;
         } catch (Exception se) {
