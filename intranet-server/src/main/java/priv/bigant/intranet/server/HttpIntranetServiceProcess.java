@@ -8,7 +8,7 @@ import java.util.HashMap;
 public class HttpIntranetServiceProcess extends HttpIntranetServiceProcessAbs {
     @Override
     public Http11Processor createHttp11Processor() {
-        return new Http11ProcessorServer(8 * 1024, true, false, new HashMap<>(), true, null, null);
+        return new Http11ProcessorServer(8 * 1024, true, false, null, null);
     }
 
     @Override

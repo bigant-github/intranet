@@ -17,10 +17,10 @@
 package priv.bigant.intrance.common.coyote.http11;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
-import priv.bigant.intrance.common.HttpServletResponse;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.*;
 import priv.bigant.intrance.common.coyote.http11.filters.*;
@@ -65,20 +65,7 @@ public abstract class Http11Processor extends AbstractProcessor {
      */
     protected final Http11ResponseInputBuffer responseInputBuffer;
 
-    /**
-     * Output.
-     */
-    protected final Http11OutputBuffer outputBuffer;
-
-
     private final HttpParser httpParser;
-
-
-    /**
-     * Tracks how many internal filters are in the filter library so they are skipped when looking for pluggable
-     * filters.
-     */
-    private int plugGableFilterIndex = Integer.MAX_VALUE;
 
     /**
      * Keep-alive.
@@ -168,7 +155,7 @@ public abstract class Http11Processor extends AbstractProcessor {
     /**
      * Allow a customized the server header for the tin-foil hat folks.
      */
-    private String server = null;
+    private String server = "BigAnt";
 
 
     /*
@@ -194,10 +181,12 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     private Config config;
 
-    public Http11Processor(int maxHttpHeaderSize, boolean allowHostHeaderMismatch,
-                           boolean rejectIllegalHeaderName,
-                           Map<String, UpgradeProtocol> httpUpgradeProtocols, boolean sendReasonPhrase,
+    private int maxHttpHeaderSize;
+
+
+    public Http11Processor(int maxHttpHeaderSize, boolean allowHostHeaderMismatch, boolean rejectIllegalHeaderName,
                            String relaxedPathChars, String relaxedQueryChars) {
+
 
         super();
         config = Config.getConfig();
@@ -209,32 +198,8 @@ public abstract class Http11Processor extends AbstractProcessor {
         responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
         response.setInputBuffer(responseInputBuffer);
 
-        outputBuffer = new Http11OutputBuffer(response, maxHttpHeaderSize, sendReasonPhrase);
-
-         /*TODO response.setOutputBuffer(outputBuffer);
-
-        // Create and add the identity filters.
-       inputBuffer.addFilter(new IdentityInputFilter(maxSwallowSize));
-        outputBuffer.addFilter(new IdentityOutputFilter());
-
-        // Create and add the chunked filters.
-        inputBuffer.addFilter(new ChunkedInputFilter(maxTrailerSize, allowedTrailerHeaders, maxExtensionSize, maxSwallowSize));
-        outputBuffer.addFilter(new ChunkedOutputFilter());
-
-        // Create and add the void filters.
-        inputBuffer.addFilter(new VoidInputFilter());
-        outputBuffer.addFilter(new VoidOutputFilter());
-
-        // Create and add buffered input filter
-        inputBuffer.addFilter(new BufferedInputFilter());
-
-        // Create and add the chunked filters.
-        //inputBuffer.addFilter(new GzipInputFilter());
-        outputBuffer.addFilter(new GzipOutputFilter());*/
-
-        plugGableFilterIndex = inputBuffer.getFilters().length;
-
         this.allowHostHeaderMismatch = allowHostHeaderMismatch;
+        this.maxHttpHeaderSize = maxHttpHeaderSize;
     }
 
 
@@ -450,7 +415,7 @@ public abstract class Http11Processor extends AbstractProcessor {
      * @param server The new value to use for the server header
      */
     public void setServer(String server) {
-        if (server == null || server.equals("")) {
+        if (StringUtils.isEmpty(server)) {
             this.server = null;
         } else {
             this.server = server;
@@ -574,39 +539,6 @@ public abstract class Http11Processor extends AbstractProcessor {
                 status == 501 /* SC_NOT_IMPLEMENTED */;
     }
 
-
-    /**
-     * Add an input filter to the current request. If the encoding is not supported, a 501 response will be returned to
-     * the client.
-     */
-    private void addInputFilter(InputFilter[] inputFilters, String encodingName) {
-
-        // Trim provided encoding name and convert to lower case since transfer
-        // encoding names are case insensitive. (RFC2616, section 3.6)
-        encodingName = encodingName.trim().toLowerCase(Locale.ENGLISH);
-
-        if (encodingName.equals("identity")) {
-            // Skip
-        } else if (encodingName.equals("chunked")) {
-            inputBuffer.addActiveFilter(inputFilters[Constants.CHUNKED_FILTER]);
-            contentDelimitation = true;
-        } else {
-            for (int i = plugGableFilterIndex; i < inputFilters.length; i++) {
-                if (Objects.equals(inputFilters[i].getEncodingName().toString(), encodingName)) {
-                    inputBuffer.addActiveFilter(inputFilters[i]);
-                    return;
-                }
-            }
-            // Unsupported transfer encoding
-            // 501 - Unimplemented
-            //TODO response.setStatus(501);
-            setErrorState(ErrorState.CLOSE_CLEAN, null);
-            if (log.isDebugEnabled()) {
-                log.debug(sm.getString("http11processor.request.prepare") + " Unsupported transfer encoding [" + encodingName + "]");
-            }
-        }
-    }
-
     private SocketBean receiver;
 
     @Override
@@ -616,7 +548,6 @@ public abstract class Http11Processor extends AbstractProcessor {
         // Setting up the I/O
         setSocketWrapper(socketWrapper);
         inputBuffer.init(socketWrapper);
-        outputBuffer.init(socketWrapper);
         // Flags
         keepAlive = true;
         openSocket = false;
@@ -638,6 +569,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                     if (inputBuffer.getParsingRequestLinePhase() == -1) {
                         return AbstractEndpoint.Handler.SocketState.UPGRADING;
                     } else if (handleIncompleteRequestLineRead()) {
+                        prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析请求失败");
                         break;
                     }
                 }
@@ -690,7 +622,8 @@ public abstract class Http11Processor extends AbstractProcessor {
             if (responseSocketWrapper == null) {
                 receiver = getSocketBean();
                 if (receiver == null) {
-                    log.error("receiver is null error");
+                    prepareResponse(HttpResponseStatus.SC_NOT_FOUND, "未找到客户端");
+                    break;
                 }
 
                 NioChannel nioChannel = new NioChannel(receiver.getSocketChannel(), new SocketBufferHandler(config.getHttpProcessReadBufferSize(), config.getHttpProcessWriteBufferSize(), true));
@@ -702,7 +635,7 @@ public abstract class Http11Processor extends AbstractProcessor {
             try {
                 mutual(socketWrapper, inputBuffer.getByteBuffer(), receiver.getSocketChannel(), request.isChunked(), request.getContentLength());
             } catch (IOException e) {
-                log.error("request mutual error", e);
+                prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "发送至客户端请求失败");
                 break;
             }
 
@@ -711,6 +644,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                     if (responseInputBuffer.getParsingRequestLinePhase() == -1) {
                         return AbstractEndpoint.Handler.SocketState.UPGRADING;
                     } else if (handleIncompleteRequestLineRead()) {
+                        prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应失败");
                         break;
                     }
                 }
@@ -728,6 +662,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                         // instead associate it with the socket
                         openSocket = true;
                         readComplete = false;
+                        prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应头失败");
                         break;
                     }
                     if (!disableUploadTimeout) {
@@ -840,25 +775,6 @@ public abstract class Http11Processor extends AbstractProcessor {
             }
         }
 
-    }
-
-    public static void main(String[] args) {
-        byte[] bytes = new byte[5];
-        bytes[0] = 0;
-        bytes[1] = 0;
-        bytes[2] = 0;
-        bytes[3] = 1;
-        bytes[4] = 2;
-
-
-        ByteBuffer thisBuffer = ByteBuffer.allocate(100);
-        thisBuffer.put((byte) 3);
-        thisBuffer.put((byte) 4);
-        thisBuffer.put((byte) 5);
-
-        int position = thisBuffer.position();
-
-        System.out.println(Arrays.toString(bytes));
     }
 
     private Request cloneRequest(Request source) throws IOException {
@@ -1268,174 +1184,70 @@ public abstract class Http11Processor extends AbstractProcessor {
     }
 
     /**
-     * When committing the response, we have to validate the set of headers, as well as setup the response filters.
+     * When committing the response, we have to validate the set of headers
      */
-    protected final void prepareResponse() throws IOException {
+    protected final void prepareResponse(HttpResponseStatus status, String bodyStr) throws IOException {
 
-        boolean entityBody = true;
-        contentDelimitation = false;
-
-        OutputFilter[] outputFilters = outputBuffer.getFilters();
+        byte[] body = null;
+        if (StringUtils.isNotEmpty(bodyStr)) {
+            body = createBody(status, bodyStr).getBytes(StandardCharsets.UTF_8);
+        }
+        Http11OutputBuffer outputBuffer = new Http11OutputBuffer(maxHttpHeaderSize);
+        outputBuffer.init(socketWrapper);
 
         if (http09) {
             // HTTP/0.9
-            outputBuffer.addActiveFilter(outputFilters[Constants.IDENTITY_FILTER]);
             outputBuffer.commit();
             return;
         }
 
-        int statusCode = 0;//TODO = response.getStatus();
-        if (statusCode < 200 || statusCode == 204 || statusCode == 205 || statusCode == 304) {
-            // No entity body
-            outputBuffer.addActiveFilter(outputFilters[Constants.VOID_FILTER]);
-            entityBody = false;
-            contentDelimitation = true;
-            if (statusCode == 205) {
-                // RFC 7231 requires the server to explicitly signal an empty
-                // response in this case
-                response.setContentLength(0);
-            } else {
-                response.setContentLength(-1);
-            }
+        MimeHeaders headers = new MimeHeaders();
+        if (ArrayUtils.isNotEmpty(body)) {
+            headers.setValue("Content-Length").setLong(body.length);
         }
-
-        MessageBytes methodMB = request.method();
-        if (methodMB.equals("HEAD")) {
-            // No entity body
-            outputBuffer.addActiveFilter(outputFilters[Constants.VOID_FILTER]);
-            contentDelimitation = true;
-        }
-
-        // Sendfile support
-        /*if (endpoint.getUseSendfile()) {
-            prepareSendfile(outputFilters);
-        }*/
-
-        // Check for compression
-        boolean isCompressible = false;
-        boolean useCompression = false;
-        if (entityBody && (compressionLevel > 0) && sendFileData == null) {
-            isCompressible = isCompressible();
-            if (isCompressible) {
-                useCompression = useCompression();
-            }
-            // Change content-length to -1 to force chunking
-            if (useCompression) {
-                response.setContentLength(-1);
-            }
-        }
-
-        MimeHeaders headers = response.getMimeHeaders();
-        // A SC_NO_CONTENT response may include entity headers
-        if (entityBody || statusCode == HttpServletResponse.SC_NO_CONTENT) {
-            String contentType = response.getContentType();
-            if (contentType != null) {
-                headers.setValue("Content-Type").setString(contentType);
-            }
-            String contentLanguage = null;//TODO  = response.getContentLanguage();
-            if (contentLanguage != null) {
-                headers.setValue("Content-Language").setString(contentLanguage);
-            }
-        }
-
-        long contentLength = response.getContentLengthLong();
-        boolean connectionClosePresent = false;
-        if (contentLength != -1) {
-            headers.setValue("Content-Length").setLong(contentLength);
-            outputBuffer.addActiveFilter(outputFilters[Constants.IDENTITY_FILTER]);
-            contentDelimitation = true;
-        } else {
-            // If the response code supports an entity body and we're on
-            // HTTP 1.1 then we chunk unless we have a Connection: close header
-            connectionClosePresent = isConnectionClose(headers);
-            if (entityBody && http11 && !connectionClosePresent) {
-                outputBuffer.addActiveFilter(outputFilters[Constants.CHUNKED_FILTER]);
-                contentDelimitation = true;
-                headers.addValue(Constants.TRANSFERENCODING).setString(Constants.CHUNKED);
-            } else {
-                outputBuffer.addActiveFilter(outputFilters[Constants.IDENTITY_FILTER]);
-            }
-        }
-
-        if (useCompression) {
-            outputBuffer.addActiveFilter(outputFilters[Constants.GZIP_FILTER]);
-            headers.setValue("Content-Encoding").setString("gzip");
-        }
-        // If it might be compressed, set the Vary header
-        if (isCompressible) {
-            // Make Proxies happy via Vary (from mod_deflate)
-            MessageBytes vary = headers.getValue("Vary");
-            if (vary == null) {
-                // Add a new Vary header
-                headers.setValue("Vary").setString("Accept-Encoding");
-            } else if (vary.equals("*")) {
-                // No action required
-            } else {
-                // Merge into current header
-                headers.setValue("Vary").setString(vary.getString() + ",Accept-Encoding");
-            }
-        }
-
-        // Add date header unless application has already set one (e.g. in a
-        // Caching Filter)
-        if (headers.getValue("Date") == null) {
-            headers.addValue("Date").setString(FastHttpDateFormat.getCurrentDate());
-        }
-
-        // FIXME: Add transfer encoding header
-
-        if ((entityBody) && (!contentDelimitation)) {
-            // Mark as close the connection after the request, and add the
-            // connection: close header
-            keepAlive = false;
-        }
-
-        // This may disabled keep-alive to check before working out the
-        // Connection header.
-        checkExpectationAndResponseStatus();
-
-        // If we know that the request is bad this early, add the
-        // Connection: close header.
-        if (keepAlive && statusDropsConnection(statusCode)) {
-            keepAlive = false;
-        }
-        if (!keepAlive) {
-            // Avoid adding the close header twice
-            if (!connectionClosePresent) {
-                headers.addValue(Constants.CONNECTION).setString(Constants.CLOSE);
-            }
-        } else if (!http11 && !getErrorState().isError()) {
-            headers.addValue(Constants.CONNECTION).setString(Constants.KEEPALIVE);
-        }
-
-        // Add server header
-        if (server == null) {
-            if (serverRemoveAppProvidedValues) {
-                headers.removeHeader("server");
-            }
-        } else {
-            // server always overrides anything the app might set
+        headers.setValue("Content-Type").setString("text/html;charset=UTF-8");
+        headers.setValue("Vary").setString("Accept-Encoding");
+        headers.addValue("Date").setString(FastHttpDateFormat.getCurrentDate());
+        headers.addValue(Constants.CONNECTION).setString(Constants.CLOSE);
+        if (StringUtils.isNotEmpty(server)) {
             headers.setValue("Server").setString(server);
         }
+        outputBuffer.sendStatus(status);
 
-        // Build the response header
-        try {
-            outputBuffer.sendStatus();
-
-            int size = headers.size();
-            for (int i = 0; i < size; i++) {
-                outputBuffer.sendHeader(headers.getName(i), headers.getValue(i));
-            }
-            outputBuffer.endHeaders();
-        } catch (Throwable t) {
-            ExceptionUtils.handleThrowable(t);
-            // If something goes wrong, reset the header buffer so the error
-            // response can be written instead.
-            outputBuffer.resetHeaderBuffer();
-            throw t;
+        int size = headers.size();
+        for (int i = 0; i < size; i++) {
+            outputBuffer.sendHeader(headers.getName(i), headers.getValue(i));
         }
+        outputBuffer.endHeaders();
+
+        if (ArrayUtils.isNotEmpty(body))
+            outputBuffer.write(body);
 
         outputBuffer.commit();
+
+        socketWrapper.flush(true);
+
+    }
+
+    public String bodyTemp = "<div style='text-align:center'>\n" +
+            "  <div>\n" +
+            "  <h1>BigAnt</h1>\n" +
+            "  <hr/>\n" +
+            "  </div>\n" +
+            "<div>\n" +
+            "  <div>\n" +
+            "    <span>状态码：%d</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>内容：%s</span>\n" +
+            "  </div>\n" +
+            "  <div>\n" +
+            "    <h2>\n" +
+            "      <a href='http://www.baidu.com'>去官网</a>  \n" +
+            "    </h2>\n" +
+            "  </div>\n" +
+            "</div>\n" +
+            "</div>";
+
+    private String createBody(HttpResponseStatus status, String bodyStr) {
+        return String.format(bodyTemp, status.getStatus(), bodyStr);
     }
 
     private static boolean isConnectionClose(MimeHeaders headers) {
@@ -1445,21 +1257,6 @@ public abstract class Http11Processor extends AbstractProcessor {
         }
         return connection.equals(Constants.CLOSE);
     }
-
-    private void prepareSendfile(OutputFilter[] outputFilters) {
-        String fileName = (String) request.getAttribute(priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILENAME_ATTR);
-        if (fileName == null) {
-            sendFileData = null;
-        } else {
-            // No entity body sent here
-            outputBuffer.addActiveFilter(outputFilters[Constants.VOID_FILTER]);
-            contentDelimitation = true;
-            long pos = (Long) request.getAttribute(priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILE_START_ATTR);
-            long end = (Long) request.getAttribute(priv.bigant.intrance.common.coyote.Constants.SENDFILE_FILE_END_ATTR);
-            sendFileData = socketWrapper.createSendfileData(fileName, pos, end - pos);
-        }
-    }
-
 
     /*
      * Note: populateHost() is not over-ridden.
@@ -1483,7 +1280,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     @Override
     protected boolean flushBufferedWrite() throws IOException {
-        if (outputBuffer.hasDataToWrite()) {
+        /*TODO if (outputBuffer.hasDataToWrite()) {
             if (outputBuffer.flushBuffer(false)) {
                 // The buffer wasn't fully flushed so re-register the
                 // socket for write. Note this does not go via the
@@ -1495,7 +1292,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 outputBuffer.registerWriteInterest();
                 return true;
             }
-        }
+        }*/
         return false;
     }
 
@@ -1507,7 +1304,7 @@ public abstract class Http11Processor extends AbstractProcessor {
         } else {
             endRequest();
             inputBuffer.nextRequest();
-            outputBuffer.nextRequest();
+            //TODO outputBuffer.nextRequest();
             if (socketWrapper.isReadPending()) {
                 return AbstractEndpoint.Handler.SocketState.LONG;
             } else {
@@ -1560,10 +1357,10 @@ public abstract class Http11Processor extends AbstractProcessor {
         if (getErrorState().isIoAllowed()) {
             try {
                 action(ActionCode.COMMIT, null);
-                outputBuffer.end();
-            } catch (IOException e) {
+                //TODO outputBuffer.end();
+            } /*catch (IOException e) {
                 setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
-            } catch (Throwable t) {
+            }*/ catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
                 setErrorState(ErrorState.CLOSE_NOW, t);
                 log.error(sm.getString("http11processor.response.finish"), t);
@@ -1574,7 +1371,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     @Override
     protected final void finishResponse() throws IOException {
-        outputBuffer.end();
+        //TODO outputBuffer.end();
     }
 
 
@@ -1583,21 +1380,21 @@ public abstract class Http11Processor extends AbstractProcessor {
         // Acknowledge request
         // Send a 100 status back if it makes sense (response not committed
         // yet, and client specified an expectation for 100-continue)
-        if (//TODO !response.isCommitted() &&
-                request.hasExpectation()) {
+        /*TODO
+        if (!httpResponse.isCommitted() && request.hasExpectation()) {
             inputBuffer.setSwallowInput(true);
             try {
                 outputBuffer.sendAck();
             } catch (IOException e) {
                 setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
             }
-        }
+        }*/
     }
 
 
     @Override
     protected final void flush() throws IOException {
-        outputBuffer.flush();
+        //TODO outputBuffer.flush();
     }
 
 
@@ -1617,7 +1414,8 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     @Override
     protected final void setSwallowResponse() {
-        outputBuffer.responseFinished = true;
+        //TODO
+        // outputBuffer.responseFinished = true;
     }
 
 
@@ -1672,7 +1470,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     @Override
     protected final boolean isReadyForWrite() {
-        return outputBuffer.isReady();
+        return false;//TODO outputBuffer.isReady();
     }
 
 
@@ -1686,7 +1484,7 @@ public abstract class Http11Processor extends AbstractProcessor {
     protected final void doHttpUpgrade(UpgradeToken upgradeToken) {
         this.upgradeToken = upgradeToken;
         // Stop further HTTP output
-        outputBuffer.responseFinished = true;
+        //TODO outputBuffer.responseFinished = true;
     }
 
 
@@ -1746,7 +1544,7 @@ public abstract class Http11Processor extends AbstractProcessor {
         response.recycle();
         super.recycle();
         inputBuffer.recycle();
-        outputBuffer.recycle();
+        //TODO outputBuffer.recycle();
         responseInputBuffer.recycle();
         upgradeToken = null;
         socketWrapper = null;

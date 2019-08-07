@@ -591,8 +591,7 @@ public abstract class SocketWrapperBase<E> {
      * @param from The ByteBuffer containing the data to be written
      * @throws IOException If an IO error occurs during the write
      */
-    protected void writeNonBlocking(ByteBuffer from)
-            throws IOException {
+    protected void writeNonBlocking(ByteBuffer from) throws IOException {
 
         if (nonBlockingWriteBuffer.isEmpty() && socketBufferHandler.isWriteBufferWritable()) {
             writeNonBlockingInternal(from);

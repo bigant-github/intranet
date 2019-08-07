@@ -13,113 +13,241 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-package priv.bigant.intrance.common.coyote.http11;
+ *//*
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.coyote.HttpResponseStatus;
+package priv.bigant.intrance.common.coyote;
+
+import priv.bigant.intrance.common.coyote.http11.Constants;
+import priv.bigant.intrance.common.coyote.http11.HeadersTooLargeException;
+import priv.bigant.intrance.common.coyote.http11.HttpOutputBuffer;
+import priv.bigant.intrance.common.coyote.http11.OutputFilter;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
+import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+*/
 /**
  * Provides buffering for the HTTP headers (allowing responses to be reset before they have been committed) and the link
  * to the Socket for writing the headers (once committed) and the response body. Note that buffering of the response
  * body happens at a higher level.
- */
-public class Http11OutputBuffer implements HttpOutputBuffer {
+ *//*
 
-    private static final Logger LOG = LoggerFactory.getLogger(Http11OutputBuffer.class);
-    /**
+public class Http11OutputBuffer1 implements HttpOutputBuffer {
+
+    // -------------------------------------------------------------- Variables
+
+    */
+/**
+     * The string manager for this package.
+     *//*
+
+    protected static final StringManager sm = StringManager.getManager(Http11OutputBuffer1.class);
+
+
+    // ----------------------------------------------------- Instance Variables
+
+    */
+/**
      * Associated Coyote response.
-     */
-    //protected HttpResponse response;
+     *//*
+
+    protected Response response;
 
 
-    /**
+    */
+/**
      * Finished flag.
-     */
+     *//*
+
     protected boolean responseFinished;
 
 
-    /**
+    */
+/**
      * The buffer used for header composition.
-     */
+     *//*
+
     protected final ByteBuffer headerBuffer;
 
-    /**
+
+    */
+/**
+     * Filter library for processing the response body.
+     *//*
+
+    protected OutputFilter[] filterLibrary;
+
+
+    */
+/**
+     * Active filters for the current request.
+     *//*
+
+    protected OutputFilter[] activeFilters;
+
+
+    */
+/**
+     * Index of the last active filter.
+     *//*
+
+    protected int lastActiveFilter;
+
+
+    */
+/**
      * Underlying output buffer.
-     */
+     *//*
+
     protected HttpOutputBuffer outputStreamOutputBuffer;
 
 
-    /**
+    */
+/**
      * Wrapper for socket where data will be written to.
-     */
+     *//*
+
     protected SocketWrapperBase<?> socketWrapper;
 
 
-    /**
+    */
+/**
      * Bytes written to client for the current request
-     */
+     *//*
+
     protected long byteCount = 0;
 
 
-    protected Http11OutputBuffer(int headerBufferSize) {
+    protected Http11OutputBuffer1(Response response, int headerBufferSize, boolean sendReasonPhrase) {
 
-        //this.response = response;
+        this.response = response;
 
         headerBuffer = ByteBuffer.allocate(headerBufferSize);
 
+        filterLibrary = new OutputFilter[0];
+        activeFilters = new OutputFilter[0];
+        lastActiveFilter = -1;
 
         responseFinished = false;
 
         outputStreamOutputBuffer = new SocketOutputBuffer();
 
-        /*if (sendReasonPhrase) {
+        if (sendReasonPhrase) {
             // Cause loading of HttpMessages
             // TODO  HttpMessages.getInstance(response.getLocale()).getMessage(200);
-        }*/
+        }
     }
+
+
+    */
+/**
+     * Add an output filter to the active filters for the current response.
+     * <p>
+     * The filter does not have to be present in {@link #getFilters()}.
+     * <p>
+     * A filter can only be added to a response once. If the filter has already been added to this response then this
+     * method will be a NO-OP.
+     *
+     * @param filter The filter to add
+     *//*
+
+    public void addActiveFilter(OutputFilter filter) {
+
+        if (lastActiveFilter == -1) {
+            filter.setBuffer(outputStreamOutputBuffer);
+        } else {
+            for (int i = 0; i <= lastActiveFilter; i++) {
+                if (activeFilters[i] == filter)
+                    return;
+            }
+            filter.setBuffer(activeFilters[lastActiveFilter]);
+        }
+
+        activeFilters[++lastActiveFilter] = filter;
+
+        filter.setResponse(response);
+    }
+
 
     // --------------------------------------------------- OutputBuffer Methods
 
-    /**
+    */
+/**
      * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doWrite(ByteBuffer)}
-     */
+     *//*
+
     @Deprecated
     @Override
     public int doWrite(ByteChunk chunk) throws IOException {
-        return outputStreamOutputBuffer.doWrite(chunk);
+
+       */
+/* TODO
+        if (!response.isCommitted()) {
+            // Send the connector a request for commit. The connector should
+            // then validate the headers, send them (using sendHeaders) and
+            // set the filters accordingly.
+            response.action(ActionCode.COMMIT, null);
+        }
+
+        if (lastActiveFilter == -1) {
+            return outputStreamOutputBuffer.doWrite(chunk);
+        } else {
+            return activeFilters[lastActiveFilter].doWrite(chunk);
+        }*//*
+
+        return 0;
     }
 
 
     @Override
     public int doWrite(ByteBuffer chunk) throws IOException {
-        return outputStreamOutputBuffer.doWrite(chunk);
+
+        if (!response.isCommitted()) {
+            // Send the connector a request for commit. The connector should
+            // then validate the headers, send them (using sendHeaders) and
+            // set the filters accordingly.
+            response.action(ActionCode.COMMIT, null);
+        }
+
+        if (lastActiveFilter == -1) {
+            return outputStreamOutputBuffer.doWrite(chunk);
+        } else {
+            return activeFilters[lastActiveFilter].doWrite(chunk);
+        }
+        return 0;
     }
 
 
     @Override
     public long getBytesWritten() {
-        return outputStreamOutputBuffer.getBytesWritten();
+        if (lastActiveFilter == -1) {
+            return outputStreamOutputBuffer.getBytesWritten();
+        } else {
+            return activeFilters[lastActiveFilter].getBytesWritten();
+        }
     }
 
 
     // ----------------------------------------------- HttpOutputBuffer Methods
 
-    /**
+    */
+/**
      * Flush the response.
      *
      * @throws IOException an underlying I/O error occurred
-     */
+     *//*
+
     @Override
     public void flush() throws IOException {
-        outputStreamOutputBuffer.flush();
+        if (lastActiveFilter == -1) {
+            outputStreamOutputBuffer.flush();
+        } else {
+            activeFilters[lastActiveFilter].flush();
+        }
     }
 
 
@@ -129,38 +257,56 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
             return;
         }
 
-        outputStreamOutputBuffer.end();
+        if (lastActiveFilter == -1) {
+            outputStreamOutputBuffer.end();
+        } else {
+            activeFilters[lastActiveFilter].end();
+        }
+
         responseFinished = true;
     }
 
 
     // --------------------------------------------------------- Public Methods
 
-    /**
+    */
+/**
      * Reset the header buffer if an error occurs during the writing of the headers so the error response can be
      * written.
-     */
+     *//*
+
     void resetHeaderBuffer() {
         headerBuffer.position(0).limit(headerBuffer.capacity());
     }
 
 
-    /**
+    */
+/**
      * Recycle the output buffer. This should be called when closing the connection.
-     */
+     *//*
+
     public void recycle() {
         nextRequest();
         socketWrapper = null;
     }
 
 
-    /**
+    */
+/**
      * End processing of current HTTP request. Note: All bytes of the current request should have been already consumed.
      * This method only resets all the pointers so that we are ready to parse the next HTTP request.
-     */
+     *//*
+
     public void nextRequest() {
+        // Recycle filters
+        for (int i = 0; i <= lastActiveFilter; i++) {
+            activeFilters[i].recycle();
+        }
+        // Recycle response object
+        response.recycle();
         // Reset pointers
         headerBuffer.position(0).limit(headerBuffer.capacity());
+        lastActiveFilter = -1;
         responseFinished = false;
         byteCount = 0;
     }
@@ -173,78 +319,88 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
     @SuppressWarnings("deprecation")
     public void sendAck() throws IOException {
-        /*if (!response.isCommitted()) {
-            socketWrapper.write(isBlocking(), Constants.ACK_BYTES_REASON, 0, Constants.ACK_BYTES_REASON.length);
-            *//*if (sendReasonPhrase) {
+        */
+/* TODO
+        if (!response.isCommitted()) {
+            *//*
+*/
+/*TODO if (sendReasonPhrase) {
                 socketWrapper.write(isBlocking(), Constants.ACK_BYTES_REASON, 0, Constants.ACK_BYTES_REASON.length);
             } else {
                 socketWrapper.write(isBlocking(), Constants.ACK_BYTES, 0, Constants.ACK_BYTES.length);
             }*//*
+*/
+/*
             if (flushBuffer(true)) {
-                throw new IOException("Failed to send HTTP 100 continue response");
+                throw new IOException(sm.getString("iob.failedwrite.ack"));
             }
-        }*/
-        socketWrapper.write(isBlocking(), Constants.ACK_BYTES_REASON, 0, Constants.ACK_BYTES_REASON.length);
+        }*//*
 
     }
 
 
-    /**
+    */
+/**
      * Commit the response.
      *
      * @throws IOException an underlying I/O error occurred
-     */
+     *//*
+
     protected void commit() throws IOException {
-        //response.setCommitted(true);
+        // TODO response.setCommitted(true);
+
         if (headerBuffer.position() > 0) {
             // Sending the response header buffer
             headerBuffer.flip();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(new String(headerBuffer.array()));
-            }
             try {
-                socketWrapper.write(isBlocking(), headerBuffer);
+                // TODO socketWrapper.write(isBlocking(), headerBuffer);
             } finally {
                 headerBuffer.position(0).limit(headerBuffer.capacity());
             }
         }
     }
 
-    /**
-     * Is standard Servlet blocking IO being used for output?
-     *
-     * @return <code>true</code> if this is blocking IO
-     */
-    protected final boolean isBlocking() {
-        return true;
-    }
 
-    /**
+    */
+/**
      * Send the response status line.
-     */
-    public void sendStatus(HttpResponseStatus status) {
+     *//*
+
+    @SuppressWarnings("deprecation")
+    public void sendStatus() {
         // Write protocol name
         write(Constants.HTTP_11_BYTES);
         headerBuffer.put(Constants.SP);
 
         // Write status code
-        //HttpResponseStatus status = response.getStatus();
-        write(status.getStatus());
+        int status = 0;// TODO  = response.getStatus();
+        switch (status) {
+            case 200:
+                write(Constants._200_BYTES);
+                break;
+            case 400:
+                write(Constants._400_BYTES);
+                break;
+            case 404:
+                write(Constants._404_BYTES);
+                break;
+            default:
+                write(status);
+        }
 
         headerBuffer.put(Constants.SP);
-
-        write(status.getDesc());
-
         headerBuffer.put(Constants.CR).put(Constants.LF);
     }
 
 
-    /**
+    */
+/**
      * Send a header.
      *
      * @param name  Header name
      * @param value Header value
-     */
+     *//*
+
     public void sendHeader(MessageBytes name, MessageBytes value) {
         write(name);
         headerBuffer.put(Constants.COLON).put(Constants.SP);
@@ -253,20 +409,24 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    /**
+    */
+/**
      * End the header block.
-     */
+     *//*
+
     public void endHeaders() {
         headerBuffer.put(Constants.CR).put(Constants.LF);
     }
 
 
-    /**
+    */
+/**
      * This method will write the contents of the specified message bytes buffer to the output stream, without
      * filtering. This method is meant to be used to write the response header.
      *
      * @param mb data to be written
-     */
+     *//*
+
     private void write(MessageBytes mb) {
         if (mb.getType() != MessageBytes.T_BYTES) {
             mb.toBytes();
@@ -291,12 +451,14 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    /**
+    */
+/**
      * This method will write the contents of the specified byte chunk to the output stream, without filtering. This
      * method is meant to be used to write the response header.
      *
      * @param bc data to be written
-     */
+     *//*
+
     private void write(ByteChunk bc) {
         // Writing the byte chunk to the output buffer
         int length = bc.getLength();
@@ -305,12 +467,14 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    /**
+    */
+/**
      * This method will write the contents of the specified byte buffer to the output stream, without filtering. This
      * method is meant to be used to write the response header.
      *
      * @param b data to be written
-     */
+     *//*
+
     public void write(byte[] b) {
         checkLengthBeforeWrite(b.length);
 
@@ -319,12 +483,14 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    /**
+    */
+/**
      * This method will write the contents of the specified String to the output stream, without filtering. This method
      * is meant to be used to write the response header.
      *
      * @param s data to be written
-     */
+     *//*
+
     private void write(String s) {
         if (s == null) {
             return;
@@ -347,12 +513,14 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    /**
+    */
+/**
      * This method will write the specified integer to the output stream. This method is meant to be used to write the
      * response header.
      *
      * @param value data to be written
-     */
+     *//*
+
     private void write(int value) {
         // From the Tomcat 3.3 HTTP/1.0 connector
         String s = Integer.toString(value);
@@ -365,9 +533,11 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    /**
+    */
+/**
      * Checks to see if there is enough space in the buffer to write the requested number of bytes.
-     */
+     *//*
+
     private void checkLengthBeforeWrite(int length) {
         // "+ 4": BZ 57509. Reserve space for CR/LF/COLON/SP characters that
         // are put directly into the buffer following this write operation.
@@ -379,28 +549,34 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
     //------------------------------------------------------ Non-blocking writes
 
-    /**
+    */
+/**
      * Writes any remaining buffered data.
      *
      * @param block Should this method block until the buffer is empty
      * @return <code>true</code> if data remains in the buffer (which can only
      * happen in non-blocking mode) else <code>false</code>.
      * @throws IOException Error writing data
-     */
+     *//*
+
     protected boolean flushBuffer(boolean block) throws IOException {
         return socketWrapper.flush(block);
     }
 
 
-    /**
+    */
+/**
      * Is standard Servlet blocking IO being used for output?
      *
      * @return <code>true</code> if this is blocking IO
-     */
-    /*TODO
+     *//*
+
+    */
+/*TODO
     protected final boolean isBlocking() {
         return response.getWriteListener() == null;
-    }*/
+    }*//*
+
     protected final boolean isReady() {
         boolean result = !hasDataToWrite();
         if (!result) {
@@ -422,16 +598,20 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
     // ------------------------------------------ SocketOutputBuffer Inner Class
 
-    /**
+    */
+/**
      * This class is an output buffer which will write data to a socket.
-     */
+     *//*
+
     protected class SocketOutputBuffer implements HttpOutputBuffer {
 
-        /**
+        */
+/**
          * Write chunk.
          *
          * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doWrite(ByteBuffer)}
-         */
+         *//*
+
         @Deprecated
         @Override
         public int doWrite(ByteChunk chunk) throws IOException {
@@ -443,22 +623,26 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
             return len;
         }
 
-        /**
+        */
+/**
          * Write chunk.
-         */
+         *//*
+
         @Override
         public int doWrite(ByteBuffer chunk) throws IOException {
             //try {
             int len = chunk.remaining();
-            socketWrapper.write(isBlocking(), chunk);
+            //TODO socketWrapper.write(isBlocking(), chunk);
             len -= chunk.remaining();
             byteCount += len;
             return len;
-            /*} catch (IOException ioe) {
+            */
+/*} catch (IOException ioe) {
                 response.action(ActionCode.CLOSE_NOW, ioe);
                 // Re-throw
                 throw ioe;
-            }*/
+            }*//*
+
         }
 
         @Override
@@ -477,3 +661,4 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
         }
     }
 }
+*/

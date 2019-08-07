@@ -114,8 +114,7 @@ public final class Constants {
      * @deprecated This option will be removed in Tomcat 9. Reason phrase will not be sent.
      */
     @Deprecated
-    public static final byte[] ACK_BYTES_REASON =
-            ByteChunk.convertToBytes("HTTP/1.1 100 Continue" + CRLF + CRLF);
+    public static final byte[] ACK_BYTES_REASON = ByteChunk.convertToBytes("HTTP/1.1 100 Continue" + CRLF + CRLF);
     public static final byte[] ACK_BYTES = ByteChunk.convertToBytes("HTTP/1.1 100 " + CRLF + CRLF);
     public static final String TRANSFERENCODING = "Transfer-Encoding";
     public static final byte[] _200_BYTES = ByteChunk.convertToBytes("200");
@@ -163,5 +162,6 @@ public final class Constants {
      * HTTP/1.1.
      */
     public static final String HTTP_11 = "HTTP/1.1";
+
     public static final byte[] HTTP_11_BYTES = ByteChunk.convertToBytes(HTTP_11);
 }

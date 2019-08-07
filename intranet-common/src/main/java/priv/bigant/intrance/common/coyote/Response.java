@@ -48,9 +48,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class Response {
 
-    private static final StringManager sm = StringManager.getManager(Response.class);
 
-    private static final Logger log = LoggerFactory.getLogger(Response.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Response.class);
 
     // Expected maximum typical number of cookies per request.
     private static final int INITIAL_COOKIE_SIZE = 4;

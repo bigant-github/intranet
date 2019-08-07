@@ -154,9 +154,9 @@ public class NioSelectorPool {
      * @throws IOException            if an IO Exception occurs in the underlying socket logic
      */
     public int write(ByteBuffer buf, NioChannel socket, Selector selector, long writeTimeout, boolean block) throws IOException {
-        if (SHARED && block) {
+        /*if (SHARED && block) {
             return blockingSelector.write(buf, socket, writeTimeout);
-        }
+        }*/
         SelectionKey key = null;
         int written = 0;
         boolean timedout = false;
