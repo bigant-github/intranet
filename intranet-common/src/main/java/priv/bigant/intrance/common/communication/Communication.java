@@ -47,7 +47,11 @@ public class Communication extends Thread {
 
     public synchronized byte[] readN() throws IOException {
         byteBuffer.clear();
+
         int readNum = socketChannel.read(byteBuffer);
+        if (readNum < 0)
+            throw new IOException("read -1");
+
         byte[] subArray = ArrayUtils.subarray(byteBuffer.array(), 0, readNum);
         byteBuffer.flip();
 
