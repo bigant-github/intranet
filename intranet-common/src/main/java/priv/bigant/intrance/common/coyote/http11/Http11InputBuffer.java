@@ -351,7 +351,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                         wrapper.setReadTimeout(Config.getSoTimeout());
                     }
                     LOG.debug("first read isKeep=" + keptAlive);
-                    if (!fill(keptAlive)) {
+                    if (!fill(false)) {
                         // A read is pending, so no longer in initial state
                         parsingRequestLinePhase = 1;
                         return false;
