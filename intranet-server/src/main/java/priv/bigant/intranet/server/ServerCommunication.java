@@ -39,6 +39,7 @@ public class ServerCommunication extends HttpCommunication {
     public void putSocketBean(SocketBean socketBean) {
         String id = socketBean.getId();
         MAP.put(id, socketBean);
+        LOG.debug("put socket id:" + id);
     }
 
     @Override

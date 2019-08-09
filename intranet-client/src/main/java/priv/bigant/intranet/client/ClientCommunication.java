@@ -38,7 +38,7 @@ public class ClientCommunication extends Communication {
      */
     public void connect() throws Exception {
         //      if (socketChannel == null)
-        this.socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));
+        this.socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getIntranetPort()));
 /*        else
             this.socketChannel.connect(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));*/
 

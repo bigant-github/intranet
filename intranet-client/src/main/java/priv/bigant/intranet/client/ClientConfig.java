@@ -7,10 +7,6 @@ public class ClientConfig extends Config {
     private ClientConfig() {
     }
 
-    /**
-     * 服务器端口
-     */
-    private int port = 45678;
 
 
     /**
@@ -41,14 +37,6 @@ public class ClientConfig extends Config {
 
     public void setLocalHost(String localHost) {
         this.localHost = localHost;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
     }
 
     public String getHostName() {

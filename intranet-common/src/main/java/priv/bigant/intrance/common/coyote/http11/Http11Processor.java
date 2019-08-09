@@ -569,7 +569,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                     if (inputBuffer.getParsingRequestLinePhase() == -1) {
                         return AbstractEndpoint.Handler.SocketState.UPGRADING;
                     } else if (handleIncompleteRequestLineRead()) {
-                        prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析请求失败");
+                        //prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析请求失败");
                         break;
                     }
                 }
@@ -704,7 +704,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 NioChannel socket = (NioChannel) socketWrapper.getSocket();
                 mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
             } catch (IOException e) {
-                log.error("request mutual error", e);
+                log.error("response mutual error", e);
                 break;
             }
         }
@@ -730,8 +730,11 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     //数据传输使用
     private void mutual(SocketWrapperBase socketWrapperBase, ByteBuffer byteBuffer, SocketChannel socketChannel, boolean chunked, int contentLength) throws IOException {
+        boolean blocking = socketChannel.isBlocking();
+        socketChannel.configureBlocking(true);
         int bodySize = byteBuffer.limit() - byteBuffer.position();
         byteBuffer.position(0);
+        int sum = byteBuffer.limit();
         socketChannel.write(byteBuffer);
         if (log.isDebugEnabled()) {
             log.debug("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
@@ -741,11 +744,22 @@ public abstract class Http11Processor extends AbstractProcessor {
             do {
                 thisBuffer.position(0);
                 thisBuffer.limit(thisBuffer.capacity());//展开内存
-                int read = socketWrapperBase.read(false, thisBuffer);
+                int read = socketWrapperBase.read(true, thisBuffer);
+                sum += read;
+                log.debug("sun: " + sum);
+                if (read < 2048) {
+                    log.debug("debug");
+                }
+                if (read < 0) {
+                    log.debug("read chunked to -1");
+                    break;
+                }
                 thisBuffer.flip();
+                //thisBuffer.limit(read);
                 socketChannel.write(thisBuffer);
                 /*if (log.isDebugEnabled()) {
-                    log.debug("write:" + new String(thisBuffer.array(), 0, read));
+                    log.debug(Arrays.toString(thisBuffer.array()));
+                    //log.debug("write:" + new String(thisBuffer.array(), 0, read, StandardCharsets.UTF_8));
                 }*/
 
                 //校验是否为最后的分块
@@ -759,22 +773,23 @@ public abstract class Http11Processor extends AbstractProcessor {
                     arraycopy(subArray, position, subArray, 0, 5 - position);
                     arraycopy(thisBuffer.array(), 0, subArray, 5 - position, position);
                 }
-
+                System.out.println(read);
+                System.out.println(Arrays.toString(subArray));
             } while (!Arrays.equals(subArray, chunkedEndByte));
+            System.out.println(new String(thisBuffer.array(), "utf-8"));
         } else {
             while (bodySize < contentLength) {
                 thisBuffer.position(0);
                 thisBuffer.limit(thisBuffer.capacity());//展开内存
-                int read = socketWrapperBase.read(false, thisBuffer);
+                int read = socketWrapperBase.read(true, thisBuffer);
                 bodySize += read;
                 thisBuffer.flip();
                 socketChannel.write(thisBuffer);
-                /*if (log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("write:" + new String(thisBuffer.array(), 0, read));
-                }*/
+                }
             }
         }
-
     }
 
     private Request cloneRequest(Request source) throws IOException {

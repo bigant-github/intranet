@@ -14,7 +14,12 @@ public abstract class Config {
     /**
      * 服务器端口
      */
-    private int httpAcceptPort = 45679;
+    private int httpAcceptPort = 55679;
+    /**
+     * 服务器端口
+     */
+    private int intranetPort = 55678;
+
     private int bufferSize = 16;
     /**
      * 线程池等待时间
@@ -27,6 +32,14 @@ public abstract class Config {
     private int httpProcessReadBufferSize = 2048;
     private int httpProcessWriteBufferSize = 2048;
     private int communicationByteBufferSize = 1024;
+
+    public int getIntranetPort() {
+        return intranetPort;
+    }
+
+    public void setIntranetPort(int intranetPort) {
+        this.intranetPort = intranetPort;
+    }
 
     public int getCommunicationByteBufferSize() {
         return communicationByteBufferSize;
@@ -161,7 +174,7 @@ public abstract class Config {
     /**
      * SO_TIMEOUT option. default is 20000.
      */
-    protected static Integer soTimeout = 2000;
+    protected static Integer soTimeout = 200000;
 
     /**
      * Performance preferences according to http://docs.oracle.com/javase/1.5.0/docs/api/java/net/Socket.html#setPerformancePreferences(int,%20int,%20int)
