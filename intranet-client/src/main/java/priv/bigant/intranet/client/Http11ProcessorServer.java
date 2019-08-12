@@ -15,7 +15,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Map;
 
 public class Http11ProcessorServer extends Http11Processor {
-    private SocketBean receiver;
     private static final Logger LOG = LoggerFactory.getLogger(Http11ProcessorServer.class);
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
     private ClientConfig clientConfig;
@@ -51,9 +50,5 @@ public class Http11ProcessorServer extends Http11Processor {
     public void close() throws IOException {
         LOG.debug("server close..............");
         socketWrapper.close();
-        if (receiver != null) {
-            receiver.skip();
-            receiver.close();
-        }
     }
 }

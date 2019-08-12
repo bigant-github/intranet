@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.communication.HttpCommunication;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,7 +16,7 @@ public class HttpSocketManager {
 
     private final static Map<String, HttpCommunication> throughMap;
     private static Iterator<Map.Entry<String, HttpCommunication>> iterator;
-    private final static Map<String, String> keyMap = new Hashtable<>();
+    private final static Map<String, String> keyMap = new HashMap<>();
     private static final Logger LOG = LoggerFactory.getLogger(HttpSocketManager.class);
 
     static {
@@ -28,8 +29,8 @@ public class HttpSocketManager {
     }
 
     public static void addKey(String key, String host) {
-        LOG.debug("添加log   key:" + key + "    host:" + host);
         keyMap.put(key, host);
+        LOG.debug("添加log   key:" + key + "    host:" + host);
     }
 
     public static String getKey(String key) {
