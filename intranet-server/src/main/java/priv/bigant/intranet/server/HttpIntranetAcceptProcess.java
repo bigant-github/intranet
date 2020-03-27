@@ -26,8 +26,14 @@ public class HttpIntranetAcceptProcess extends ProcessBase {
 
     public HttpIntranetAcceptProcess() {
         ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+        this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
+
+    public HttpIntranetAcceptProcess(int corePoolSize, int maximumPoolSize, int keepAliveTime) {
+        ServerConfig serverConfig = (ServerConfig) Config.getConfig();
+        this.executor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+    }
+
 
     @Override
     public String getName() {

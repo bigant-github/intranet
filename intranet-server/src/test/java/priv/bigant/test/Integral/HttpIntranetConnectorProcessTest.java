@@ -1,21 +1,45 @@
 package priv.bigant.test.Integral;
 
+import org.junit.Test;
 import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.LifecycleException;
+import priv.bigant.intrance.common.communication.Communication;
+import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intranet.server.*;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class HttpIntranetConnectorProcessTest {
 
-    public static void main(String[] args) throws LifecycleException {
+    @Test
+    public void start() throws LifecycleException, IOException {
         ServerConfig config = (ServerConfig) ServerConfig.getConfig();
         CommunicationProcess httpIntranetConnectorProcess = new CommunicationProcess();
-        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("testHttpIntranetConnectorProcess", httpIntranetConnectorProcess, config.getIntranetPort());
+        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999);
         testHttpIntranetConnectorProcess.start();
-        HttpIntranetAcceptProcess httpIntranetAcceptProcess = new HttpIntranetAcceptProcess();
-        ServerConnector testHttpIntranetAcceptProcess = new ServerConnector("testHttpIntranetAcceptProcess", httpIntranetAcceptProcess, config.getHttpAcceptPort());
-        testHttpIntranetAcceptProcess.start();
-        HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
-        ServerConnector testHttpIntranetServiceProcess = new ServerConnector("testHttpIntranetServiceProcess", httpIntranetServiceProcess, config.getHttpPort());
-        testHttpIntranetServiceProcess.start();
+        System.in.read();
     }
+
+    @Test
+    public void send() throws Exception {
+        SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("localhost", 9999));
+        Communication communication = new Communication(socketChannel);
+        CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
+        for (int i = 0; i < 1000; i++) {
+            communication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestTest));
+        }
+    }
+
+    @Test
+    public void a() throws Exception {
+        CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
+        CommunicationRequest communicationRequest = CommunicationRequest.createCommunicationRequest(communicationRequestTest);
+        byte[] bytes = communicationRequest.toByte();
+        System.out.println(Arrays.toString("{\"type\":\"TEST\"}".getBytes(StandardCharsets.UTF_8)));
+    }
+
 }

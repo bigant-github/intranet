@@ -7,6 +7,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.nio.charset.StandardCharsets;
 
 
+/**
+ * 交换器 请求发送
+ */
 public class CommunicationRequest extends CommunicationReturn {
 
 
@@ -33,11 +36,19 @@ public class CommunicationRequest extends CommunicationReturn {
     }
 
     public static CommunicationRequest createCommunicationRequest(byte[] bytes) {
-        String s = new String(bytes, StandardCharsets.UTF_8);
+        return createCommunicationRequest(new String(bytes, StandardCharsets.UTF_8));
+    }
+
+    public static CommunicationRequest createCommunicationRequest(String s) {
         if (StringUtils.isEmpty(s))
             return null;
         JSONObject jsonObject = JSON.parseObject(s);
         return new CommunicationRequest(jsonObject);
+    }
+
+    @Override
+    public String toString() {
+        return jsonObject.toString();
     }
 
     public static class CommunicationRequestP implements CommunicationP {

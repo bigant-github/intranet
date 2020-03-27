@@ -10,9 +10,11 @@ public class Start {
         CommunicationProcess httpIntranetConnectorProcess = new CommunicationProcess();
         ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("testHttpIntranetConnectorProcess", httpIntranetConnectorProcess, config.getIntranetPort());
         testHttpIntranetConnectorProcess.start();
+
         HttpIntranetAcceptProcess httpIntranetAcceptProcess = new HttpIntranetAcceptProcess();
         ServerConnector testHttpIntranetAcceptProcess = new ServerConnector("testHttpIntranetAcceptProcess", httpIntranetAcceptProcess, config.getHttpAcceptPort());
         testHttpIntranetAcceptProcess.start();
+
         HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
         ServerConnector testHttpIntranetServiceProcess = new ServerConnector("testHttpIntranetServiceProcess", httpIntranetServiceProcess, config.getHttpPort());
         testHttpIntranetServiceProcess.start();

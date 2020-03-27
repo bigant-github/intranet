@@ -1,15 +1,13 @@
 package priv.bigant.intrance.common.communication;
 
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.ChannelStream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +21,10 @@ public class Communication extends Thread {
     protected byte[] bytes = new byte[1024];
     protected ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
     protected SocketChannel socketChannel;
+    private ChannelStream channelStream;
+
+    private static final byte L = '{';
+    private static final byte R = '}';
 
     public SocketChannel getSocketChannel() {
         return socketChannel;
@@ -30,6 +32,7 @@ public class Communication extends Thread {
 
     public Communication(SocketChannel socketChannel) throws IOException {
         this.socketChannel = socketChannel;
+        this.channelStream = new ChannelStream(socketChannel, 1024);
     }
 
     public Communication() {
@@ -45,6 +48,7 @@ public class Communication extends Thread {
         socketChannel = null;
     }
 
+    @Deprecated
     public synchronized byte[] readN() throws IOException {
         byteBuffer.clear();
 
@@ -54,7 +58,6 @@ public class Communication extends Thread {
 
         byte[] subArray = ArrayUtils.subarray(byteBuffer.array(), 0, readNum);
         byteBuffer.flip();
-
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("读取到数据 :" + new String(subArray, StandardCharsets.UTF_8));
         }
@@ -73,7 +76,7 @@ public class Communication extends Thread {
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("write :" + Charset.forName("UTF-8").decode(byteBuffer).toString());
+            LOGGER.debug("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
             byteBuffer.flip();
         }
         socketChannel.write(byteBuffer);
@@ -85,7 +88,19 @@ public class Communication extends Thread {
      * @throws IOException
      */
     public synchronized CommunicationRequest readRequest() throws IOException {
-        return CommunicationRequest.createCommunicationRequest(readN());
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        int LN = 0;
+        int RN = 0;
+        while (true) {
+            byte c = channelStream.read();
+            byteBuffer.put(c);
+            if (c == L) LN++;
+            else if (c == R) RN++;
+            if (LN == RN) {
+                return CommunicationRequest.createCommunicationRequest(new String(byteBuffer.array(), 0, byteBuffer.position(), StandardCharsets.UTF_8));
+            }
+
+        }
     }
 
     /**
@@ -95,18 +110,10 @@ public class Communication extends Thread {
      * @throws IOException
      */
     public synchronized List<CommunicationRequest> readRequests() throws IOException {
-        byte[] bytes = readN();
-        String s = new String(bytes, StandardCharsets.UTF_8);
-        if (StringUtils.isEmpty(s))
-            return null;
         List<CommunicationRequest> list = new ArrayList<>();
-        int i = s.indexOf("}{");
-        while (i > 1) {
-            list.add(CommunicationRequest.createCommunicationRequest(s.substring(0, i + 1).getBytes()));
-            s = s.substring(i + 1);
-            i = s.indexOf("}{");
+        while (channelStream.hasNext()) {
+            list.add(readRequest());
         }
-        list.add(CommunicationRequest.createCommunicationRequest(s.getBytes()));
         return list;
     }
 

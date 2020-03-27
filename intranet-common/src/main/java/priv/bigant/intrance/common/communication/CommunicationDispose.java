@@ -1,7 +1,18 @@
 package priv.bigant.intrance.common.communication;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * 交换器分配器
+ */
 public abstract class CommunicationDispose {
+
+    public static final Logger LOG = LoggerFactory.getLogger(CommunicationDispose.class);
+
     public void invoke(CommunicationRequest communicationRequest, Communication communication) {
+        LOG.debug(communicationRequest.toString());
         switch (communicationRequest.getType()) {
             case TEST:
                 test(communicationRequest, communication);
