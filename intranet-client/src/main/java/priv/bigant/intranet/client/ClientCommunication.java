@@ -22,7 +22,14 @@ public class ClientCommunication extends Communication {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommunication.class);
     private ClientConfig clientConfig;
     private ByteBuffer byteBuffer;
+    /**
+     * http 交互 监控线程
+     */
     private ConnectorThread serviceConnectorThread;
+    /**
+     * 客户端与服务端交互 监控线程
+     */
+    private ConnectorThread connectorThread;
 
     public ClientCommunication(ConnectorThread serviceConnectorThread) {
         this.serviceConnectorThread = serviceConnectorThread;
@@ -39,23 +46,26 @@ public class ClientCommunication extends Communication {
     public void connect() throws Exception {
         //      if (socketChannel == null)
         this.socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getIntranetPort()));
+        this.channelStream = new ChannelStream(socketChannel, 1024);
 /*        else
             this.socketChannel.connect(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));*/
 
         socketChannel.socket().setKeepAlive(true);
         socketChannel.socket().setOOBInline(false);
-        CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
-        communicationHttpFirst.setHost(clientConfig.getHostName());
-        writeN(createCommunicationRequest(communicationHttpFirst));
 
         this.getSocketChannel().configureBlocking(false);
         connectorThread.register(this.getSocketChannel(), SelectionKey.OP_READ);//注册事件
 
+        CommunicationRequestHttpFirst communicationHttpFirst = new CommunicationRequestHttpFirst(CommunicationEnum.HTTP);
+        communicationHttpFirst.setHost(clientConfig.getHostName());
+        writeN(createCommunicationRequest(communicationHttpFirst));
     }
 
-    private ConnectorThread connectorThread;
 
-    public void createProcess() {
+    /**
+     * 创建客户端与服务端交互器
+     */
+    public void createCommunicationProcess() {
         CommunicationProcess communicationProcess = new CommunicationProcess(this, serviceConnectorThread);
         try {
             this.connectorThread = new ConnectorThread(communicationProcess);

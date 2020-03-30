@@ -4,6 +4,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intrance.common.communication.CommunicationRequest.CommunicationRequestHttpAdd;
 import priv.bigant.intrance.common.communication.CommunicationResponse;
@@ -18,10 +19,12 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 客户端与服务端进行http信息交换器
+ */
 public class HttpIntranetAcceptProcess extends ProcessBase {
 
     public static final Logger LOG = LoggerFactory.getLogger(HttpIntranetAcceptProcess.class);
-    private static final String NAME = "CommunicationProcess";
     private ThreadPoolExecutor executor;
 
     public HttpIntranetAcceptProcess() {
@@ -49,28 +52,26 @@ public class HttpIntranetAcceptProcess extends ProcessBase {
     public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         selectionKey.cancel();
 
-        ServerCommunication serverCommunication = (ServerCommunication) selectionKey.attachment();
-        CommunicationRequest communicationRequest = serverCommunication.readRequest();
+        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+        CommunicationRequest communicationRequest = Communication.readRequest(socketChannel);
+
         if (communicationRequest == null)
             return;
 
         CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequestHttpAdd.class);
-        String id = communicationRequestHttpAdd.getId();
-        SocketBean socketBean = new SocketBean(serverCommunication.getSocketChannel());
-        socketBean.setId(id);
 
-        HttpCommunication communication = HttpSocketManager.get(HttpSocketManager.getKey(id));
+        SocketBean socketBean = new SocketBean(socketChannel, communicationRequestHttpAdd.getId());
+
+        HttpCommunication communication = HttpSocketManager.get(HttpSocketManager.getKey(communicationRequestHttpAdd.getId()));
         communication.putSocketBean(socketBean);
     }
 
     @Override
     public void accept(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
-        //executor.execute(new ReadProcessThread(socketChannel));
 
-        ServerCommunication serverCommunication = new ServerCommunication(socketChannel);
         socketChannel.configureBlocking(false);
-        connectorThread.register(socketChannel, SelectionKey.OP_READ, serverCommunication);
+        connectorThread.register(socketChannel, SelectionKey.OP_READ);
 
     }
 

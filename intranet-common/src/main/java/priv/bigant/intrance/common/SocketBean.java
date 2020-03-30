@@ -36,6 +36,7 @@ public class SocketBean {
 
     public SocketBean(SocketChannel socketChannel, String id) throws IOException {
         Socket socket = socketChannel.socket();
+        this.socketChannel = socketChannel;
         this.id = id;
         this.socket = socket;
         this.inetAddress = this.socket.getInetAddress();

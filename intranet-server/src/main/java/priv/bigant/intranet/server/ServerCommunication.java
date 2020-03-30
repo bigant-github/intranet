@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.communication.CommunicationDispose;
 import priv.bigant.intrance.common.communication.HttpCommunication;
 
 import java.io.IOException;
@@ -11,6 +12,9 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 与客户段的交换器
+ */
 public class ServerCommunication extends HttpCommunication {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerCommunication.class);
@@ -19,6 +23,11 @@ public class ServerCommunication extends HttpCommunication {
 
     public ServerCommunication(SocketChannel socketChannel) throws IOException {
         super(socketChannel);
+        serverConfig = (ServerConfig) Config.getConfig();
+    }
+
+    public ServerCommunication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
+        super(socketChannel, communicationDispose);
         serverConfig = (ServerConfig) Config.getConfig();
     }
 

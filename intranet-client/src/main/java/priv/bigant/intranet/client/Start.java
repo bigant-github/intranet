@@ -5,13 +5,11 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.channels.SelectionKey;
 import java.util.Properties;
 
 /**
@@ -39,15 +37,13 @@ public class Start {
 
         ClientCommunication clientCommunication = new ClientCommunication(serviceConnectorThread);
         try {
-            clientCommunication.createProcess();
+            clientCommunication.createCommunicationProcess();
             clientCommunication.connect();
             new CommunicationListener(clientCommunication, config.getListenerTime()).start();
         } catch (Exception e) {
             serviceConnectorThread.showdown();
             LOG.error("通信器连接失败", e);
-            return;
         }
-
 
     }
 

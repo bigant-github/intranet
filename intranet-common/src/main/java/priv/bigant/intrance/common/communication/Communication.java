@@ -21,13 +21,26 @@ public class Communication extends Thread {
     protected byte[] bytes = new byte[1024];
     protected ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
     protected SocketChannel socketChannel;
-    private ChannelStream channelStream;
+    protected ChannelStream channelStream;
 
+    private CommunicationDispose communicationDispose;
+
+    /**
+     * 协议开始符号
+     */
     private static final byte L = '{';
+    /**
+     * 协议结束符号
+     */
     private static final byte R = '}';
 
     public SocketChannel getSocketChannel() {
         return socketChannel;
+    }
+
+    public Communication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
+        this(socketChannel);
+        this.communicationDispose = communicationDispose;
     }
 
     public Communication(SocketChannel socketChannel) throws IOException {
@@ -83,11 +96,51 @@ public class Communication extends Thread {
     }
 
     /**
+     * 发送数据 将CommunicationReturn 转换为JSON数组发送
+     *
+     * @param communicationReturn
+     * @throws IOException
+     */
+    public static void writeN(CommunicationReturn communicationReturn, SocketChannel socketChannel) throws IOException {
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+        byteBuffer.clear();
+        byteBuffer.put(communicationReturn.toByte());
+        byteBuffer.flip();
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
+            byteBuffer.flip();
+        }
+        socketChannel.write(byteBuffer);
+    }
+
+    /**
      * 读取请求 自动封装为 CommunicationRequest 对象
      *
      * @throws IOException
      */
     public synchronized CommunicationRequest readRequest() throws IOException {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        int LN = 0;
+        int RN = 0;
+        while (true) {
+            byte c = channelStream.read();
+            byteBuffer.put(c);
+            if (c == L) LN++;
+            else if (c == R) RN++;
+            if (LN == RN) {
+                return CommunicationRequest.createCommunicationRequest(new String(byteBuffer.array(), 0, byteBuffer.position(), StandardCharsets.UTF_8));
+            }
+
+        }
+    }
+
+    /**
+     * 读取请求 自动封装为 CommunicationRequest 对象
+     *
+     * @throws IOException
+     */
+    public static CommunicationRequest readRequest(SocketChannel socketChannel) throws IOException {
+        ChannelStream channelStream = new ChannelStream(socketChannel, 1024);
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
         int LN = 0;
         int RN = 0;
@@ -117,6 +170,26 @@ public class Communication extends Thread {
         return list;
     }
 
+
+    /**
+     * 读取多个请求并自定处理
+     */
+    public synchronized void disposeRequests() throws IOException {
+        while (channelStream.hasNext()) {
+            communicationDispose.invoke(readRequest(), this);
+        }
+    }
+
+    /**
+     * 读取多个请求并自定处理
+     */
+    public synchronized void disposeRequest() throws IOException {
+        if (!channelStream.hasNext())
+            throw new NullPointerException("未找到request");
+        communicationDispose.invoke(readRequest(), this);
+
+    }
+
     public synchronized CommunicationResponse readResponse() throws IOException {
         return CommunicationResponse.createCommunicationResponse(readN());
     }
@@ -135,5 +208,13 @@ public class Communication extends Thread {
             LOGGER.debug("isClose true");
             return true;
         }
+    }
+
+    public CommunicationDispose getCommunicationDispose() {
+        return communicationDispose;
+    }
+
+    public void setCommunicationDispose(CommunicationDispose communicationDispose) {
+        this.communicationDispose = communicationDispose;
     }
 }

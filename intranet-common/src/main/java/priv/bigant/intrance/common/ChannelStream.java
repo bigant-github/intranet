@@ -18,6 +18,7 @@ public class ChannelStream {
     }
 
 
+
     public char readChar() throws IOException {
         if (!hasNext()) {
             return 0;

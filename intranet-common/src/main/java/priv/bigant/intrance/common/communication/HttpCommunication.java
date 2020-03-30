@@ -26,6 +26,10 @@ public abstract class HttpCommunication extends Communication {
         super(socketChannel);
     }
 
+    public HttpCommunication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
+        super(socketChannel, communicationDispose);
+    }
+
     /**
      * 获取socketBean 超时则返回Null
      *

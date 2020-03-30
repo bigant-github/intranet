@@ -24,13 +24,12 @@ public class CommunicationProcess extends ProcessBase {
     private static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
     private ClientCommunication clientCommunication;
     private Connector connector;
-    private CommunicationDispose communicationDispose;
     private ConnectorThread serviceConnector;
 
     public CommunicationProcess(ClientCommunication clientCommunication, ConnectorThread serviceConnector) {
         this.clientCommunication = clientCommunication;
         this.serviceConnector = serviceConnector;
-        communicationDispose = new ClientCommunicationDispose(serviceConnector, this);
+        clientCommunication.setCommunicationDispose(new ClientCommunicationDispose(serviceConnector, this));
     }
 
     public void showdown() {
@@ -53,20 +52,18 @@ public class CommunicationProcess extends ProcessBase {
 
     @Override
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
-        List<CommunicationRequest> communicationRequest = clientCommunication.readRequests();
-        if (CollectionUtils.isNotEmpty(communicationRequest))
-            communicationRequest.forEach(x -> communicationDispose.invoke(x, clientCommunication));
+        clientCommunication.disposeRequests();
     }
 
 
     @Override
-    public void accept(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
+    public void accept(ConnectorThread connectorThread, SelectionKey selectionKey) {
         //不可能有的
     }
 
     @Override
     public String getName() {
-        return null;
+        return "client communication process";
     }
 
     public ConnectorThread getServiceConnector() {
@@ -125,15 +122,12 @@ public class CommunicationProcess extends ProcessBase {
         public void httpAdd(CommunicationRequest communicationRequest, Communication communication) {
             SocketChannel socketChannel;
             CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequest.CommunicationRequestHttpAdd.class);
-            String id = communicationRequestHttpAdd.getId();
             try {
                 socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getHttpAcceptPort()));
                 socketChannel.socket().setKeepAlive(true);
-                Communication httpAddCommunication = new Communication(socketChannel);
 
-                CommunicationRequest.CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequest.CommunicationRequestHttpAdd();
-                communicationRequestHttpAdd1.setId(id);
-                httpAddCommunication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd1));
+                Communication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd), socketChannel);
+
                 socketChannel.configureBlocking(false);
                 serviceConnector.register(socketChannel, SelectionKey.OP_READ);
             } catch (Exception e) {

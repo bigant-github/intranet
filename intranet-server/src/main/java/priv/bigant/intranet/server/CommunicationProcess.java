@@ -21,7 +21,6 @@ import static priv.bigant.intrance.common.communication.CommunicationRequest.*;
 public class CommunicationProcess extends ProcessBase {
 
     public static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
-    private static final String NAME = "CommunicationProcess";
     private ThreadPoolExecutor executor;
     private ServerCommunicationDispose serverCommunicationDispose;
 
@@ -45,9 +44,7 @@ public class CommunicationProcess extends ProcessBase {
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         //selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
         ServerCommunication serverCommunication = (ServerCommunication) selectionKey.attachment();
-        List<CommunicationRequest> communicationRequests = serverCommunication.readRequests();
-        if (CollectionUtils.isNotEmpty(communicationRequests))
-            communicationRequests.forEach(x -> serverCommunicationDispose.invoke(x, serverCommunication));
+        serverCommunication.disposeRequests();
         //executor.execute(new ReadProcessThread(serverCommunication));
     }
 
@@ -55,7 +52,7 @@ public class CommunicationProcess extends ProcessBase {
     public void accept(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
         socketChannel.configureBlocking(false);
-        connectorThread.register(socketChannel, SelectionKey.OP_READ, new ServerCommunication(socketChannel));
+        connectorThread.register(socketChannel, SelectionKey.OP_READ, new ServerCommunication(socketChannel, serverCommunicationDispose));
     }
 
     /**

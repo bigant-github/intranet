@@ -5,6 +5,9 @@ import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 
 import java.util.HashMap;
 
+/**
+ * 客户端 http Nio 处理中心
+ */
 public class HttpIntranetServiceProcess extends HttpIntranetServiceProcessAbs {
 
     @Override
@@ -14,6 +17,6 @@ public class HttpIntranetServiceProcess extends HttpIntranetServiceProcessAbs {
 
     @Override
     public String getName() {
-        return null;
+        return "client http process";
     }
 }

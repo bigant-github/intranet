@@ -14,11 +14,21 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * http Nio 处理中心
+ */
 public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
     public static final Logger LOG = LoggerFactory.getLogger(HttpIntranetServiceProcessAbs.class);
+    /**
+     * http 线程池
+     */
     private ThreadPoolExecutor executor;
+    /**
+     * http client 与 server 段交互缓存堆
+     */
     protected SynchronizedStack<SocketProcessorBase> processorCache;
+
     private RecycledProcessors recycledProcessors = new RecycledProcessors();
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
     private Config config;

@@ -57,20 +57,18 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
     }
 
     @Override
-    protected void stopInternal() throws LifecycleException {
+    protected void stopInternal() {
         connectorThread.showdown();
     }
 
     @Override
     public void showdown() {
-        try {
-            stopInternal();
-        } catch (LifecycleException e) {
-
-        }
+        stopInternal();
     }
 
-
+    /**
+     * nio process 监控线程
+     */
     public static class ConnectorThread extends Thread implements Connector {
         private final Logger LOG = LoggerFactory.getLogger(ConnectorThread.class);
         private Selector selector;
@@ -106,7 +104,7 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
                     i = selector.selectNow();
                 } catch (IOException e) {
                     i = 0;
-                    LOG.error("select error", e);
+                    LOG.error(process.getName() + " process 监控线程 select error", e);
                 }
                 if (i < 1)
                     continue;
@@ -121,9 +119,9 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
                         } else if (selectionKey.isReadable()) {
                             process.read(this, selectionKey);
                         }
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         selectionKey.cancel();
-                        LOG.error("处理器处理事件失败", e);
+                        LOG.error(process.getName() + " process 监控线程 处理器处理事件失败", e);
                     }
                 }
             }
