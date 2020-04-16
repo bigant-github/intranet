@@ -1,4 +1,4 @@
-package priv.bigant.intranet.server;
+package priv.bigant.intranet.server.process;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -9,6 +9,7 @@ import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intrance.common.communication.CommunicationRequest.CommunicationRequestHttpAdd;
 import priv.bigant.intrance.common.communication.CommunicationResponse;
 import priv.bigant.intrance.common.communication.HttpCommunication;
+import priv.bigant.intranet.server.ServerConfig;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,12 +41,7 @@ public class HttpIntranetAcceptProcess extends ProcessBase {
 
     @Override
     public String getName() {
-        return null;
-    }
-
-    @Override
-    public void start() {
-
+        return "HttpIntranetAcceptProcess";
     }
 
     @Override

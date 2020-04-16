@@ -8,10 +8,8 @@ import java.util.Objects;
 /**
  * NIO 连接器管理中心
  * 主要是停止使用的
- *
- * @param <T>
  */
-public class ConnectorManager<T extends Connector> {
+public class ConnectorManager {
     private static ArrayList<Connector> list = new ArrayList<>();
 
     public static void add(Connector connector) {

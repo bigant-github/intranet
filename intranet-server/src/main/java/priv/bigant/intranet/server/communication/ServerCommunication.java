@@ -1,64 +1,72 @@
-package priv.bigant.intranet.server;
+package priv.bigant.intranet.server.communication;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.*;
-import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
+import priv.bigant.intrance.common.Config;
+import priv.bigant.intrance.common.HttpSocketManager;
+import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.communication.*;
+import priv.bigant.intranet.server.ServerConfig;
+import priv.bigant.intranet.server.process.CommunicationProcess;
 
 import java.io.IOException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.List;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.Map;
 
-import static priv.bigant.intrance.common.communication.CommunicationRequest.*;
+/**
+ * 与客户段的交换器
+ */
+public class ServerCommunication extends HttpCommunication {
 
-public class CommunicationProcess extends ProcessBase {
+    private static final Logger LOG = LoggerFactory.getLogger(ServerCommunication.class);
+    public static final Map<String, SocketBean> MAP = new HashMap<>();
+    private ServerConfig serverConfig;
 
-    public static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
-    private ThreadPoolExecutor executor;
-    private ServerCommunicationDispose serverCommunicationDispose;
+    public ServerCommunication(SocketChannel socketChannel) throws IOException {
+        super(socketChannel, ServerCommunicationDispose.getInstance());
+        serverConfig = (ServerConfig) Config.getConfig();
+    }
 
-    public CommunicationProcess() {
-        ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.serverCommunicationDispose = new ServerCommunicationDispose();
-        this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+    public ServerCommunication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
+        super(socketChannel, communicationDispose);
+        serverConfig = (ServerConfig) Config.getConfig();
     }
 
     @Override
-    public String getName() {
+    public SocketBean getSocketBean() {
+        long time = System.currentTimeMillis();
+        String id = super.createSocketBean();
+        while ((time + serverConfig.getWaitSocketTime()) > System.currentTimeMillis()) {
+            SocketBean socketBean = MAP.get(id);
+            if (socketBean != null)
+                return socketBean;
+        }
+        LOG.debug("getSocketBean TIMEOUT: createTime=" + time + "    endTime=" + System.currentTimeMillis());
         return null;
     }
 
     @Override
-    public void start() {
-
+    public void putSocketBean(SocketBean socketBean) {
+        String id = socketBean.getId();
+        MAP.put(id, socketBean);
+        LOG.debug("put socket id:" + id);
     }
 
     @Override
-    public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
-        //selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
-        ServerCommunication serverCommunication = (ServerCommunication) selectionKey.attachment();
-        serverCommunication.disposeRequests();
-        //executor.execute(new ReadProcessThread(serverCommunication));
-    }
-
-    @Override
-    public void accept(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
-        SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
-        socketChannel.configureBlocking(false);
-        connectorThread.register(socketChannel, SelectionKey.OP_READ, new ServerCommunication(socketChannel, serverCommunicationDispose));
+    public String createSocketBean() {
+        return null;
     }
 
     /**
      * 统一处理请求
      */
     public static class ServerCommunicationDispose extends CommunicationDispose {
+
+        private static ServerCommunicationDispose serverCommunicationDispose = new ServerCommunicationDispose();
+
+        private ServerCommunicationDispose() {
+        }
 
         @Override
         protected void httpReturn(CommunicationRequest communicationRequest, Communication communication) {
@@ -79,16 +87,22 @@ public class CommunicationProcess extends ProcessBase {
         protected void httpAdd(CommunicationRequest communicationRequest, Communication communication) {
             //暂不处理客户端此类请求
         }
+
+        public static ServerCommunicationDispose getInstance() {
+            return serverCommunicationDispose;
+        }
+
+
     }
 
     static class ReadProcessThread implements Runnable {
         final Logger LOG = LoggerFactory.getLogger(ReadProcessThread.class);
         private ServerCommunication serverCommunication;
-        private CommunicationRequestHttpFirst communicationRequestHttpFirst;
+        private CommunicationRequest.CommunicationRequestHttpFirst communicationRequestHttpFirst;
 
         public ReadProcessThread(ServerCommunication serverCommunication, CommunicationRequest communicationRequest) {
             this.serverCommunication = serverCommunication;
-            this.communicationRequestHttpFirst = communicationRequest.toJavaObject(CommunicationRequestHttpFirst.class);
+            this.communicationRequestHttpFirst = communicationRequest.toJavaObject(CommunicationRequest.CommunicationRequestHttpFirst.class);
         }
 
         @Override
@@ -105,7 +119,7 @@ public class CommunicationProcess extends ProcessBase {
                         HttpSocketManager.get(host).close();
                         HttpSocketManager.remove(host);
                     } else {//域名已存在
-                        CommunicationRequestHttpReturn communicationRequestHttpReturn = new CommunicationRequestHttpReturn(CommunicationRequestHttpReturn.Status.DOMAIN_OCCUPIED);
+                        CommunicationRequest.CommunicationRequestHttpReturn communicationRequestHttpReturn = new CommunicationRequest.CommunicationRequestHttpReturn(CommunicationRequest.CommunicationRequestHttpReturn.Status.DOMAIN_OCCUPIED);
                         serverCommunication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpReturn));
                         serverCommunication.close();
                         LOG.info(host + CodeEnum.HOST_ALREADY_EXIST.getMsg());
@@ -114,7 +128,7 @@ public class CommunicationProcess extends ProcessBase {
                 }
                 //连接成功
                 HttpSocketManager.add(host, serverCommunication);
-                CommunicationRequestHttpReturn communicationRequestHttpReturn = new CommunicationRequestHttpReturn(CommunicationRequestHttpReturn.Status.SUCCESS);
+                CommunicationRequest.CommunicationRequestHttpReturn communicationRequestHttpReturn = new CommunicationRequest.CommunicationRequestHttpReturn(CommunicationRequest.CommunicationRequestHttpReturn.Status.SUCCESS);
                 serverCommunication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpReturn));
                 LOG.info(host + " 连接成功");
                 for (int a = 0; a < 10; a++)
@@ -124,5 +138,4 @@ public class CommunicationProcess extends ProcessBase {
             }
         }
     }
-
 }

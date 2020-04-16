@@ -2,6 +2,7 @@ package priv.bigant.intrance.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.manager.ConnectorManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -42,7 +43,7 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
         setState(LifecycleState.STARTING);
         try {
             build();
-            connectorThread = new ConnectorThread(process);
+            connectorThread = new ConnectorThread(process, getName() + "-thread");
             connectorThread.register(server, SelectionKey.OP_ACCEPT);
             connectorThread.start();
         } catch (IOException e) {
@@ -75,9 +76,11 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
         private Process process;
         private Boolean stopStatus = false;
 
-        public ConnectorThread(Process process) throws IOException {
+        public ConnectorThread(Process process, String name) throws IOException {
+            super(name);
             this.process = process;
             this.selector = Selector.open();
+            ConnectorManager.add(this);
         }
 
         public void register(SelectableChannel selectableChannel, int ops, Object attn) throws ClosedChannelException {
@@ -113,6 +116,7 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
 
                     SelectionKey selectionKey = selectionKeys.next();
                     selectionKeys.remove();
+
                     try {
                         if (selectionKey.isAcceptable()) {
                             process.accept(this, selectionKey);
@@ -121,8 +125,10 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
                         }
                     } catch (Exception e) {
                         selectionKey.cancel();
+                        ConnectorManager.showdownAll();
                         LOG.error(process.getName() + " process 监控线程 处理器处理事件失败", e);
                     }
+
                 }
             }
         }

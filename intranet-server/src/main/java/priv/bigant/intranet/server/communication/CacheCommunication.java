@@ -1,10 +1,11 @@
-package priv.bigant.intranet.server;
+package priv.bigant.intranet.server.communication;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.communication.HttpCommunication;
+import priv.bigant.intranet.server.ServerConfig;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;

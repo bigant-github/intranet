@@ -119,19 +119,7 @@ public class Communication extends Thread {
      * @throws IOException
      */
     public synchronized CommunicationRequest readRequest() throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
-        int LN = 0;
-        int RN = 0;
-        while (true) {
-            byte c = channelStream.read();
-            byteBuffer.put(c);
-            if (c == L) LN++;
-            else if (c == R) RN++;
-            if (LN == RN) {
-                return CommunicationRequest.createCommunicationRequest(new String(byteBuffer.array(), 0, byteBuffer.position(), StandardCharsets.UTF_8));
-            }
-
-        }
+        return readRequest(channelStream);
     }
 
     /**
@@ -140,7 +128,10 @@ public class Communication extends Thread {
      * @throws IOException
      */
     public static CommunicationRequest readRequest(SocketChannel socketChannel) throws IOException {
-        ChannelStream channelStream = new ChannelStream(socketChannel, 1024);
+        return readRequest(new ChannelStream(socketChannel, 1024));
+    }
+
+    public static CommunicationRequest readRequest(ChannelStream channelStream) throws IOException {
         ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
         int LN = 0;
         int RN = 0;

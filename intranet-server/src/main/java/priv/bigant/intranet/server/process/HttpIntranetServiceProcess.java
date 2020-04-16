@@ -1,7 +1,8 @@
-package priv.bigant.intranet.server;
+package priv.bigant.intranet.server.process;
 
 import priv.bigant.intrance.common.HttpIntranetServiceProcessAbs;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
+import priv.bigant.intranet.server.Http11ProcessorServer;
 
 import java.util.HashMap;
 

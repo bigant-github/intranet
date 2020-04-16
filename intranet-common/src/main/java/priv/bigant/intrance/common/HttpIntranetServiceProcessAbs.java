@@ -42,11 +42,6 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
     public abstract Http11Processor createHttp11Processor();
 
     @Override
-    public void start() {
-
-    }
-
-    @Override
     public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         //selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
         selectionKey.cancel();

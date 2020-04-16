@@ -1,6 +1,5 @@
 package priv.bigant.intranet.client;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
@@ -16,7 +15,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.List;
 
 public class CommunicationProcess extends ProcessBase {
 
@@ -24,17 +22,14 @@ public class CommunicationProcess extends ProcessBase {
     private static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
     private ClientCommunication clientCommunication;
     private Connector connector;
-    private ConnectorThread serviceConnector;
 
     public CommunicationProcess(ClientCommunication clientCommunication, ConnectorThread serviceConnector) {
         this.clientCommunication = clientCommunication;
-        this.serviceConnector = serviceConnector;
         clientCommunication.setCommunicationDispose(new ClientCommunicationDispose(serviceConnector, this));
     }
 
     public void showdown() {
         connector.showdown();
-        serviceConnector.showdown();
     }
 
     public Connector getConnector() {
@@ -43,11 +38,6 @@ public class CommunicationProcess extends ProcessBase {
 
     public void setConnector(Connector connector) {
         this.connector = connector;
-    }
-
-    @Override
-    public void start() {
-
     }
 
     @Override
@@ -66,13 +56,6 @@ public class CommunicationProcess extends ProcessBase {
         return "client communication process";
     }
 
-    public ConnectorThread getServiceConnector() {
-        return serviceConnector;
-    }
-
-    public void setServiceConnector(ConnectorThread serviceConnector) {
-        this.serviceConnector = serviceConnector;
-    }
 
     /**
      * 统一处理请求

@@ -6,6 +6,7 @@ import priv.bigant.intrance.common.LifecycleException;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intranet.server.*;
+import priv.bigant.intranet.server.process.CommunicationProcess;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

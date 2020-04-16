@@ -11,6 +11,9 @@ public abstract class CommunicationDispose {
 
     public static final Logger LOG = LoggerFactory.getLogger(CommunicationDispose.class);
 
+    protected CommunicationDispose() {
+    }
+
     public void invoke(CommunicationRequest communicationRequest, Communication communication) {
         LOG.debug(communicationRequest.toString());
         switch (communicationRequest.getType()) {

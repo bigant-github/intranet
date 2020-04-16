@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
+import priv.bigant.intrance.common.manager.ConnectorManager;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class Start {
         ConnectorThread serviceConnectorThread;
         HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
         try {
-            serviceConnectorThread = new ConnectorThread(httpIntranetServiceProcess);
+            serviceConnectorThread = new ConnectorThread(httpIntranetServiceProcess, "clientHttpIntranetServiceProcess-thread");
             serviceConnectorThread.start();
         } catch (IOException e) {
             LOG.error("http处理器启动失败");
@@ -41,8 +42,9 @@ public class Start {
             clientCommunication.connect();
             new CommunicationListener(clientCommunication, config.getListenerTime()).start();
         } catch (Exception e) {
-            serviceConnectorThread.showdown();
             LOG.error("通信器连接失败", e);
+        } finally {
+            ConnectorManager.showdownAll();
         }
 
     }
