@@ -172,28 +172,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
     // ------------------------------------------------------------- Properties
 
     /**
-     * Add an input filter to the filter library.
-     *
-     * @throws NullPointerException if the supplied filter is null
-     */
-    void addFilter(InputFilter filter) {
-
-        if (filter == null) {
-            throw new NullPointerException(sm.getString("iib.filter.npe"));
-        }
-
-        InputFilter[] newFilterLibrary = new InputFilter[filterLibrary.length + 1];
-        for (int i = 0; i < filterLibrary.length; i++) {
-            newFilterLibrary[i] = filterLibrary[i];
-        }
-        newFilterLibrary[filterLibrary.length] = filter;
-        filterLibrary = newFilterLibrary;
-
-        activeFilters = new InputFilter[filterLibrary.length];
-    }
-
-
-    /**
      * Get filters.
      */
     InputFilter[] getFilters() {
@@ -1088,6 +1066,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         temp.put(byteBuffer);
         byteBuffer = temp;
         byteBuffer.mark();
-        temp = null;
+
     }
 }

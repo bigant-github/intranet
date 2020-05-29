@@ -35,16 +35,13 @@ public class OpenSSLSessionContext implements SSLSessionContext {
     private static final Enumeration<byte[]> EMPTY = new EmptyEnumeration();
 
     private final OpenSSLSessionStats stats;
-    // This is deliberately unused. The reference is retained so that a
-    // reference chain is established and maintained to the OpenSSLContext while
-    // there is a connection that is using the OpenSSLContext. Therefore, the
-    // OpenSSLContext can not be eligible for GC while it is in use.
-    @SuppressWarnings("unused")
-    private final OpenSSLContext context;
     private final long contextID;
 
     OpenSSLSessionContext(OpenSSLContext context) {
-        this.context = context;
+        // This is deliberately unused. The reference is retained so that a
+        // reference chain is established and maintained to the OpenSSLContext while
+        // there is a connection that is using the OpenSSLContext. Therefore, the
+        // OpenSSLContext can not be eligible for GC while it is in use.
         this.contextID = context.getSSLContextID();
         stats = new OpenSSLSessionStats(contextID);
     }

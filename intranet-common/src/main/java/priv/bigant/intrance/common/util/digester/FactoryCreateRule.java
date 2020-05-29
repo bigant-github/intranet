@@ -22,7 +22,6 @@ import org.xml.sax.Attributes;
 
 
 /**
- * <p>Rule implementation that uses an {@link ObjectCreationFactory} to create
  * a new object which it pushes onto the object stack.  When the element is
  * complete, the object will be popped.</p>
  *
@@ -44,31 +43,9 @@ public class FactoryCreateRule extends Rule {
 
     // ----------------------------------------------------------- Constructors
 
-    /**
-     * Construct a factory create rule using the given, already instantiated,
-     * {@link ObjectCreationFactory}.
-     *
-     * @param creationFactory called on to create the object.
-     * @param ignoreCreateExceptions if true, exceptions thrown by the object
-     *  creation factory will be ignored.
-     */
-    public FactoryCreateRule(
-                            ObjectCreationFactory creationFactory,
-                            boolean ignoreCreateExceptions) {
-
-        this.creationFactory = creationFactory;
-        this.ignoreCreateExceptions = ignoreCreateExceptions;
-    }
 
 
     // ----------------------------------------------------- Instance Variables
-
-    /**
-     * The object creation factory we will use to instantiate objects
-     * as required based on the attributes specified in the matched XML
-     * element.
-     */
-    protected ObjectCreationFactory creationFactory = null;
 
 
     // --------------------------------------------------------- Public Methods
@@ -89,13 +66,7 @@ public class FactoryCreateRule extends Rule {
             }
 
             try {
-                Object instance = creationFactory.createObject(attributes);
 
-                if (digester.log.isDebugEnabled()) {
-                    digester.log.debug("[FactoryCreateRule]{" + digester.match +
-                            "} New " + instance.getClass().getName());
-                }
-                digester.push(instance);
                 exceptionIgnoredStack.push(Boolean.FALSE);
 
             } catch (Exception e) {
@@ -111,13 +82,7 @@ public class FactoryCreateRule extends Rule {
             }
 
         } else {
-            Object instance = creationFactory.createObject(attributes);
 
-            if (digester.log.isDebugEnabled()) {
-                digester.log.debug("[FactoryCreateRule]{" + digester.match +
-                        "} New " + instance.getClass().getName());
-            }
-            digester.push(instance);
         }
     }
 
@@ -155,27 +120,11 @@ public class FactoryCreateRule extends Rule {
 
 
     /**
-     * Clean up after parsing is complete.
-     */
-    @Override
-    public void finish() throws Exception {
-        // NO-OP
-    }
-
-
-    /**
      * Render a printable version of this Rule.
      */
     @Override
     public String toString() {
-
-        StringBuilder sb = new StringBuilder("FactoryCreateRule[");
-        if (creationFactory != null) {
-            sb.append("creationFactory=");
-            sb.append(creationFactory);
-        }
-        sb.append("]");
-        return (sb.toString());
+        return ("FactoryCreateRule[" + "]");
 
     }
 }

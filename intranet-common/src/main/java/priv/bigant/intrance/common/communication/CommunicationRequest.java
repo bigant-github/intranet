@@ -46,10 +46,12 @@ public class CommunicationRequest extends CommunicationReturn {
         return new CommunicationRequest(jsonObject);
     }
 
+
     @Override
     public String toString() {
         return jsonObject.toString();
     }
+
 
     public static class CommunicationRequestP implements CommunicationP {
 

@@ -43,28 +43,5 @@ public class ExceptionUtils {
         // All other instances of Throwable will be silently swallowed
     }
 
-    /**
-     * Checks whether the supplied Throwable is an instance of
-     * <code>InvocationTargetException</code> and returns the throwable that is
-     * wrapped by it, if there is any.
-     *
-     * @param t the Throwable to check
-     * @return <code>t</code> or <code>t.getCause()</code>
-     */
-    public static Throwable unwrapInvocationTargetException(Throwable t) {
-        if (t instanceof InvocationTargetException && t.getCause() != null) {
-            return t.getCause();
-        }
-        return t;
-    }
 
-
-    /**
-     * NO-OP method provided to enable simple pre-loading of this class. Since the class is used extensively in error
-     * handling, it is prudent to pre-load it to avoid any failure to load this class masking the true problem during
-     * error handling.
-     */
-    public static void preload() {
-        // NO-OP
-    }
 }

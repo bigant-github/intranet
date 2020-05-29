@@ -136,20 +136,14 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
     }
 
 
-    /**
-     * The maximum number of idle processors that will be retained in the cache and re-used with a subsequent request.
-     * The default is 200. A value of -1 means unlimited. In the unlimited case, the theoretical maximum number of
-     * cached Processor objects is {@link #getMaxConnections()} although it will usually be closer to {@link
-     * #getMaxThreads()}.
-     */
-    protected int processorCache = 200;
-
-    public int getProcessorCache() {
-        return this.processorCache;
-    }
-
-    public void setProcessorCache(int processorCache) {
-        this.processorCache = processorCache;
+    private int getProcessorCache() {
+        /**
+         * The maximum number of idle processors that will be retained in the cache and re-used with a subsequent request.
+         * The default is 200. A value of -1 means unlimited. In the unlimited case, the theoretical maximum number of
+         * cached Processor objects is {@link #getMaxConnections()} although it will usually be closer to {@link
+         * #getMaxThreads()}.
+         */
+        return 200;
     }
 
 
@@ -160,27 +154,12 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
      * APR connector and with the {@link org.apache.catalina.valves.SSLValve}. If not specified, the default provider
      * will be used.
      */
-    protected String clientCertProvider = null;
+    private String clientCertProvider = null;
 
-    public String getClientCertProvider() {
+    private String getClientCertProvider() {
         return clientCertProvider;
     }
 
-    public void setClientCertProvider(String s) {
-        this.clientCertProvider = s;
-    }
-
-
-    @Override
-    public boolean isAprRequired() {
-        return false;
-    }
-
-
-    @Override
-    public boolean isSendfileSupported() {
-        return endpoint.getUseSendfile();
-    }
 
 
     /**
@@ -229,49 +208,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
     }
 
 
-    public int getMaxThreads() {
-        return endpoint.getMaxThreads();
-    }
-
-    public void setMaxThreads(int maxThreads) {
-        endpoint.setMaxThreads(maxThreads);
-    }
-
-    public int getMaxConnections() {
-        return endpoint.getMaxConnections();
-    }
-
-    public void setMaxConnections(int maxConnections) {
-        endpoint.setMaxConnections(maxConnections);
-    }
-
-
-    public int getMinSpareThreads() {
-        return endpoint.getMinSpareThreads();
-    }
-
-    public void setMinSpareThreads(int minSpareThreads) {
-        endpoint.setMinSpareThreads(minSpareThreads);
-    }
-
-
-    public int getThreadPriority() {
-        return endpoint.getThreadPriority();
-    }
-
-    public void setThreadPriority(int threadPriority) {
-        endpoint.setThreadPriority(threadPriority);
-    }
-
-
-    public int getAcceptCount() {
-        return endpoint.getAcceptCount();
-    }
-
-    public void setAcceptCount(int acceptCount) {
-        endpoint.setAcceptCount(acceptCount);
-    }
-
     @Deprecated
     public int getBacklog() {
         return endpoint.getBacklog();
@@ -283,22 +219,10 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
     }
 
 
-    public boolean getTcpNoDelay() {
-        return endpoint.getTcpNoDelay();
-    }
-
     public void setTcpNoDelay(boolean tcpNoDelay) {
         endpoint.setTcpNoDelay(tcpNoDelay);
     }
 
-
-    public int getConnectionLinger() {
-        return endpoint.getConnectionLinger();
-    }
-
-    public void setConnectionLinger(int connectionLinger) {
-        endpoint.setConnectionLinger(connectionLinger);
-    }
 
     @Deprecated
     public int getSoLinger() {
@@ -310,14 +234,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
         endpoint.setSoLinger(soLinger);
     }
 
-
-    public int getKeepAliveTimeout() {
-        return endpoint.getKeepAliveTimeout();
-    }
-
-    public void setKeepAliveTimeout(int keepAliveTimeout) {
-        endpoint.setKeepAliveTimeout(keepAliveTimeout);
-    }
 
     public InetAddress getAddress() {
         return endpoint.getAddress();
@@ -363,34 +279,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
         setConnectionTimeout(timeout);
     }
 
-    public int getMaxHeaderCount() {
-        return endpoint.getMaxHeaderCount();
-    }
-
-    public void setMaxHeaderCount(int maxHeaderCount) {
-        endpoint.setMaxHeaderCount(maxHeaderCount);
-    }
-
-    public long getConnectionCount() {
-        return endpoint.getConnectionCount();
-    }
-
-    public void setAcceptorThreadCount(int threadCount) {
-        endpoint.setAcceptorThreadCount(threadCount);
-    }
-
-    public int getAcceptorThreadCount() {
-        return endpoint.getAcceptorThreadCount();
-    }
-
-    public void setAcceptorThreadPriority(int threadPriority) {
-        endpoint.setAcceptorThreadPriority(threadPriority);
-    }
-
-    public int getAcceptorThreadPriority() {
-        return endpoint.getAcceptorThreadPriority();
-    }
-
 
     // ---------------------------------------------------------- Public methods
 
@@ -434,11 +322,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
             name.append(port);
         }
         return name.toString();
-    }
-
-
-    public void addWaitingProcessor(Processor processor) {
-        waitingProcessors.add(processor);
     }
 
 
@@ -503,10 +386,9 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
      * Find a suitable handler for the protocol upgraded name specified. This is used for direct connection protocol
      * selection.
      *
-     * @param name The name of the requested negotiated protocol.
      * @return The instance where {@link UpgradeProtocol#getAlpnName()} matches the requested protocol
      */
-    protected abstract UpgradeProtocol getUpgradeProtocol(String name);
+    protected abstract UpgradeProtocol getUpgradeProtocol();
 
 
     /**
@@ -525,10 +407,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
     protected String domain;
     protected ObjectName oname;
     protected MBeanServer mserver;
-
-    public ObjectName getObjectName() {
-        return oname;
-    }
 
     public String getDomain() {
         return domain;
@@ -650,14 +528,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
     }
 
 
-    @Override
-    public void resume() throws Exception {
-        if (getLog().isInfoEnabled()) {
-            getLog().info(sm.getString("abstractProtocolHandler.resume", getName()));
-        }
-
-        endpoint.resume();
-    }
 
 
     @Override
@@ -701,12 +571,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                 Registry.getRegistry(null, null).unregisterComponent(rgOname);
             }
         }
-    }
-
-
-    @Override
-    public void closeServerSocketGraceful() {
-        endpoint.closeServerSocketGraceful();
     }
 
 
@@ -822,7 +686,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                     }
                 }
                 if (processor == null) {
-                    processor = getProtocol().createProcessor();
                     register(processor);
                 }
 
@@ -842,7 +705,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                         ByteBuffer leftOverInput = processor.getLeftoverInput();
                         if (upgradeToken == null) {
                             // Assume direct HTTP/2 connection
-                            UpgradeProtocol upgradeProtocol = getProtocol().getUpgradeProtocol("h2c");
+                            UpgradeProtocol upgradeProtocol = getProtocol().getUpgradeProtocol();
                             if (upgradeProtocol != null) {
                                 processor = upgradeProtocol.getProcessor(wrapper, getProtocol().getAdapter());
                                 wrapper.unRead(leftOverInput);
@@ -888,12 +751,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                     }
                 } while (state == SocketState.UPGRADING);
 
-                if (state == SocketState.LONG) {
-                    // In the middle of processing a request/response. Keep the
-                    // socket associated with the processor. Exact requirements
-                    // depend on type of long poll
-                    longPoll(wrapper, processor);
-                } else if (state == SocketState.OPEN) {
+                if (state == SocketState.OPEN) {
                     // In keep-alive but between requests. OK to recycle
                     // processor. Continue to poll for the next request.
                     connections.remove(socket);
@@ -910,9 +768,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
                     // multiple read events which may lead to thread starvation
                     // in the connector. The write() method will add this socket
                     // to the poller if necessary.
-                    if (status != SocketEvent.OPEN_WRITE) {
-                        longPoll(wrapper, processor);
-                    }
                 } else if (state == SocketState.SUSPENDED) {
                     // Don't add sockets back to the poller.
                     // The resumeProcessing() method will add this socket
@@ -975,12 +830,6 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler, MBeanRegis
 
 
         protected void longPoll(SocketWrapperBase<?> socket, Processor processor) {
-        }
-
-
-        @Override
-        public Set<S> getOpenSockets() {
-            return connections.keySet();
         }
 
 

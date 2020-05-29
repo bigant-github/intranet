@@ -47,7 +47,7 @@ public class BaseNotificationBroadcaster implements NotificationBroadcaster {
      * The set of registered <code>BaseNotificationBroadcasterEntry</code>
      * entries.
      */
-    protected ArrayList<BaseNotificationBroadcasterEntry> entries =
+    private ArrayList<BaseNotificationBroadcasterEntry> entries =
             new ArrayList<>();
 
 

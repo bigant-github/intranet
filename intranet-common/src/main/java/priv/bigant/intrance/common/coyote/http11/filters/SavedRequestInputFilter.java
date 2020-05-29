@@ -101,14 +101,6 @@ public class SavedRequestInputFilter implements InputFilter {
     }
 
     /**
-     * Return the name of the associated encoding; here, the value is null.
-     */
-    @Override
-    public ByteChunk getEncodingName() {
-        return null;
-    }
-
-    /**
      * Set the next buffer in the filter pipeline (has no effect).
      */
     @Override

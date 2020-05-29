@@ -17,7 +17,6 @@
 package priv.bigant.intrance.common.coyote.http11.servlet.http;
 
 import priv.bigant.intrance.common.coyote.http11.servlet.ServletInputStream;
-import priv.bigant.intrance.common.coyote.http11.servlet.ServletOutputStream;
 
 import java.io.IOException;
 
@@ -40,13 +39,4 @@ public interface WebConnection extends AutoCloseable {
      */
     ServletInputStream getInputStream() throws IOException;
 
-    /**
-     * Provides access to the {@link ServletOutputStream} for writing data to
-     * the client.
-     *
-     * @return the output stream
-     *
-     * @throws IOException If an I/O occurs while obtaining the stream
-     */
-    ServletOutputStream getOutputStream() throws IOException;
 }

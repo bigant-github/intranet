@@ -1,7 +1,6 @@
 package priv.bigant.intrance.common.http;
 
 
-import java.util.Arrays;
 
 /**
  * HTTP header enum type.

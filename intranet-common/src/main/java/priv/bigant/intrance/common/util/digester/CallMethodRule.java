@@ -424,9 +424,8 @@ public class CallMethodRule extends Rule {
             sb.append(")");
             digester.log.debug(sb.toString());
         }
-        Object result = IntrospectionUtils.callMethodN(target, methodName,
+        IntrospectionUtils.callMethodN(target, methodName,
                 paramValues, paramTypes);
-        processMethodCallResult(result);
     }
 
 
@@ -440,15 +439,6 @@ public class CallMethodRule extends Rule {
 
     }
 
-    /**
-     * Subclasses may override this method to perform additional processing of the
-     * invoked method's result.
-     *
-     * @param result the Object returned by the method invoked, possibly null
-     */
-    protected void processMethodCallResult(Object result) {
-        // do nothing
-    }
 
     /**
      * Render a printable version of this Rule.

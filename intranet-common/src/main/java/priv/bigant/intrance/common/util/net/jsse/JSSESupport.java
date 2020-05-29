@@ -60,14 +60,6 @@ public class JSSESupport implements SSLSupport, SSLSessionManager {
         }
     }
 
-    /*
-     * NO-OP method provided to make it easy for other classes in this package
-     * to trigger the loading of this class and the population of the
-     * keySizeCache.
-     */
-    static void init() {
-        // NO-OP
-    }
 
     private SSLSession session;
 

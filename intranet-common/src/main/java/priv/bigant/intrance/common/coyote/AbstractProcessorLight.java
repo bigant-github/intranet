@@ -18,10 +18,10 @@ package priv.bigant.intrance.common.coyote;
 
 
 import org.slf4j.Logger;
+import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
 import priv.bigant.intrance.common.util.net.DispatchType;
 import priv.bigant.intrance.common.util.net.SocketEvent;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
-import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -34,7 +34,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public abstract class AbstractProcessorLight implements Processor {
 
-    private Set<DispatchType> dispatches = new CopyOnWriteArraySet<>();
+    private final Set<DispatchType> dispatches = new CopyOnWriteArraySet<>();
 
     @Override
     public SocketState process(SocketWrapperBase<?> socketWrapper, SocketEvent status) throws IOException {

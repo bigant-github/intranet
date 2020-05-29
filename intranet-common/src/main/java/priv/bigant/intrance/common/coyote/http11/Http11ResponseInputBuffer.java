@@ -135,10 +135,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
      */
     private final int headerBufferSize;
 
-    /**
-     * Known size of the NioChannel read buffer.
-     */
-    private int socketReadBufferSize;
 
 
     // ----------------------------------------------------------- Constructors
@@ -585,7 +581,7 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
             // limitation to enforce the meaning of headerBufferSize
             // From the way how buf is allocated and how blank lines are being
             // read, it should be enough to check (1) only.
-            if (byteBuffer.position() > headerBufferSize || byteBuffer.capacity() - byteBuffer.position() < socketReadBufferSize) {
+            if (byteBuffer.position() > headerBufferSize) {
                 throw new IllegalArgumentException(sm.getString("iib.requestheadertoolarge.error"));
             }
         } while (status == HeaderParseStatus.HAVE_MORE_HEADERS);

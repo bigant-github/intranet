@@ -28,10 +28,6 @@ public class HttpIntranetConnectorProcess extends ProcessBase {
         this.serviceConnectorThread = serviceConnectorThread;
     }
 
-    @Override
-    public void start() {
-
-    }
 
     @Override
     public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {

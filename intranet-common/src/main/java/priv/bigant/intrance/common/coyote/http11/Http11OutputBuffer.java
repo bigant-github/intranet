@@ -136,14 +136,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
     // --------------------------------------------------------- Public Methods
 
-    /**
-     * Reset the header buffer if an error occurs during the writing of the headers so the error response can be
-     * written.
-     */
-    void resetHeaderBuffer() {
-        headerBuffer.position(0).limit(headerBuffer.capacity());
-    }
-
 
     /**
      * Recycle the output buffer. This should be called when closing the connection.
@@ -168,24 +160,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
     public void init(SocketWrapperBase<?> socketWrapper) {
         this.socketWrapper = socketWrapper;
-    }
-
-
-    @SuppressWarnings("deprecation")
-    public void sendAck() throws IOException {
-        /*if (!response.isCommitted()) {
-            socketWrapper.write(isBlocking(), Constants.ACK_BYTES_REASON, 0, Constants.ACK_BYTES_REASON.length);
-            *//*if (sendReasonPhrase) {
-                socketWrapper.write(isBlocking(), Constants.ACK_BYTES_REASON, 0, Constants.ACK_BYTES_REASON.length);
-            } else {
-                socketWrapper.write(isBlocking(), Constants.ACK_BYTES, 0, Constants.ACK_BYTES.length);
-            }*//*
-            if (flushBuffer(true)) {
-                throw new IOException("Failed to send HTTP 100 continue response");
-            }
-        }*/
-        socketWrapper.write(isBlocking(), Constants.ACK_BYTES_REASON, 0, Constants.ACK_BYTES_REASON.length);
-
     }
 
 
@@ -377,19 +351,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    //------------------------------------------------------ Non-blocking writes
-
-    /**
-     * Writes any remaining buffered data.
-     *
-     * @param block Should this method block until the buffer is empty
-     * @return <code>true</code> if data remains in the buffer (which can only
-     * happen in non-blocking mode) else <code>false</code>.
-     * @throws IOException Error writing data
-     */
-    protected boolean flushBuffer(boolean block) throws IOException {
-        return socketWrapper.flush(block);
-    }
 
 
     /**
@@ -414,10 +375,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
         return socketWrapper.hasDataToWrite();
     }
 
-
-    public void registerWriteInterest() {
-        socketWrapper.registerWriteInterest();
-    }
 
 
     // ------------------------------------------ SocketOutputBuffer Inner Class

@@ -16,7 +16,6 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-import priv.bigant.intrance.common.coyote.http11.upgrade.InternalHttpUpgradeHandler;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 
 public interface UpgradeProtocol {
@@ -31,12 +30,6 @@ public interface UpgradeProtocol {
      */
     public String getHttpUpgradeName(boolean isSSLEnabled);
 
-    /**
-     * @return The byte sequence as listed in the IANA registry for this
-     *         protocol or <code>null</code> if upgrade via ALPN is not
-     *         supported.
-     */
-    public byte[] getAlpnIdentifier();
 
     /**
      * @return The name of the protocol as listed in the IANA registry if and
@@ -67,16 +60,6 @@ public interface UpgradeProtocol {
      *         protocol.
      */
     public Processor getProcessor(SocketWrapperBase<?> socketWrapper, Adapter adapter);
-
-
-    /**
-     * @param adapter The Adapter to use to configure the new upgrade handler
-     * @param request A copy (may be incomplete) of the request that triggered
-     *                the upgrade
-     *
-     * @return An instance of the HTTP upgrade handler for this protocol
-     */
-    public InternalHttpUpgradeHandler getInternalUpgradeHandler(Adapter adapter, Request request);
 
 
     /**

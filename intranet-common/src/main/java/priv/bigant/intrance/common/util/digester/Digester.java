@@ -57,7 +57,6 @@ import priv.bigant.intrance.common.util.IntrospectionUtils;
 import priv.bigant.intrance.common.util.buf.B2CConverter;
 import priv.bigant.intrance.common.util.res.StringManager;
 import priv.bigant.intrance.common.util.security.PermissionCheck;
-import sun.rmi.runtime.Log;
 
 
 /**
@@ -597,33 +596,6 @@ public class Digester extends DefaultHandler2 {
 
 
     /**
-     * @return the namespace URI that will be applied to all subsequently added <code>Rule</code> objects.
-     * @deprecated Unused. Will be removed in Tomcat 9
-     */
-    @Deprecated
-    public String getRuleNamespaceURI() {
-
-        return (getRules().getNamespaceURI());
-
-    }
-
-
-    /**
-     * Set the namespace URI that will be applied to all subsequently added <code>Rule</code> objects.
-     *
-     * @param ruleNamespaceURI Namespace URI that must match on all subsequently added rules, or <code>null</code> for
-     *                         matching regardless of the current namespace URI
-     * @deprecated Unused. Will be removed in Tomcat 9
-     */
-    @Deprecated
-    public void setRuleNamespaceURI(String ruleNamespaceURI) {
-
-        getRules().setNamespaceURI(ruleNamespaceURI);
-
-    }
-
-
-    /**
      * @return the SAXParser we will use to parse the input stream.  If there is a problem creating the parser, return
      * <code>null</code>.
      */
@@ -886,17 +858,6 @@ public class Digester extends DefaultHandler2 {
         }
 
         // Fire "finish" events for all defined rules
-        for (Rule rule : getRules().rules()) {
-            try {
-                rule.finish();
-            } catch (Exception e) {
-                log.error("Finish event threw exception", e);
-                throw createSAXException(e);
-            } catch (Error e) {
-                log.error("Finish event threw error", e);
-                throw e;
-            }
-        }
 
         // Perform final cleanup
         clear();
@@ -1540,30 +1501,6 @@ public class Digester extends DefaultHandler2 {
 
 
     /**
-     * Register a set of Rule instances defined in a RuleSet.
-     *
-     * @param ruleSet The RuleSet instance to configure from
-     */
-    public void addRuleSet(RuleSet ruleSet) {
-
-        String oldNamespaceURI = getRuleNamespaceURI();
-        @SuppressWarnings("deprecation")
-        String newNamespaceURI = ruleSet.getNamespaceURI();
-        if (log.isDebugEnabled()) {
-            if (newNamespaceURI == null) {
-                log.debug("addRuleSet() with no namespace URI");
-            } else {
-                log.debug("addRuleSet() with namespace URI " + newNamespaceURI);
-            }
-        }
-        setRuleNamespaceURI(newNamespaceURI);
-        ruleSet.addRuleInstances(this);
-        setRuleNamespaceURI(oldNamespaceURI);
-
-    }
-
-
-    /**
      * Add an "call method" rule for a method which accepts no arguments.
      *
      * @param pattern    Element matching pattern
@@ -1604,23 +1541,6 @@ public class Digester extends DefaultHandler2 {
 
     }
 
-
-    /**
-     * Add a "factory create" rule for the specified parameters.
-     *
-     * @param pattern                Element matching pattern
-     * @param creationFactory        Previously instantiated ObjectCreationFactory to be utilized
-     * @param ignoreCreateExceptions when <code>true</code> any exceptions thrown during object creation will be
-     *                               ignored.
-     * @see FactoryCreateRule
-     */
-    public void addFactoryCreate(String pattern, ObjectCreationFactory creationFactory,
-                                 boolean ignoreCreateExceptions) {
-
-        creationFactory.setDigester(this);
-        addRule(pattern, new FactoryCreateRule(creationFactory, ignoreCreateExceptions));
-
-    }
 
     /**
      * Add an "object create" rule for the specified parameters.

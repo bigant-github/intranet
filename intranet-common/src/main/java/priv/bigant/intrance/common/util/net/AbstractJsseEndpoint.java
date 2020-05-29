@@ -20,6 +20,8 @@ import priv.bigant.intrance.common.util.compat.JreCompat;
 import priv.bigant.intrance.common.util.net.openssl.OpenSSLImplementation;
 import priv.bigant.intrance.common.util.net.openssl.ciphers.Cipher;
 
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -28,9 +30,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLParameters;
 
 
 public abstract class AbstractJsseEndpoint<S> extends AbstractEndpoint<S> {
@@ -47,11 +46,6 @@ public abstract class AbstractJsseEndpoint<S> extends AbstractEndpoint<S> {
 
     public void setSslImplementationName(String s) {
         this.sslImplementationName = s;
-    }
-
-
-    public SSLImplementation getSslImplementation() {
-        return sslImplementation;
     }
 
 

@@ -214,14 +214,4 @@ public class DeferredFileOutputStream
     }
 
 
-    /**
-     * Closes underlying output stream, and mark this as closed
-     *
-     * @throws IOException if an error occurs.
-     */
-    @Override
-    public void close() throws IOException
-    {
-        super.close();
-    }
 }

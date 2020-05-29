@@ -21,8 +21,6 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.coyote.http11.servlet.ServletOutputStream;
 import priv.bigant.intrance.common.coyote.http11.servlet.WriteListener;
 import priv.bigant.intrance.common.util.ExceptionUtils;
-import priv.bigant.intrance.common.util.net.ContainerThreadMarker;
-import priv.bigant.intrance.common.util.net.DispatchType;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 import priv.bigant.intrance.common.util.res.StringManager;
 
@@ -94,33 +92,6 @@ public class UpgradeServletOutputStream extends ServletOutputStream {
         }
     }
 
-
-    @Override
-    public final void setWriteListener(WriteListener listener) {
-        if (listener == null) {
-            throw new IllegalArgumentException(
-                    sm.getString("upgrade.sos.writeListener.null"));
-        }
-        if (this.listener != null) {
-            throw new IllegalArgumentException(
-                    sm.getString("upgrade.sos.writeListener.set"));
-        }
-        if (closed) {
-            throw new IllegalStateException(sm.getString("upgrade.sos.write.closed"));
-        }
-        this.listener = listener;
-        // Container is responsible for first call to onWritePossible().
-        synchronized (registeredLock) {
-            registered = true;
-            // Container is responsible for first call to onDataAvailable().
-            if (ContainerThreadMarker.isContainerThread()) {
-                processor.addDispatch(DispatchType.NON_BLOCKING_WRITE);
-            } else {
-                socketWrapper.registerWriteInterest();
-            }
-        }
-
-    }
 
 
     final boolean isClosed() {

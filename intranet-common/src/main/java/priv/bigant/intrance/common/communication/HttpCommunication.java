@@ -42,10 +42,6 @@ public abstract class HttpCommunication extends Communication {
      */
     public abstract void putSocketBean(SocketBean socketBean);
 
-    @Override
-    public synchronized void close() {
-        super.close();
-    }
 
     public String createSocketBean() {
         String id = UUID.randomUUID().toString();

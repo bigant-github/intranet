@@ -146,11 +146,6 @@ public class BufferedInputFilter implements InputFilter, ApplicationBufferHandle
     }
 
     @Override
-    public ByteChunk getEncodingName() {
-        return ENCODING;
-    }
-
-    @Override
     public long end() throws IOException {
         return 0;
     }

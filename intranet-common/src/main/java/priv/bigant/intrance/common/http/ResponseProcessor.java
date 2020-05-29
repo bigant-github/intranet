@@ -2,14 +2,13 @@ package priv.bigant.intrance.common.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.exception.ServletException;
-import priv.bigant.intrance.common.Config;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +26,6 @@ public class ResponseProcessor implements Runnable {
      */
     private boolean keepAlive = false;
 
-    /**
-     * True if the client has asked to recieve a request acknoledgement. If so the server will send a preliminary 100
-     * Continue response just after it has successfully parsed the request headers, and before starting reading the
-     * request entity body.
-     */
-    private boolean sendAck = false;
     private Config config;
     private HttpResponseLine responseLine = new HttpResponseLine();
     private SocketInputStream input;
@@ -74,6 +67,12 @@ public class ResponseProcessor implements Runnable {
      * @param output Socket output stream
      */
     private void ackRequest(OutputStream output) throws IOException {
+        /**
+         * True if the client has asked to recieve a request acknoledgement. If so the server will send a preliminary 100
+         * Continue response just after it has successfully parsed the request headers, and before starting reading the
+         * request entity body.
+         */
+        boolean sendAck = false;
         if (sendAck)
             output.write(new byte[1]);
     }

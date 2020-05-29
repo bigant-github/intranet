@@ -90,14 +90,13 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
         private static final Logger LOG = LoggerFactory.getLogger(RecycledProcessors.class);
         protected final AtomicInteger size = new AtomicInteger(0);
 
-        private int processorCacheSize = 200;
-
         public RecycledProcessors() {
         }
 
         @SuppressWarnings("sync-override") // Size may exceed cache size a bit
         @Override
         public boolean push(Processor processor) {
+            int processorCacheSize = 200;
             int cacheSize = processorCacheSize;
             boolean offer = cacheSize == -1 || size.get() < cacheSize;
             //avoid over growing our cache or add after we have stopped

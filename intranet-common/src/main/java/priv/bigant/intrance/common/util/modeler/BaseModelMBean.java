@@ -239,7 +239,7 @@ public class BaseModelMBean implements DynamicMBean, MBeanRegistration,  ModelMB
      *  occurs when invoking a method
      */
     @Override
-    public Object invoke(String name, Object params[], String signature[])
+    public Object invoke(String name, Object[] params, String[] signature)
         throws MBeanException, ReflectionException
     {
         if( (resource instanceof DynamicMBean) &&

@@ -25,7 +25,6 @@ import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.Parameters;
 import priv.bigant.intrance.common.util.http.ServerCookies;
 import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
-import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -105,7 +104,7 @@ public final class Request {
     /**
      * Notes.
      */
-    private final Object notes[] = new Object[Constants.MAX_NOTES];
+    private final Object[] notes = new Object[Constants.MAX_NOTES];
 
 
     /**

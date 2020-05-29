@@ -2,12 +2,12 @@ package priv.bigant.intrance.common.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.exception.ServletException;
-import priv.bigant.intrance.common.Config;
 
-import java.io.*;
-import java.net.Socket;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +26,6 @@ public class RequestProcessor implements Runnable {
      * Keep alive indicator.
      */
     private boolean keepAlive = false;
-
-    /**
-     * HTTP/1.1 client.
-     */
-    private boolean http11 = true;
-
 
     /**
      * True if the client has asked to recieve a request acknoledgement. If so the server will send a preliminary 100

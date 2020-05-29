@@ -20,7 +20,6 @@ package priv.bigant.intrance.common.coyote.http11;
 
 import priv.bigant.intrance.common.coyote.InputBuffer;
 import priv.bigant.intrance.common.coyote.Request;
-import priv.bigant.intrance.common.util.buf.ByteChunk;
 
 import java.io.IOException;
 
@@ -43,15 +42,6 @@ public interface InputFilter extends InputBuffer {
      * Make the filter ready to process the next request.
      */
     public void recycle();
-
-
-    /**
-     * Get the name of the encoding handled by this filter.
-     *
-     * @return The encoding name as a byte chunk to facilitate comparison with the value read from the HTTP headers
-     * which will also be a ByteChunk
-     */
-    public ByteChunk getEncodingName();
 
 
     /**

@@ -76,13 +76,6 @@ public interface ProtocolHandler {
     public void pause() throws Exception;
 
 
-    /**
-     * Resume the protocol (optional).
-     *
-     * @throws Exception If the protocol handler fails to resume
-     */
-    public void resume() throws Exception;
-
 
     /**
      * Stop the protocol.
@@ -99,38 +92,6 @@ public interface ProtocolHandler {
      */
     public void destroy() throws Exception;
 
-
-    /**
-     * Close the server socket (to prevent further connections) if the server socket was bound on {@link #start()}
-     * (rather than on {@link #init()} but do not perform any further shutdown.
-     */
-    public void closeServerSocketGraceful();
-
-
-    /**
-     * Requires APR/native library
-     *
-     * @return <code>true</code> if this Protocol Handler requires the
-     * APR/native library, otherwise <code>false</code>
-     */
-    public boolean isAprRequired();
-
-
-    /**
-     * Does this ProtocolHandler support sendfile?
-     *
-     * @return <code>true</code> if this Protocol Handler supports sendfile,
-     * otherwise <code>false</code>
-     */
-    public boolean isSendfileSupported();
-
-
-    public void addSslHostConfig(SSLHostConfig sslHostConfig);
-
     public SSLHostConfig[] findSslHostConfigs();
 
-
-    public void addUpgradeProtocol(UpgradeProtocol upgradeProtocol);
-
-    public UpgradeProtocol[] findUpgradeProtocols();
 }

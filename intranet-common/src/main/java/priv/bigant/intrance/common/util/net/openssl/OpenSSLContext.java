@@ -18,6 +18,7 @@ package priv.bigant.intrance.common.util.net.openssl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.jni.SSLContext;
 import priv.bigant.intrance.common.jni.*;
 import priv.bigant.intrance.common.util.codec.binary.Base64;
 import priv.bigant.intrance.common.util.net.AbstractEndpoint;
@@ -26,8 +27,8 @@ import priv.bigant.intrance.common.util.net.SSLHostConfig;
 import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate;
 import priv.bigant.intrance.common.util.net.SSLHostConfigCertificate.Type;
 import priv.bigant.intrance.common.util.res.StringManager;
-import sun.rmi.runtime.Log;
 
+import javax.net.ssl.*;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -39,16 +40,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSessionContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509KeyManager;
-import javax.net.ssl.X509TrustManager;
 
 
 public class OpenSSLContext implements priv.bigant.intrance.common.util.net.SSLContext {
@@ -271,17 +262,6 @@ public class OpenSSLContext implements priv.bigant.intrance.common.util.net.SSLC
                 // Client certificate verification based on custom trust managers
                 x509TrustManager = chooseTrustManager(tms);
                 SSLContext.setCertVerifyCallback(ctx, new CertificateVerifier() {
-                    @Override
-                    public boolean verify(long ssl, byte[][] chain, String auth) {
-                        X509Certificate[] peerCerts = certificates(chain);
-                        try {
-                            x509TrustManager.checkClientTrusted(peerCerts, auth);
-                            return true;
-                        } catch (Exception e) {
-                            log.debug(sm.getString("openssl.certificateVerificationFailed"), e);
-                        }
-                        return false;
-                    }
                 });
                 // Pass along the DER encoded certificates of the accepted client
                 // certificate issuers, so that their subjects can be presented

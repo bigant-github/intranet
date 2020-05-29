@@ -38,7 +38,6 @@ public class JSSEImplementation extends SSLImplementation {
         // Make sure the keySizeCache is loaded now as part of connector startup
         // else the cache will be populated on first use which will slow that
         // request down.
-        JSSESupport.init();
     }
 
     @Override

@@ -40,20 +40,4 @@ public interface BIOCallback {
      */
     public int read(byte[] buf);
 
-    /**
-     * Puts string
-     *
-     * @param data String to write
-     * @return Number of characters written
-     */
-    public int puts(String data);
-
-    /**
-     * Read string up to the len or CLRLF
-     *
-     * @param len Maximum number of characters to read
-     * @return String with up to len bytes read
-     */
-    public String gets(int len);
-
 }

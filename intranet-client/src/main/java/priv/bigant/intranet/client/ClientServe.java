@@ -15,12 +15,11 @@ import java.nio.charset.StandardCharsets;
 public class ClientServe extends Thread {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ClientServe.class);
-    private ClientConfig clientConfig;
     private SocketBean socketBean;
 
     public ClientServe(SocketBean socketBean) {
         this.socketBean = socketBean;
-        clientConfig = (ClientConfig) ClientConfig.getConfig();
+        ClientConfig clientConfig = (ClientConfig) ClientConfig.getConfig();
     }
 
 

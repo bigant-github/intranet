@@ -81,90 +81,6 @@ public abstract class ServletOutputStream extends OutputStream {
     }
 
     /**
-     * Writes a <code>boolean</code> value to the client, with no carriage
-     * return-line feed (CRLF) character at the end.
-     *
-     * @param b
-     *            the <code>boolean</code> value to send to the client
-     * @exception IOException
-     *                if an input or output exception occurred
-     */
-    public void print(boolean b) throws IOException {
-        String msg;
-        if (b) {
-            msg = lStrings.getString("value.true");
-        } else {
-            msg = lStrings.getString("value.false");
-        }
-        print(msg);
-    }
-
-    /**
-     * Writes a character to the client, with no carriage return-line feed
-     * (CRLF) at the end.
-     *
-     * @param c
-     *            the character to send to the client
-     * @exception IOException
-     *                if an input or output exception occurred
-     */
-    public void print(char c) throws IOException {
-        print(String.valueOf(c));
-    }
-
-    /**
-     * Writes an int to the client, with no carriage return-line feed (CRLF) at
-     * the end.
-     *
-     * @param i
-     *            the int to send to the client
-     * @exception IOException
-     *                if an input or output exception occurred
-     */
-    public void print(int i) throws IOException {
-        print(String.valueOf(i));
-    }
-
-    /**
-     * Writes a <code>long</code> value to the client, with no carriage
-     * return-line feed (CRLF) at the end.
-     *
-     * @param l
-     *            the <code>long</code> value to send to the client
-     * @exception IOException
-     *                if an input or output exception occurred
-     */
-    public void print(long l) throws IOException {
-        print(String.valueOf(l));
-    }
-
-    /**
-     * Writes a <code>float</code> value to the client, with no carriage
-     * return-line feed (CRLF) at the end.
-     *
-     * @param f
-     *            the <code>float</code> value to send to the client
-     * @exception IOException
-     *                if an input or output exception occurred
-     */
-    public void print(float f) throws IOException {
-        print(String.valueOf(f));
-    }
-
-    /**
-     * Writes a <code>double</code> value to the client, with no carriage
-     * return-line feed (CRLF) at the end.
-     *
-     * @param d
-     *            the <code>double</code> value to send to the client
-     * @exception IOException
-     *                if an input or output exception occurred
-     */
-    public void print(double d) throws IOException {
-        print(String.valueOf(d));
-    }
-
-    /**
      * Writes a carriage return-line feed (CRLF) to the client.
      *
      * @exception IOException
@@ -288,20 +204,4 @@ public abstract class ServletOutputStream extends OutputStream {
      */
     public abstract boolean isReady();
 
-    /**
-     * Sets the {@link WriteListener} for this {@link ServletOutputStream} and
-     * thereby switches to non-blocking IO. It is only valid to switch to
-     * non-blocking IO within async processing or HTTP upgrade processing.
-     *
-     * @param listener  The non-blocking IO write listener
-     *
-     * @throws IllegalStateException    If this method is called if neither
-     *                                  async nor HTTP upgrade is in progress or
-     *                                  if the {@link WriteListener} has already
-     *                                  been set
-     * @throws NullPointerException     If listener is null
-     *
-     * @since Servlet 3.1
-     */
-    public abstract void setWriteListener(WriteListener listener);
 }

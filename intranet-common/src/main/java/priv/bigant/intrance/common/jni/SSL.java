@@ -30,7 +30,7 @@ public final class SSL {
      * Define the certificate algorithm types
      */
     public static final int SSL_ALGO_UNKNOWN = 0;
-    public static final int SSL_ALGO_RSA     = (1<<0);
+    public static final int SSL_ALGO_RSA     = (1);
     public static final int SSL_ALGO_DSA     = (1<<1);
     public static final int SSL_ALGO_ALL     = (SSL_ALGO_RSA|SSL_ALGO_DSA);
 
@@ -56,7 +56,7 @@ public final class SSL {
      * Define the SSL options
      */
     public static final int SSL_OPT_NONE           = 0;
-    public static final int SSL_OPT_RELSET         = (1<<0);
+    public static final int SSL_OPT_RELSET         = (1);
     public static final int SSL_OPT_STDENVVARS     = (1<<1);
     public static final int SSL_OPT_EXPORTCERTDATA = (1<<3);
     public static final int SSL_OPT_FAKEBASICAUTH  = (1<<4);
@@ -68,6 +68,7 @@ public final class SSL {
      * Define the SSL Protocol options
      */
     public static final int SSL_PROTOCOL_NONE  = 0;
+    @SuppressWarnings("PointlessBitwiseExpression")
     public static final int SSL_PROTOCOL_SSLV2 = (1<<0);
     public static final int SSL_PROTOCOL_SSLV3 = (1<<1);
     public static final int SSL_PROTOCOL_TLSV1 = (1<<2);
@@ -261,9 +262,6 @@ public final class SSL {
     /* Return OpenSSL version number (compile time version, if version < 1.1.0) */
     public static native int version();
 
-    /* Return OpenSSL version string (run time version) */
-    public static native String versionString();
-
     /**
      * Initialize OpenSSL support.
      * This function needs to be called once for the
@@ -274,116 +272,6 @@ public final class SSL {
      * @return APR status code
      */
     public static native int initialize(String engine);
-
-    /**
-     * Get the status of FIPS Mode.
-     *
-     * @return FIPS_mode return code. It is <code>0</code> if OpenSSL is not
-     *  in FIPS mode, <code>1</code> if OpenSSL is in FIPS Mode.
-     * @throws Exception If tcnative was not compiled with FIPS Mode available.
-     * @see <a href="http://wiki.openssl.org/index.php/FIPS_mode%28%29">OpenSSL method FIPS_mode()</a>
-     */
-    public static native int fipsModeGet() throws Exception;
-
-    /**
-     * Enable/Disable FIPS Mode.
-     *
-     * @param mode 1 - enable, 0 - disable
-     *
-     * @return FIPS_mode_set return code
-     * @throws Exception If tcnative was not compiled with FIPS Mode available,
-     *  or if {@code FIPS_mode_set()} call returned an error value.
-     * @see <a href="http://wiki.openssl.org/index.php/FIPS_mode_set%28%29">OpenSSL method FIPS_mode_set()</a>
-     */
-    public static native int fipsModeSet(int mode) throws Exception;
-
-    /**
-     * Add content of the file to the PRNG
-     * @param filename Filename containing random data.
-     *        If null the default file will be tested.
-     *        The seed file is $RANDFILE if that environment variable is
-     *        set, $HOME/.rnd otherwise.
-     *        In case both files are unavailable builtin
-     *        random seed generator is used.
-     * @return <code>true</code> if the operation was successful
-     */
-    public static native boolean randLoad(String filename);
-
-    /**
-     * Writes a number of random bytes (currently 1024) to
-     * file <code>filename</code> which can be used to initialize the PRNG
-     * by calling randLoad in a later session.
-     * @param filename Filename to save the data
-     * @return <code>true</code> if the operation was successful
-     */
-    public static native boolean randSave(String filename);
-
-    /**
-     * Creates random data to filename
-     * @param filename Filename to save the data
-     * @param len The length of random sequence in bytes
-     * @param base64 Output the data in Base64 encoded format
-     * @return <code>true</code> if the operation was successful
-     */
-    public static native boolean randMake(String filename, int len,
-                                          boolean base64);
-
-    /**
-     * Sets global random filename.
-     * @param filename Filename to use.
-     *        If set it will be used for SSL initialization
-     *        and all contexts where explicitly not set.
-     */
-    public static native void randSet(String filename);
-
-    /**
-     * Initialize new BIO
-     * @param pool The pool to use.
-     * @param callback BIOCallback to use
-     * @return New BIO handle
-     * @throws Exception An error occurred
-     */
-     public static native long newBIO(long pool, BIOCallback callback)
-            throws Exception;
-
-    /**
-     * Close BIO and dereference callback object
-     * @param bio BIO to close and destroy.
-     * @return APR Status code
-     */
-     public static native int closeBIO(long bio);
-
-    /**
-     * Set global Password callback for obtaining passwords.
-     * @param callback PasswordCallback implementation to use.
-     */
-     public static native void setPasswordCallback(PasswordCallback callback);
-
-    /**
-     * Set global Password for decrypting certificates and keys.
-     * @param password Password to use.
-     */
-     public static native void setPassword(String password);
-
-    /**
-     * Return last SSL error string
-     * @return the error string
-     */
-    public static native String getLastError();
-
-    /**
-     * Return true if all the requested SSL_OP_* are supported by OpenSSL.
-     *
-     * <i>Note that for versions of tcnative &lt; 1.1.25, this method will
-     * return <code>true</code> if and only if <code>op</code>=
-     * {@link #SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION} and tcnative
-     * supports that flag.</i>
-     *
-     * @param op Bitwise-OR of all SSL_OP_* to test.
-     *
-     * @return true if all SSL_OP_* are supported by OpenSSL library.
-     */
-    public static native boolean hasOp(int op);
 
     /**
      * Return the handshake completed count.
@@ -417,22 +305,6 @@ public final class SSL {
      * @return pointer to SSL instance (SSL *)
      */
     public static native long newSSL(long ctx, boolean server);
-
-    /**
-     * SSL_set_bio
-     * @param ssl SSL pointer (SSL *)
-     * @param rbio read BIO pointer (BIO *)
-     * @param wbio write BIO pointer (BIO *)
-     */
-    public static native void setBIO(long ssl, long rbio, long wbio);
-
-    /**
-     * SSL_get_error
-     * @param ssl SSL pointer (SSL *)
-     * @param ret TLS/SSL I/O return value
-     * @return the error status
-     */
-    public static native int getError(long ssl, int ret);
 
     /**
      * BIO_ctrl_pending.
@@ -490,13 +362,6 @@ public final class SSL {
      * @return the operation status
      */
     public static native int getShutdown(long ssl);
-
-    /**
-     * SSL_set_shutdown
-     * @param ssl the SSL instance (SSL *)
-     * @param mode Shutdown mode
-     */
-    public static native void setShutdown(long ssl, int mode);
 
     /**
      * SSL_free

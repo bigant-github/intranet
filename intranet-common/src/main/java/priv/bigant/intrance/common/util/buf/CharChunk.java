@@ -648,15 +648,4 @@ public final class CharChunk extends AbstractChunk implements CharSequence {
         return end - start;
     }
 
-    /**
-     * NO-OP.
-     *
-     * @param optimizedWrite Ignored
-     *
-     * @deprecated Unused code. This is now a NO-OP and will be removed without
-     *             replacement in Tomcat 10.
-     */
-    @Deprecated
-    public void setOptimizedWrite(boolean optimizedWrite) {
-    }
 }

@@ -86,12 +86,4 @@ public interface Processor {
      */
     void pause();
 
-    /**
-     * Check to see if the async generation (each cycle of async increments the generation of the AsyncStateMachine) is
-     * the same as the generation when the most recent async timeout was triggered. This is intended to be used to avoid
-     * unnecessary processing.
-     *
-     * @return {@code true} If the async generation has not changed since the async timeout was triggered
-     */
-    /*boolean checkAsyncTimeoutGeneration();*/
 }

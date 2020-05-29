@@ -163,7 +163,7 @@ public class AsyncStateMachine {
         private final boolean isCompleting;
         private final boolean isDispatching;
 
-        private AsyncState(boolean isAsync, boolean isStarted, boolean isCompleting, boolean isDispatching) {
+        AsyncState(boolean isAsync, boolean isStarted, boolean isCompleting, boolean isDispatching) {
             this.isAsync = isAsync;
             this.isStarted = isStarted;
             this.isCompleting = isCompleting;
@@ -233,19 +233,6 @@ public class AsyncStateMachine {
         return state.isCompleting();
     }
 
-    /**
-     * Obtain the time that this connection last transitioned to async processing.
-     *
-     * @return The time (as returned by {@link System#currentTimeMillis()}) that this connection last transitioned to
-     * async
-     */
-    public long getLastAsyncStart() {
-        return lastAsyncStart;
-    }
-
-    long getCurrentGeneration() {
-        return generation.get();
-    }
 
     public synchronized void asyncStart(AsyncContextCallback asyncCtxt) {
         if (state == AsyncState.DISPATCHED) {
@@ -411,18 +398,6 @@ public class AsyncStateMachine {
     }
 
 
-    public synchronized void asyncMustError() {
-        if (state == AsyncState.STARTED) {
-            //TODO clearNonBlockingListeners();
-            state = AsyncState.MUST_ERROR;
-        } else {
-            throw new IllegalStateException(
-                    sm.getString("asyncStateMachine.invalidAsyncState",
-                            "asyncMustError()", state));
-        }
-    }
-
-
     public synchronized void asyncError() {
         if (state == AsyncState.STARTING ||
                 state == AsyncState.STARTED ||
@@ -479,15 +454,6 @@ public class AsyncStateMachine {
 
     }
 
-
-    synchronized boolean isAvailable() {
-        if (asyncCtxt == null) {
-            // Async processing has probably been completed in another thread.
-            // Trigger a timeout to make sure the Processor is cleaned up.
-            return false;
-        }
-        return asyncCtxt.isAvailable();
-    }
 
 
     public synchronized void recycle() {

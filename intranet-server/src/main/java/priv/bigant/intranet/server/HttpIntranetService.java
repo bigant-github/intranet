@@ -24,15 +24,6 @@ public class HttpIntranetService extends LifecycleMBeanBase implements Service {
         this.server = server;
     }
 
-    @Override
-    public void addConnector(ServerConnector connector) {
-        connectors.put(connector.getName(), connector);
-    }
-
-    @Override
-    public void removeConnector(ServerConnector connector) {
-
-    }
 
     @Override
     protected void startInternal() throws LifecycleException {

@@ -1,6 +1,7 @@
 package priv.bigant.intrance.common.http;
 
 import priv.bigant.intrance.common.SocketBean;
+
 import java.io.IOException;
 
 /**
@@ -9,8 +10,8 @@ import java.io.IOException;
 public interface HttpProcessor {
 
 
-    abstract SocketBean getSocketBean() throws IOException;
+    SocketBean getSocketBean() throws IOException;
 
-    abstract void close() throws IOException;
+    void close() throws IOException;
 
 }

@@ -20,14 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.coyote.UpgradeToken;
 import priv.bigant.intrance.common.coyote.http11.servlet.ServletInputStream;
-import priv.bigant.intrance.common.coyote.http11.servlet.ServletOutputStream;
-import priv.bigant.intrance.common.util.net.AbstractEndpoint;
 import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
 import priv.bigant.intrance.common.util.net.SSLSupport;
 import priv.bigant.intrance.common.util.net.SocketEvent;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 import priv.bigant.intrance.common.util.res.StringManager;
-import sun.rmi.runtime.Log;
 
 import java.io.IOException;
 
@@ -76,10 +73,6 @@ public class UpgradeProcessorExternal extends UpgradeProcessorBase {
         return upgradeServletInputStream;
     }
 
-    @Override
-    public ServletOutputStream getOutputStream() throws IOException {
-        return upgradeServletOutputStream;
-    }
 
 
     // ------------------------------------------- Implemented Processor methods

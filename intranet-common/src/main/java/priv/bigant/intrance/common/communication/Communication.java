@@ -92,7 +92,8 @@ public class Communication extends Thread {
             LOGGER.debug("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
             byteBuffer.flip();
         }
-        socketChannel.write(byteBuffer);
+        int write = socketChannel.write(byteBuffer);
+        System.out.println(write);
     }
 
     /**

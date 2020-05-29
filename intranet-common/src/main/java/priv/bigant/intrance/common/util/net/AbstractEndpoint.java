@@ -16,6 +16,19 @@
  */
 package priv.bigant.intrance.common.util.net;
 
+import org.slf4j.Logger;
+import priv.bigant.intrance.common.util.ExceptionUtils;
+import priv.bigant.intrance.common.util.IntrospectionUtils;
+import priv.bigant.intrance.common.util.collections.SynchronizedStack;
+import priv.bigant.intrance.common.util.modeler.Registry;
+import priv.bigant.intrance.common.util.res.StringManager;
+import priv.bigant.intrance.common.util.threads.LimitLatch;
+import priv.bigant.intrance.common.util.threads.TaskQueue;
+import priv.bigant.intrance.common.util.threads.TaskThreadFactory;
+import priv.bigant.intrance.common.util.threads.ThreadPoolExecutor;
+
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
@@ -26,23 +39,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-
-import org.slf4j.Logger;
-import priv.bigant.intrance.common.util.modeler.Registry;
-import priv.bigant.intrance.common.util.ExceptionUtils;
-import priv.bigant.intrance.common.util.IntrospectionUtils;
-import priv.bigant.intrance.common.util.collections.SynchronizedStack;
-import priv.bigant.intrance.common.util.res.StringManager;
-import priv.bigant.intrance.common.util.threads.*;
+import java.util.concurrent.*;
 
 /**
  * @param <S> The type for the sockets managed by this endpoint.
@@ -86,13 +83,6 @@ public abstract class AbstractEndpoint<S> {
 
 
         /**
-         * Obtain the currently open sockets.
-         *
-         * @return The sockets for which the handler is tracking a currently open connection
-         */
-        public Set<S> getOpenSockets();
-
-        /**
          * Release any resources associated with the given SocketWrapper.
          *
          * @param socketWrapper The socketWrapper to release resources for
@@ -129,15 +119,7 @@ public abstract class AbstractEndpoint<S> {
             return state;
         }
 
-        private String threadName;
 
-        protected final void setThreadName(final String threadName) {
-            this.threadName = threadName;
-        }
-
-        protected final String getThreadName() {
-            return threadName;
-        }
     }
 
 
@@ -172,7 +154,7 @@ public abstract class AbstractEndpoint<S> {
     /**
      * Socket properties
      */
-    protected SocketProperties socketProperties = new SocketProperties();
+    SocketProperties socketProperties = new SocketProperties();
 
     public SocketProperties getSocketProperties() {
         return socketProperties;
@@ -259,25 +241,6 @@ public abstract class AbstractEndpoint<S> {
         }
     }
 
-    /**
-     * Removes the SSL host configuration for the given host name, if such a configuration exists.
-     *
-     * @param hostName The host name associated with the SSL host configuration to remove
-     * @return The SSL host configuration that was removed, if any
-     */
-    public SSLHostConfig removeSslHostConfig(String hostName) {
-        if (hostName == null) {
-            return null;
-        }
-        // Host names are case insensitive
-        if (hostName.equalsIgnoreCase(getDefaultSSLHostConfigName())) {
-            throw new IllegalArgumentException(
-                    sm.getString("endpoint.removeDefaultSslHostConfig", hostName));
-        }
-        SSLHostConfig sslHostConfig = sslHostConfigs.remove(hostName);
-        unregisterJmx(sslHostConfig);
-        return sslHostConfig;
-    }
 
     /**
      * Re-read the configuration files for the SSL host and replace the existing SSL configuration with the updated
@@ -385,20 +348,14 @@ public abstract class AbstractEndpoint<S> {
     }
 
 
-    /**
-     * Time to wait for the internal executor (if used) to terminate when the endpoint is stopped in milliseconds.
-     * Defaults to 5000 (5 seconds).
-     */
-    private long executorTerminationTimeoutMillis = 5000;
-
     public long getExecutorTerminationTimeoutMillis() {
-        return executorTerminationTimeoutMillis;
+        /**
+         * Time to wait for the internal executor (if used) to terminate when the endpoint is stopped in milliseconds.
+         * Defaults to 5000 (5 seconds).
+         */
+        return 5000;
     }
 
-    public void setExecutorTerminationTimeoutMillis(
-            long executorTerminationTimeoutMillis) {
-        this.executorTerminationTimeoutMillis = executorTerminationTimeoutMillis;
-    }
 
 
     /**
@@ -561,49 +518,8 @@ public abstract class AbstractEndpoint<S> {
         return getAcceptCount();
     }
 
-    /**
-     * Controls when the Endpoint binds the port. <code>true</code>, the default binds the port on {@link #init()} and
-     * unbinds it on {@link #destroy()}. If set to <code>false</code> the port is bound on {@link #start()} and unbound
-     * on {@link #stop()}.
-     */
-    private boolean bindOnInit = true;
-
-    public boolean getBindOnInit() {
-        return bindOnInit;
-    }
-
-    public void setBindOnInit(boolean b) {
-        this.bindOnInit = b;
-    }
-
     private volatile BindState bindState = BindState.UNBOUND;
 
-    /**
-     * Keepalive timeout, if not set the soTimeout is used.
-     */
-    private Integer keepAliveTimeout = null;
-
-    public int getKeepAliveTimeout() {
-        if (keepAliveTimeout == null) {
-            return getSoTimeout();
-        } else {
-            return keepAliveTimeout.intValue();
-        }
-    }
-
-    public void setKeepAliveTimeout(int keepAliveTimeout) {
-        this.keepAliveTimeout = Integer.valueOf(keepAliveTimeout);
-    }
-
-
-    /**
-     * Socket TCP no delay.
-     *
-     * @return The current TCP no delay setting for sockets created by this endpoint
-     */
-    public boolean getTcpNoDelay() {
-        return socketProperties.getTcpNoDelay();
-    }
 
     public void setTcpNoDelay(boolean tcpNoDelay) {
         socketProperties.setTcpNoDelay(tcpNoDelay);
@@ -646,11 +562,6 @@ public abstract class AbstractEndpoint<S> {
 
     public void setConnectionTimeout(int soTimeout) {
         socketProperties.setSoTimeout(soTimeout);
-    }
-
-    @Deprecated
-    public int getSoTimeout() {
-        return getConnectionTimeout();
     }
 
     @Deprecated
@@ -808,21 +719,6 @@ public abstract class AbstractEndpoint<S> {
     }
 
 
-    /**
-     * The default is true - the created threads will be in daemon mode. If set to false, the control thread will not be
-     * daemon - and will keep the process alive.
-     */
-    private boolean daemon = true;
-
-    public void setDaemon(boolean b) {
-        daemon = b;
-    }
-
-    public boolean getDaemon() {
-        return daemon;
-    }
-
-
     protected abstract boolean getDeferAccept();
 
 
@@ -914,45 +810,6 @@ public abstract class AbstractEndpoint<S> {
         return value;
     }
 
-    /**
-     * Return the amount of threads that are managed by the pool.
-     *
-     * @return the amount of threads that are managed by the pool
-     */
-    public int getCurrentThreadCount() {
-        Executor executor = this.executor;
-        if (executor != null) {
-            if (executor instanceof ThreadPoolExecutor) {
-                return ((ThreadPoolExecutor) executor).getPoolSize();
-            } else if (executor instanceof ResizableExecutor) {
-                return ((ResizableExecutor) executor).getPoolSize();
-            } else {
-                return -1;
-            }
-        } else {
-            return -2;
-        }
-    }
-
-    /**
-     * Return the amount of threads that are in use
-     *
-     * @return the amount of threads that are in use
-     */
-    public int getCurrentThreadsBusy() {
-        Executor executor = this.executor;
-        if (executor != null) {
-            if (executor instanceof ThreadPoolExecutor) {
-                return ((ThreadPoolExecutor) executor).getActiveCount();
-            } else if (executor instanceof ResizableExecutor) {
-                return ((ResizableExecutor) executor).getActiveCount();
-            } else {
-                return -1;
-            }
-        } else {
-            return -2;
-        }
-    }
 
     public boolean isRunning() {
         return running;
@@ -966,6 +823,11 @@ public abstract class AbstractEndpoint<S> {
     public void createExecutor() {
         internalExecutor = true;
         TaskQueue taskqueue = new TaskQueue();
+        /**
+         * The default is true - the created threads will be in daemon mode. If set to false, the control thread will not be
+         * daemon - and will keep the process alive.
+         */
+        boolean daemon = true;
         TaskThreadFactory tf = new TaskThreadFactory(getName() + "-exec-", daemon, getThreadPriority());
         executor = new ThreadPoolExecutor(getMinSpareThreads(), getMaxThreads(), 60, TimeUnit.SECONDS, taskqueue, tf);
         taskqueue.setParent((ThreadPoolExecutor) executor);
@@ -1186,6 +1048,12 @@ public abstract class AbstractEndpoint<S> {
     public abstract void stopInternal() throws Exception;
 
     public void init() throws Exception {
+        /**
+         * Controls when the Endpoint binds the port. <code>true</code>, the default binds the port on {@link #init()} and
+         * unbinds it on {@link #destroy()}. If set to <code>false</code> the port is bound on {@link #start()} and unbound
+         * on {@link #stop()}.
+         */
+        boolean bindOnInit = true;
         if (bindOnInit) {
             bind();
             bindState = BindState.BOUND_ON_INIT;
@@ -1258,20 +1126,6 @@ public abstract class AbstractEndpoint<S> {
         startInternal();
     }
 
-    protected final void startAcceptorThreads() {
-        int count = getAcceptorThreadCount();
-        acceptors = new Acceptor[count];
-
-        for (int i = 0; i < count; i++) {
-            acceptors[i] = createAcceptor();
-            String threadName = getName() + "-Acceptor-" + i;
-            acceptors[i].setThreadName(threadName);
-            Thread t = new Thread(acceptors[i], threadName);
-            t.setPriority(getAcceptorThreadPriority());
-            t.setDaemon(getDaemon());
-            t.start();
-        }
-    }
 
 
     /**

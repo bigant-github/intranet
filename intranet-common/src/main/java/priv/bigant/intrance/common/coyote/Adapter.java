@@ -43,32 +43,10 @@ public interface Adapter {
      */
     public void service(Request req, Response res) throws Exception;
 
-    /**
-     * Prepare the given request/response for processing. This method requires that the request object has been
-     * populated with the information available from the HTTP headers.
-     *
-     * @param req The request object
-     * @param res The response object
-     * @return <code>true</code> if processing can continue, otherwise
-     * <code>false</code> in which case an appropriate error will have
-     * been set on the response
-     * @throws Exception If the processing fails unexpectedly
-     */
-    public boolean prepare(Request req, Response res) throws Exception;
 
     public boolean asyncDispatch(Request req, Response res, SocketEvent status) throws Exception;
 
     public void log(Request req, Response res, long time);
-
-    /**
-     * Assert that request and response have been recycled. If they have not then log a warning and force a recycle.
-     * This method is called as a safety check when a processor is being recycled and may be returned to a pool for
-     * reuse.
-     *
-     * @param req Request
-     * @param res Response
-     */
-    public void checkRecycled(Request req, Response res);
 
     /**
      * Provide the name of the domain to use to register MBeans for components associated with the connector.

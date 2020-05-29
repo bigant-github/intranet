@@ -18,8 +18,6 @@ package priv.bigant.intrance.common.coyote;
 
 import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
-import priv.bigant.intrance.common.util.buf.MessageBytes;
-import priv.bigant.intrance.common.util.http.parser.Host;
 import priv.bigant.intrance.common.util.log.UserDataHelper;
 import priv.bigant.intrance.common.util.net.*;
 import priv.bigant.intrance.common.util.res.StringManager;
@@ -38,22 +36,8 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
     private static final StringManager sm = StringManager.getManager(AbstractProcessor.class);
 
-    // Used to avoid useless B2C conversion on the host name.
-    protected char[] hostNameC = new char[0];
-
     protected Adapter adapter;
     protected final AsyncStateMachine asyncStateMachine;
-    private volatile long asyncTimeout = -1;
-    /*
-     * Tracks the current async generation when a timeout is dispatched. In the
-     * time it takes for a container thread to be allocated and the timeout
-     * processing to start, it is possible that the application completes this
-     * generation of async processing and starts a new one. If the timeout is
-     * then processed against the new generation, response mix-up can occur.
-     * This field is used to ensure that any timeout event processed is for the
-     * current async generation. This prevents the response mix-up.
-     */
-    private volatile long asyncTimeoutGeneration = 0;
     protected final Request request;
     protected final Response response;
     protected volatile SocketWrapperBase<?> socketWrapper = null;
@@ -223,7 +207,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
         RequestInfo rp = request.getRequestProcessor();
         try {
-            rp.setStage(Constants.STAGE_SERVICE);
             if (!getAdapter().asyncDispatch(request, response, status)) {
                 setErrorState(ErrorState.CLOSE_NOW, null);
             }
@@ -235,7 +218,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
             getLog().error(sm.getString("http11processor.request.process"), t);
         }
 
-        rp.setStage(Constants.STAGE_ENDED);
 
         if (getErrorState().isError()) {
             request.updateCounters();
@@ -247,104 +229,12 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     }
 
 
-    protected void parseHost(MessageBytes valueMB) {
-        if (valueMB == null || valueMB.isNull()) {
-            populateHost();
-            populatePort();
-            return;
-        } else if (valueMB.getLength() == 0) {
-            // Empty Host header so set sever name to empty string
-            request.serverName().setString("");
-            populatePort();
-            return;
-        }
-
-        ByteChunk valueBC = valueMB.getByteChunk();
-        byte[] valueB = valueBC.getBytes();
-        int valueL = valueBC.getLength();
-        int valueS = valueBC.getStart();
-        if (hostNameC.length < valueL) {
-            hostNameC = new char[valueL];
-        }
-
-        try {
-            // Validates the host name
-            int colonPos = Host.parse(valueMB);
-
-            // Extract the port information first, if any
-            if (colonPos != -1) {
-                int port = 0;
-                for (int i = colonPos + 1; i < valueL; i++) {
-                    char c = (char) valueB[i + valueS];
-                    if (c < '0' || c > '9') {
-                        //TODO response.setStatus(400);
-                        setErrorState(ErrorState.CLOSE_CLEAN, null);
-                        return;
-                    }
-                    port = port * 10 + c - '0';
-                }
-                request.setServerPort(port);
-
-                // Only need to copy the host name up to the :
-                valueL = colonPos;
-            }
-
-            // Extract the host name
-            for (int i = 0; i < valueL; i++) {
-                hostNameC[i] = (char) valueB[i + valueS];
-            }
-            request.serverName().setChars(hostNameC, 0, valueL);
-
-        } catch (IllegalArgumentException e) {
-            // IllegalArgumentException indicates that the host name is invalid
-            UserDataHelper.Mode logMode = userDataHelper.getNextMode();
-            if (logMode != null) {
-                String message = sm.getString("abstractProcessor.hostInvalid", valueMB.toString());
-                switch (logMode) {
-                    case INFO_THEN_DEBUG:
-                        message += sm.getString("abstractProcessor.fallToDebug");
-                        //$FALL-THROUGH$
-                    case INFO:
-                        getLog().info(message, e);
-                        break;
-                    case DEBUG:
-                        getLog().debug(message, e);
-                }
-            }
-
-            //TODO response.setStatus(400);
-            setErrorState(ErrorState.CLOSE_CLEAN, e);
-        }
-    }
-
-
-    /**
-     * Called when a host header is not present in the request (e.g. HTTP/1.0). It populates the server name with
-     * appropriate information. The source is expected to vary by protocol.
-     * <p>
-     * The default implementation is a NO-OP.
-     */
-    protected void populateHost() {
-        // NO-OP
-    }
-
-
-    /**
-     * Called when a host header is not present or is empty in the request (e.g. HTTP/1.0). It populates the server port
-     * with appropriate information. The source is expected to vary by protocol.
-     * <p>
-     * The default implementation is a NO-OP.
-     */
-    protected void populatePort() {
-        // NO-OP
-    }
-
-
     @Override
     public final void action(ActionCode actionCode, Object param) {
         switch (actionCode) {
             // 'Normal' servlet support
-            case COMMIT: {
+            case COMMIT:
+            case ACK: {
 
                 /*//TODO if (!response.isCommitted()) {
                     try {
@@ -356,29 +246,9 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 }*/
                 break;
             }
-            case CLOSE: {
-                action(ActionCode.COMMIT, null);
-                try {
-                    finishResponse();
-                } catch (CloseNowException cne) {
-                    setErrorState(ErrorState.CLOSE_NOW, cne);
-                } catch (IOException e) {
-                    setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
-                }
-                break;
-            }
-            case ACK: {
-                ack();
-                break;
-            }
+            case CLOSE:
             case CLIENT_FLUSH: {
                 action(ActionCode.COMMIT, null);
-                try {
-                    flush();
-                } catch (IOException e) {
-                    setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
-                    //TODO response.setErrorException(e);
-                }
                 break;
             }
             case AVAILABLE: {
@@ -402,7 +272,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
             }
             case CLOSE_NOW: {
                 // Prevent further writes to the response
-                setSwallowResponse();
                 if (param instanceof Throwable) {
                     setErrorState(ErrorState.CLOSE_NOW, (Throwable) param);
                 } else {
@@ -477,13 +346,13 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
             case ASYNC_COMPLETE: {
                 clearDispatches();
                 if (asyncStateMachine.asyncComplete()) {
-                    processSocketEvent(SocketEvent.OPEN_READ, true);
+                    processSocketEvent();
                 }
                 break;
             }
             case ASYNC_DISPATCH: {
                 if (asyncStateMachine.asyncDispatch()) {
-                    processSocketEvent(SocketEvent.OPEN_READ, true);
+                    processSocketEvent();
                 }
                 break;
             }
@@ -527,8 +396,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 if (param == null) {
                     return;
                 }
-                long timeout = (Long) param;
-                setAsyncTimeout(timeout);
                 break;
             }
             case ASYNC_TIMEOUT: {
@@ -598,10 +465,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     }
 
 
-    public void setAsyncTimeout(long timeout) {
-        asyncTimeout = timeout;
-    }
-
 
     @Override
     public void recycle() {
@@ -610,22 +473,10 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     }
 
 
-    protected abstract void finishResponse() throws IOException;
-
-
-    protected abstract void ack();
-
-
-    protected abstract void flush() throws IOException;
-
-
     protected abstract int available(boolean doRead);
 
 
     protected abstract void setRequestBody(ByteChunk body);
-
-
-    protected abstract void setSwallowResponse();
 
 
     protected abstract void disableSwallowRequest();
@@ -701,7 +552,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     }
 
 
-    protected void processSocketEvent(SocketEvent event, boolean dispatch) {
+    protected void processSocketEvent() {
         SocketWrapperBase<?> socketWrapper = getSocketWrapper();
         if (socketWrapper != null) {
             //socketWrapper.processSocket(event, dispatch);

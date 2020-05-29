@@ -28,6 +28,7 @@ public class Start {
 
         ConnectorThread serviceConnectorThread;
         HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
+
         try {
             serviceConnectorThread = new ConnectorThread(httpIntranetServiceProcess, "clientHttpIntranetServiceProcess-thread");
             serviceConnectorThread.start();
@@ -43,10 +44,9 @@ public class Start {
             new CommunicationListener(clientCommunication, config.getListenerTime()).start();
         } catch (Exception e) {
             LOG.error("通信器连接失败", e);
-        } finally {
             ConnectorManager.showdownAll();
-        }
 
+        }
     }
 
     /**

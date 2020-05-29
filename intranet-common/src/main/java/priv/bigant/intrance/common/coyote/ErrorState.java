@@ -48,13 +48,11 @@ public enum ErrorState {
     private final boolean error;
     private final int severity;
     private final boolean ioAllowed;
-    private final boolean connectionIoAllowed;
 
     private ErrorState(boolean error, int severity, boolean ioAllowed, boolean connectionIoAllowed) {
         this.error = error;
         this.severity = severity;
         this.ioAllowed = ioAllowed;
-        this.connectionIoAllowed = connectionIoAllowed;
     }
 
     public boolean isError() {
@@ -79,7 +77,4 @@ public enum ErrorState {
         return ioAllowed;
     }
 
-    public boolean isConnectionIoAllowed() {
-        return connectionIoAllowed;
-    }
 }
