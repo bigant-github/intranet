@@ -186,58 +186,12 @@ public class SocketProperties {
             socket.setSoTimeout(soTimeout);
     }
 
-    public void setProperties(AsynchronousSocketChannel socket) throws IOException {
-        if (rxBufSize != null)
-            socket.setOption(StandardSocketOptions.SO_RCVBUF, rxBufSize);
-        if (txBufSize != null)
-            socket.setOption(StandardSocketOptions.SO_SNDBUF, txBufSize);
-        if (soKeepAlive != null)
-            socket.setOption(StandardSocketOptions.SO_KEEPALIVE, soKeepAlive);
-        if (soReuseAddress != null)
-            socket.setOption(StandardSocketOptions.SO_REUSEADDR, soReuseAddress);
-        if (soLingerOn != null && soLingerOn && soLingerTime != null)
-            socket.setOption(StandardSocketOptions.SO_LINGER, soLingerTime);
-        if (tcpNoDelay != null)
-            socket.setOption(StandardSocketOptions.TCP_NODELAY, tcpNoDelay);
-    }
-
-    public void setProperties(AsynchronousServerSocketChannel socket) throws IOException {
-        if (rxBufSize != null)
-            socket.setOption(StandardSocketOptions.SO_RCVBUF, rxBufSize);
-        if (soReuseAddress != null)
-            socket.setOption(StandardSocketOptions.SO_REUSEADDR, soReuseAddress);
-    }
-
     public boolean getDirectBuffer() {
         return directBuffer;
     }
 
     public boolean getDirectSslBuffer() {
         return directSslBuffer;
-    }
-
-    public boolean getOoBInline() {
-        return ooBInline;
-    }
-
-    public int getPerformanceBandwidth() {
-        return performanceBandwidth;
-    }
-
-    public int getPerformanceConnectionTime() {
-        return performanceConnectionTime;
-    }
-
-    public int getPerformanceLatency() {
-        return performanceLatency;
-    }
-
-    public int getRxBufSize() {
-        return rxBufSize;
-    }
-
-    public boolean getSoKeepAlive() {
-        return soKeepAlive;
     }
 
     public boolean getSoLingerOn() {
@@ -248,28 +202,12 @@ public class SocketProperties {
         return soLingerTime;
     }
 
-    public boolean getSoReuseAddress() {
-        return soReuseAddress;
-    }
-
     public int getSoTimeout() {
         return soTimeout;
     }
 
-    public boolean getTcpNoDelay() {
-        return tcpNoDelay;
-    }
-
-    public int getTxBufSize() {
-        return txBufSize;
-    }
-
     public int getBufferPool() {
         return bufferPool;
-    }
-
-    public int getBufferPoolSize() {
-        return bufferPoolSize;
     }
 
     public int getEventCache() {
@@ -292,18 +230,6 @@ public class SocketProperties {
         return timeoutInterval;
     }
 
-    public int getDirectBufferPool() {
-        return bufferPool;
-    }
-
-    public void setPerformanceConnectionTime(int performanceConnectionTime) {
-        this.performanceConnectionTime = performanceConnectionTime;
-    }
-
-    public void setTxBufSize(int txBufSize) {
-        this.txBufSize = txBufSize;
-    }
-
     public void setTcpNoDelay(boolean tcpNoDelay) {
         this.tcpNoDelay = tcpNoDelay;
     }
@@ -312,84 +238,16 @@ public class SocketProperties {
         this.soTimeout = soTimeout;
     }
 
-    public void setSoReuseAddress(boolean soReuseAddress) {
-        this.soReuseAddress = soReuseAddress;
-    }
-
     public void setSoLingerTime(int soLingerTime) {
         this.soLingerTime = soLingerTime;
-    }
-
-    public void setSoKeepAlive(boolean soKeepAlive) {
-        this.soKeepAlive = soKeepAlive;
-    }
-
-    public void setRxBufSize(int rxBufSize) {
-        this.rxBufSize = rxBufSize;
-    }
-
-    public void setPerformanceLatency(int performanceLatency) {
-        this.performanceLatency = performanceLatency;
-    }
-
-    public void setPerformanceBandwidth(int performanceBandwidth) {
-        this.performanceBandwidth = performanceBandwidth;
-    }
-
-    public void setOoBInline(boolean ooBInline) {
-        this.ooBInline = ooBInline;
-    }
-
-    public void setDirectBuffer(boolean directBuffer) {
-        this.directBuffer = directBuffer;
-    }
-
-    public void setDirectSslBuffer(boolean directSslBuffer) {
-        this.directSslBuffer = directSslBuffer;
     }
 
     public void setSoLingerOn(boolean soLingerOn) {
         this.soLingerOn = soLingerOn;
     }
 
-    public void setBufferPool(int bufferPool) {
-        this.bufferPool = bufferPool;
-    }
-
-    public void setBufferPoolSize(int bufferPoolSize) {
-        this.bufferPoolSize = bufferPoolSize;
-    }
-
-    public void setEventCache(int eventCache) {
-        this.eventCache = eventCache;
-    }
-
-    public void setAppReadBufSize(int appReadBufSize) {
-        this.appReadBufSize = appReadBufSize;
-    }
-
-    public void setAppWriteBufSize(int appWriteBufSize) {
-        this.appWriteBufSize = appWriteBufSize;
-    }
-
-    public void setProcessorCache(int processorCache) {
-        this.processorCache = processorCache;
-    }
-
-    public void setTimeoutInterval(long timeoutInterval) {
-        this.timeoutInterval = timeoutInterval;
-    }
-
-    public void setDirectBufferPool(int directBufferPool) {
-        this.bufferPool = directBufferPool;
-    }
-
     public int getUnlockTimeout() {
         return unlockTimeout;
-    }
-
-    public void setUnlockTimeout(int unlockTimeout) {
-        this.unlockTimeout = unlockTimeout;
     }
 
     void setObjectName(ObjectName oname) {

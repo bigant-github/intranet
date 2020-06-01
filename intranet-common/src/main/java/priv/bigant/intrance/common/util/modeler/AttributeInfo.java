@@ -29,9 +29,6 @@ import javax.management.MBeanAttributeInfo;
 public class AttributeInfo extends FeatureInfo {
     static final long serialVersionUID = -2511626862303972143L;
 
-    // ----------------------------------------------------- Instance Variables
-    protected String displayName = null;
-
     // Information about the method to use
     protected String getMethod = null;
     protected String setMethod = null;
@@ -42,27 +39,12 @@ public class AttributeInfo extends FeatureInfo {
     // ------------------------------------------------------------- Properties
 
     /**
-     * @return the display name of this attribute.
-     */
-    public String getDisplayName() {
-        return (this.displayName);
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    /**
      * @return the name of the property getter method, if non-standard.
      */
     public String getGetMethod() {
         if(getMethod == null)
             getMethod = getMethodName(getName(), true, isIs());
         return (this.getMethod);
-    }
-
-    public void setGetMethod(String getMethod) {
-        this.getMethod = getMethod;
     }
 
     /**
@@ -74,10 +56,6 @@ public class AttributeInfo extends FeatureInfo {
         return (this.is);
     }
 
-    public void setIs(boolean is) {
-        this.is = is;
-    }
-
 
     /**
      * Is this attribute readable by management applications?
@@ -85,10 +63,6 @@ public class AttributeInfo extends FeatureInfo {
      */
     public boolean isReadable() {
         return (this.readable);
-    }
-
-    public void setReadable(boolean readable) {
-        this.readable = readable;
     }
 
 
@@ -99,10 +73,6 @@ public class AttributeInfo extends FeatureInfo {
         if( setMethod == null )
             setMethod = getMethodName(getName(), false, false);
         return (this.setMethod);
-    }
-
-    public void setSetMethod(String setMethod) {
-        this.setMethod = setMethod;
     }
 
     /**

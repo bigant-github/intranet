@@ -164,15 +164,6 @@ public class MimeHeaders {
     }
 
 
-    public void duplicate(MimeHeaders source) throws IOException {
-        for (int i = 0; i < source.size(); i++) {
-            MimeHeaderField mhf = createHeader();
-            mhf.getName().duplicate(source.getName(i));
-            mhf.getValue().duplicate(source.getValue(i));
-        }
-    }
-
-
     // -------------------- Idx access to headers ----------
 
     /**
@@ -198,29 +189,6 @@ public class MimeHeaders {
      */
     public MessageBytes getValue(int n) {
         return n >= 0 && n < count ? headers[n].getValue() : null;
-    }
-
-    /**
-     * Find the index of a header with the given name.
-     *
-     * @param name     The header name
-     * @param starting Index on which to start looking
-     * @return the header index
-     */
-    public int findHeader(String name, int starting) {
-        // We can use a hash - but it's not clear how much
-        // benefit you can get - there is an  overhead
-        // and the number of headers is small (4-5 ?)
-        // Another problem is that we'll pay the overhead
-        // of constructing the hashtable
-
-        // A custom search tree may be better
-        for (int i = starting; i < count; i++) {
-            if (headers[i].getName().equalsIgnoreCase(name)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     // -------------------- --------------------
@@ -358,30 +326,7 @@ public class MimeHeaders {
         return result;
     }
 
-    // bad shortcut - it'll convert to string ( too early probably,
-    // encoding is guessed very late )
-    public String getHeader(String name) {
-        MessageBytes mh = getValue(name);
-        return mh != null ? mh.toString() : null;
-    }
-
     // -------------------- Removing --------------------
-
-    /**
-     * Removes a header field with the specified name.  Does nothing if such a field could not be found.
-     *
-     * @param name the name of the header field to be removed
-     */
-    public void removeHeader(String name) {
-        // XXX
-        // warning: rather sticky code; heavily tuned
-
-        for (int i = 0; i < count; i++) {
-            if (headers[i].getName().equalsIgnoreCase(name)) {
-                removeHeader(i--);
-            }
-        }
-    }
 
     /**
      * reset and swap with last header

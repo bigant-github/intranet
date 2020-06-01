@@ -1,12 +1,7 @@
 package priv.bigant.intrance.common.util.net;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.util.net.NioEndpoint.Poller;
-import priv.bigant.intrance.common.util.net.jsse.JSSESupport;
 
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -17,7 +12,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
-    public static final Logger LOG = LoggerFactory.getLogger(NioSocketWrapper.class);
     private final NioSelectorPool pool;
 
     private Poller poller = null;
@@ -37,10 +31,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
 
     public Poller getPoller() {
         return poller;
-    }
-
-    public void setPoller(Poller poller) {
-        this.poller = poller;
     }
 
     public int interestOps() {
@@ -304,21 +294,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
 
 
     @Override
-    public SendfileDataBase createSendfileData(String filename, long pos, long length) {
-        return new NioEndpoint.SendfileData(filename, pos, length);
-    }
-
-
-    @Override
-    public SendfileState processSendfile(SendfileDataBase sendfileData) {
-        setSendfileData((NioEndpoint.SendfileData) sendfileData);
-        SelectionKey key = getSocket().getIOChannel().keyFor(getSocket().getPoller().getSelector());
-        // Might as well do the first write on this thread
-        return getSocket().getPoller().processSendfile(key, this, true);
-    }
-
-
-    @Override
     protected void populateRemoteAddr() {
         InetAddress inetAddr = getSocket().getIOChannel().socket().getInetAddress();
         if (inetAddr != null) {
@@ -366,38 +341,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
     @Override
     protected void populateLocalPort() {
         localPort = getSocket().getIOChannel().socket().getLocalPort();
-    }
-
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param clientCertProvider Ignored for this implementation
-     */
-    @Override
-    public SSLSupport getSslSupport(String clientCertProvider) {
-        /*TODO
-        if (getSocket() instanceof SecureNioChannel) {
-            SecureNioChannel ch = (SecureNioChannel) getSocket();
-            SSLSession session = ch.getSslEngine().getSession();
-            return ((NioEndpoint) getEndpoint()).getSslImplementation().getSSLSupport(session);
-        } else {
-            return null;
-        }*/
-        return null;
-    }
-
-
-    @Override
-    public void doClientAuth(SSLSupport sslSupport) throws IOException {
-        SecureNioChannel sslChannel = (SecureNioChannel) getSocket();
-        SSLEngine engine = sslChannel.getSslEngine();
-        if (!engine.getNeedClientAuth()) {
-            // Need to re-negotiate SSL connection
-            engine.setNeedClientAuth(true);
-            //TODO sslChannel.rehandshake(getEndpoint().getConnectionTimeout());
-            ((JSSESupport) sslSupport).setSession(engine.getSession());
-        }
     }
 
 

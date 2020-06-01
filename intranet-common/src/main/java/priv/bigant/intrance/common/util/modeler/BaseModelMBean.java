@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.*;
-import javax.management.modelmbean.InvalidTargetObjectTypeException;
 import javax.management.modelmbean.ModelMBeanNotificationBroadcaster;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -315,7 +314,7 @@ public class BaseModelMBean implements DynamicMBean, MBeanRegistration,  ModelMB
                 ClassLoader cl=Thread.currentThread().getContextClassLoader();
                 if( cl!=null )
                     return cl.loadClass(signature);
-            } catch( ClassNotFoundException e ) {
+            } catch (ClassNotFoundException ignored) {
             }
             try {
                 return Class.forName(signature);
@@ -459,34 +458,6 @@ public class BaseModelMBean implements DynamicMBean, MBeanRegistration,  ModelMB
 
 
     /**
-     * Get the instance handle of the object against which we execute
-     * all methods in this ModelMBean management interface.
-     *
-     * @return the backend managed object
-     * @exception InstanceNotFoundException if the managed resource object
-     *  cannot be found
-     * @exception InvalidTargetObjectTypeException if the managed resource
-     *  object is of the wrong type
-     * @exception MBeanException if the initializer of the object throws
-     *  an exception
-     * @exception RuntimeOperationsException if the managed resource or the
-     *  resource type is <code>null</code> or invalid
-     */
-    public Object getManagedResource()
-        throws InstanceNotFoundException, InvalidTargetObjectTypeException,
-        MBeanException, RuntimeOperationsException {
-
-        if (resource == null)
-            throw new RuntimeOperationsException
-                (new IllegalArgumentException("Managed resource is null"),
-                 "Managed resource is null");
-
-        return resource;
-
-    }
-
-
-    /**
      * Set the instance handle of the object against which we will execute
      * all methods in this ModelMBean management interface.
      *
@@ -494,10 +465,6 @@ public class BaseModelMBean implements DynamicMBean, MBeanRegistration,  ModelMB
      * the resource, if needed.
      *
      * @param resource The resource object to be managed
-     * @param type The type of reference for the managed resource
-     *  ("ObjectReference", "Handle", "IOR", "EJBHandle", or
-     *  "RMIReference")
-     *
      * @exception InstanceNotFoundException if the managed resource object
      *  cannot be found
      * @exception MBeanException if the initializer of the object throws
@@ -505,9 +472,8 @@ public class BaseModelMBean implements DynamicMBean, MBeanRegistration,  ModelMB
      * @exception RuntimeOperationsException if the managed resource or the
      *  resource type is <code>null</code> or invalid
      */
-    public void setManagedResource(Object resource, String type)
-        throws InstanceNotFoundException,
-        MBeanException, RuntimeOperationsException
+    public void setManagedResource(Object resource)
+            throws RuntimeOperationsException
     {
         if (resource == null)
             throw new RuntimeOperationsException
@@ -832,36 +798,12 @@ public class BaseModelMBean implements DynamicMBean, MBeanRegistration,  ModelMB
      }
 
 
-    public String getModelerType() {
-        return resourceType;
-    }
-
-    public String getClassName() {
-        return getModelerType();
-    }
-
-    public ObjectName getJmxName() {
-        return oname;
-    }
-
-    public String getObjectName() {
-        if (oname != null) {
-            return oname.toString();
-        } else {
-            return null;
-        }
-    }
-
-
     // -------------------- Registration  --------------------
     // XXX We can add some method patterns here- like setName() and
     // setDomain() for code that doesn't implement the Registration
 
     @Override
-    public ObjectName preRegister(MBeanServer server,
-                                  ObjectName name)
-            throws Exception
-    {
+    public ObjectName preRegister(MBeanServer server, ObjectName name) throws Exception {
         if( log.isDebugEnabled())
             log.debug("preRegister " + resource + " " + name );
         oname=name;

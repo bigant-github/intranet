@@ -22,7 +22,6 @@ package priv.bigant.intrance.common.util.modeler;
 import javax.management.*;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -98,57 +97,12 @@ public class ManagedBean implements java.io.Serializable {
         return this.className;
     }
 
-    public void setClassName(String className) {
-        mBeanInfoLock.writeLock().lock();
-        try {
-            this.className = className;
-            this.info = null;
-        } finally {
-            mBeanInfoLock.writeLock().unlock();
-        }
-    }
-
 
     /**
      * @return the human-readable description of this MBean.
      */
     public String getDescription() {
         return this.description;
-    }
-
-    public void setDescription(String description) {
-        mBeanInfoLock.writeLock().lock();
-        try {
-            this.description = description;
-            this.info = null;
-        } finally {
-            mBeanInfoLock.writeLock().unlock();
-        }
-    }
-
-
-    /**
-     * @return the (optional) <code>ObjectName</code> domain in which this MBean should be registered in the
-     * MBeanServer.
-     */
-    public String getDomain() {
-        return this.domain;
-    }
-
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-
-    /**
-     * @return the (optional) group to which this MBean belongs.
-     */
-    public String getGroup() {
-        return this.group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
     }
 
 
@@ -197,16 +151,6 @@ public class ManagedBean implements java.io.Serializable {
         return (this.type);
     }
 
-    public void setType(String type) {
-        mBeanInfoLock.writeLock().lock();
-        try {
-            this.type = type;
-            this.info = null;
-        } finally {
-            mBeanInfoLock.writeLock().unlock();
-        }
-    }
-
 
     // --------------------------------------------------------- Public Methods
 
@@ -218,37 +162,6 @@ public class ManagedBean implements java.io.Serializable {
      */
     public void addAttribute(AttributeInfo attribute) {
         attributes.put(attribute.getName(), attribute);
-    }
-
-
-    /**
-     * Add a new notification to the set of notifications for this MBean.
-     *
-     * @param notification The new notification descriptor
-     */
-    public void addNotification(NotificationInfo notification) {
-        mBeanInfoLock.writeLock().lock();
-        try {
-            NotificationInfo results[] =
-                    new NotificationInfo[notifications.length + 1];
-            System.arraycopy(notifications, 0, results, 0,
-                    notifications.length);
-            results[notifications.length] = notification;
-            notifications = results;
-            this.info = null;
-        } finally {
-            mBeanInfoLock.writeLock().unlock();
-        }
-    }
-
-
-    /**
-     * Add a new operation to the set of operations for this MBean.
-     *
-     * @param operation The new operation descriptor
-     */
-    public void addOperation(OperationInfo operation) {
-        operations.put(createOperationKey(operation), operation);
     }
 
 
@@ -312,12 +225,8 @@ public class ManagedBean implements java.io.Serializable {
         mbean.setManagedBean(this);
 
         // Set the managed resource (if any)
-        try {
-            if (instance != null)
-                mbean.setManagedResource(instance, "ObjectReference");
-        } catch (InstanceNotFoundException e) {
-            throw e;
-        }
+        if (instance != null)
+            mbean.setManagedResource(instance);
 
         return mbean;
     }
@@ -545,15 +454,6 @@ public class ManagedBean implements java.io.Serializable {
     }
 
 
-    private String createOperationKey(OperationInfo operation) {
-        StringBuilder key = new StringBuilder(operation.getName());
-        key.append('(');
-        StringUtils.join(operation.getSignature(), ',', FeatureInfo::getType, key);
-        key.append(')');
-        return key.toString().intern();
-    }
-
-
     private String createOperationKey(String methodName, String[] parameterTypes) {
         StringBuilder key = new StringBuilder(methodName);
         key.append('(');
@@ -573,18 +473,9 @@ public class ManagedBean implements java.io.Serializable {
  */
 final class StringUtils {
 
-    private static final String EMPTY_STRING = "";
 
     private StringUtils() {
         // Utility class
-    }
-
-
-    public static String join(String[] array) {
-        if (array == null) {
-            return EMPTY_STRING;
-        }
-        return join(Arrays.asList(array));
     }
 
 
@@ -593,23 +484,6 @@ final class StringUtils {
             return;
         }
         join(Arrays.asList(array), separator, sb);
-    }
-
-
-    public static String join(Collection<String> collection) {
-        return join(collection, ',');
-    }
-
-
-    public static String join(Collection<String> collection, char separator) {
-        // Shortcut
-        if (collection == null || collection.isEmpty()) {
-            return EMPTY_STRING;
-        }
-
-        StringBuilder result = new StringBuilder();
-        join(collection, separator, result);
-        return result.toString();
     }
 
 

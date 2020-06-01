@@ -16,16 +16,12 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.log.UserDataHelper;
 import priv.bigant.intrance.common.util.net.*;
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,12 +32,10 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
     private static final StringManager sm = StringManager.getManager(AbstractProcessor.class);
 
-    protected Adapter adapter;
     protected final AsyncStateMachine asyncStateMachine;
     protected final Request request;
     protected final Response response;
     protected volatile SocketWrapperBase<?> socketWrapper = null;
-    protected volatile SSLSupport sslSupport;
 
 
     /**
@@ -75,7 +69,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
      */
     protected void setErrorState(ErrorState errorState, Throwable t) {
         //TODO response.setError();
-        boolean blockIo = this.errorState.isIoAllowed() && !errorState.isIoAllowed();
         this.errorState = this.errorState.getMostSevere(errorState);
         // Don't change the status code for IOException since that is almost
         // certainly a client disconnect in which case it is preferable to keep
@@ -115,26 +108,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
 
     /**
-     * Set the associated adapter.
-     *
-     * @param adapter the new adapter
-     */
-    public void setAdapter(Adapter adapter) {
-        this.adapter = adapter;
-    }
-
-
-    /**
-     * Get the associated adapter.
-     *
-     * @return the associated adapter
-     */
-    public Adapter getAdapter() {
-        return adapter;
-    }
-
-
-    /**
      * Set the socket wrapper being used.
      *
      * @param socketWrapper The socket wrapper
@@ -149,12 +122,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
      */
     protected final SocketWrapperBase<?> getSocketWrapper() {
         return socketWrapper;
-    }
-
-
-    @Override
-    public final void setSslSupport(SSLSupport sslSupport) {
-        this.sslSupport = sslSupport;
     }
 
 
@@ -205,18 +172,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
             }*/
         }
 
-        RequestInfo rp = request.getRequestProcessor();
-        try {
-            if (!getAdapter().asyncDispatch(request, response, status)) {
-                setErrorState(ErrorState.CLOSE_NOW, null);
-            }
-        } catch (InterruptedIOException e) {
-            setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
-        } catch (Throwable t) {
-            ExceptionUtils.handleThrowable(t);
-            setErrorState(ErrorState.CLOSE_NOW, t);
-            getLog().error(sm.getString("http11processor.request.process"), t);
-        }
+
 
 
         if (getErrorState().isError()) {
@@ -323,21 +279,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 }
                 break;
             }
-
-            // SSL request attribute support
-            case REQ_SSL_ATTRIBUTE: {
-                populateSslRequestAttributes();
-                break;
-            }
-            case REQ_SSL_CERTIFICATE: {
-                try {
-                    sslReHandShake();
-                } catch (IOException ioe) {
-                    setErrorState(ErrorState.CLOSE_CONNECTION_NOW, ioe);
-                }
-                break;
-            }
-
             // Servlet 3.0 asynchronous support
             case ASYNC_START: {
                 asyncStateMachine.asyncStart((AsyncContextCallback) param);
@@ -436,13 +377,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 executeDispatches();
                 break;
             }
-
-            // Servlet 3.1 HTTP Upgrade
-            case UPGRADE: {
-                doHttpUpgrade((UpgradeToken) param);
-                break;
-            }
-
             // Servlet 4.0 Push requests
             case IS_PUSH_SUPPORTED: {
                 AtomicBoolean result = (AtomicBoolean) param;
@@ -450,7 +384,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
                 break;
             }
             case PUSH_REQUEST: {
-                doPush((Request) param);
+                doPush();
                 break;
             }
         }
@@ -505,53 +439,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     }
 
 
-    /**
-     * Populate the TLS related request attributes from the {@link SSLSupport} instance associated with this processor.
-     * Protocols that populate TLS attributes from a different source (e.g. AJP) should override this method.
-     */
-    protected void populateSslRequestAttributes() {
-        try {
-            if (sslSupport != null) {
-                Object sslO = sslSupport.getCipherSuite();
-                if (sslO != null) {
-                    request.setAttribute(SSLSupport.CIPHER_SUITE_KEY, sslO);
-                }
-                sslO = sslSupport.getPeerCertificateChain();
-                if (sslO != null) {
-                    request.setAttribute(SSLSupport.CERTIFICATE_KEY, sslO);
-                }
-                sslO = sslSupport.getKeySize();
-                if (sslO != null) {
-                    request.setAttribute(SSLSupport.KEY_SIZE_KEY, sslO);
-                }
-                sslO = sslSupport.getSessionId();
-                if (sslO != null) {
-                    request.setAttribute(SSLSupport.SESSION_ID_KEY, sslO);
-                }
-                sslO = sslSupport.getProtocol();
-                if (sslO != null) {
-                    request.setAttribute(SSLSupport.PROTOCOL_VERSION_KEY, sslO);
-                }
-                request.setAttribute(SSLSupport.SESSION_MGR, sslSupport);
-            }
-        } catch (Exception e) {
-            getLog().warn(sm.getString("abstractProcessor.socket.ssl"), e);
-        }
-    }
-
-
-    /**
-     * Processors that can perform a TLS re-handshake (e.g. HTTP/1.1) should override this method and implement the
-     * re-handshake.
-     *
-     * @throws IOException If authentication is required then there will be I/O with the client and this exception will
-     *                     be thrown if that goes wrong
-     */
-    protected void sslReHandShake() throws IOException {
-        // NO-OP
-    }
-
-
     protected void processSocketEvent() {
         SocketWrapperBase<?> socketWrapper = getSocketWrapper();
         if (socketWrapper != null) {
@@ -583,68 +470,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
 
     protected void executeDispatches() {
-        SocketWrapperBase<?> socketWrapper = getSocketWrapper();
-        Iterator<DispatchType> dispatches = getIteratorAndClearDispatches();
-        if (socketWrapper != null) {
-            synchronized (socketWrapper) {
-                /*
-                 * This method is called when non-blocking IO is initiated by defining
-                 * a read and/or write listener in a non-container thread. It is called
-                 * once the non-container thread completes so that the first calls to
-                 * onWritePossible() and/or onDataAvailable() as appropriate are made by
-                 * the container.
-                 *
-                 * Processing the dispatches requires (for APR/native at least)
-                 * that the socket has been added to the waitingRequests queue. This may
-                 * not have occurred by the time that the non-container thread completes
-                 * triggering the call to this method. Therefore, the coded syncs on the
-                 * SocketWrapper as the container thread that initiated this
-                 * non-container thread holds a lock on the SocketWrapper. The container
-                 * thread will add the socket to the waitingRequests queue before
-                 * releasing the lock on the socketWrapper. Therefore, by obtaining the
-                 * lock on socketWrapper before processing the dispatches, we can be
-                 * sure that the socket has been added to the waitingRequests queue.
-                 */
-                while (dispatches != null && dispatches.hasNext()) {
-                    DispatchType dispatchType = dispatches.next();
-                    //socketWrapper.processSocket(dispatchType.getSocketStatus(), false);
-                }
-            }
-        }
-    }
 
-
-    /**
-     * {@inheritDoc} Processors that implement HTTP upgrade must override this method and provide the necessary token.
-     */
-    @Override
-    public UpgradeToken getUpgradeToken() {
-        // Should never reach this code but in case we do...
-        throw new IllegalStateException(sm.getString("abstractProcessor.httpupgrade.notsupported"));
-    }
-
-
-    /**
-     * Process an HTTP upgrade. Processors that support HTTP upgrade should override this method and process the
-     * provided token.
-     *
-     * @param upgradeToken Contains all the information necessary for the Processor to process the upgrade
-     * @throws UnsupportedOperationException if the protocol does not support HTTP upgrade
-     */
-    protected void doHttpUpgrade(UpgradeToken upgradeToken) {
-        // Should never happen
-        throw new UnsupportedOperationException(
-                sm.getString("abstractProcessor.httpupgrade.notsupported"));
-    }
-
-
-    /**
-     * {@inheritDoc} Processors that implement HTTP upgrade must override this method.
-     */
-    @Override
-    public ByteBuffer getLeftoverInput() {
-        // Should never reach this code but in case we do...
-        throw new IllegalStateException(sm.getString("abstractProcessor.httpupgrade.notsupported"));
     }
 
 
@@ -670,10 +496,9 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     /**
      * Process a push. Processors that support push should override this method and process the provided token.
      *
-     * @param pushTarget Contains all the information necessary for the Processor to process the push request
      * @throws UnsupportedOperationException if the protocol does not support push
      */
-    protected void doPush(Request pushTarget) {
+    protected void doPush() {
         throw new UnsupportedOperationException(
                 sm.getString("abstractProcessor.pushrequest.notsupported"));
     }

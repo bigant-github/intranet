@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.*;
 import java.util.Iterator;
 
-public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Connector {
+public class ServerConnector implements BigAnt, Connector {
 
     private String name;
     private Process process;
@@ -28,19 +28,8 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
         return name;
     }
 
-    @Override
-    protected String getDomainInternal() {
-        return null;
-    }
 
-    @Override
-    protected String getObjectNameKeyProperties() {
-        return "type=" + name;
-    }
-
-    @Override
-    protected void startInternal() throws LifecycleException {
-        setState(LifecycleState.STARTING);
+    public void start() {
         try {
             build();
             connectorThread = new ConnectorThread(process, getName() + "-thread");
@@ -57,14 +46,10 @@ public class ServerConnector extends LifecycleMBeanBase implements BigAnt, Conne
         server.bind(new InetSocketAddress(port));
     }
 
-    @Override
-    protected void stopInternal() {
-        connectorThread.showdown();
-    }
 
     @Override
     public void showdown() {
-        stopInternal();
+        connectorThread.showdown();
     }
 
     /**

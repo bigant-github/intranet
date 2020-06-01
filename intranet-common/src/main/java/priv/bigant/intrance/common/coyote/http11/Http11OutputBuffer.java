@@ -98,18 +98,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-    @Override
-    public int doWrite(ByteBuffer chunk) throws IOException {
-        return outputStreamOutputBuffer.doWrite(chunk);
-    }
-
-
-    @Override
-    public long getBytesWritten() {
-        return outputStreamOutputBuffer.getBytesWritten();
-    }
-
-
     // ----------------------------------------------- HttpOutputBuffer Methods
 
     /**
@@ -135,27 +123,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
 
     // --------------------------------------------------------- Public Methods
-
-
-    /**
-     * Recycle the output buffer. This should be called when closing the connection.
-     */
-    public void recycle() {
-        nextRequest();
-        socketWrapper = null;
-    }
-
-
-    /**
-     * End processing of current HTTP request. Note: All bytes of the current request should have been already consumed.
-     * This method only resets all the pointers so that we are ready to parse the next HTTP request.
-     */
-    public void nextRequest() {
-        // Reset pointers
-        headerBuffer.position(0).limit(headerBuffer.capacity());
-        responseFinished = false;
-        byteCount = 0;
-    }
 
 
     public void init(SocketWrapperBase<?> socketWrapper) {
@@ -351,32 +318,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     }
 
 
-
-
-    /**
-     * Is standard Servlet blocking IO being used for output?
-     *
-     * @return <code>true</code> if this is blocking IO
-     */
-    /*TODO
-    protected final boolean isBlocking() {
-        return response.getWriteListener() == null;
-    }*/
-    protected final boolean isReady() {
-        boolean result = !hasDataToWrite();
-        if (!result) {
-            socketWrapper.registerWriteInterest();
-        }
-        return result;
-    }
-
-
-    public boolean hasDataToWrite() {
-        return socketWrapper.hasDataToWrite();
-    }
-
-
-
     // ------------------------------------------ SocketOutputBuffer Inner Class
 
     /**
@@ -398,29 +339,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
             //TODO socketWrapper.write(isBlocking(), b, start, len);
             byteCount += len;
             return len;
-        }
-
-        /**
-         * Write chunk.
-         */
-        @Override
-        public int doWrite(ByteBuffer chunk) throws IOException {
-            //try {
-            int len = chunk.remaining();
-            socketWrapper.write(isBlocking(), chunk);
-            len -= chunk.remaining();
-            byteCount += len;
-            return len;
-            /*} catch (IOException ioe) {
-                response.action(ActionCode.CLOSE_NOW, ioe);
-                // Re-throw
-                throw ioe;
-            }*/
-        }
-
-        @Override
-        public long getBytesWritten() {
-            return byteCount;
         }
 
         @Override

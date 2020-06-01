@@ -66,27 +66,6 @@ public class ServerCookies {
     }
 
 
-    public ServerCookie getCookie(int idx) {
-        return serverCookies[idx];
-    }
-
-
-    public int getCookieCount() {
-        return cookieCount;
-    }
-
-
-    public void setLimit(int limit) {
-        this.limit = limit;
-        if (limit > -1 && serverCookies.length > limit && cookieCount <= limit) {
-            // shrink cookie list array
-            ServerCookie scookiesTmp[] = new ServerCookie[limit];
-            System.arraycopy(serverCookies, 0, scookiesTmp, 0, cookieCount);
-            serverCookies = scookiesTmp;
-        }
-    }
-
-
     public void recycle() {
         for (int i = 0; i < cookieCount; i++) {
             serverCookies[i].recycle();

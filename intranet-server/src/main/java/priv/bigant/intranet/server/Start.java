@@ -2,13 +2,12 @@ package priv.bigant.intranet.server;
 
 
 import priv.bigant.intrance.common.ServerConnector;
-import priv.bigant.intrance.common.LifecycleException;
 import priv.bigant.intranet.server.process.CommunicationProcess;
 import priv.bigant.intranet.server.process.HttpIntranetAcceptProcess;
 import priv.bigant.intranet.server.process.HttpIntranetServiceProcess;
 
 public class Start {
-    public static void main(String[] args) throws LifecycleException {
+    public static void main(String[] args) {
         ServerConfig config = (ServerConfig) ServerConfig.getConfig();
 
         CommunicationProcess httpIntranetConnectorProcess = new CommunicationProcess();

@@ -47,12 +47,10 @@ public class NioSelectorPool {
 
     protected static final boolean SHARED = Boolean.parseBoolean(System.getProperty("org.apache.tomcat.util.net.NioSelectorShared", "true"));
 
-    protected NioBlockingSelector blockingSelector;
 
     protected volatile Selector SHARED_SELECTOR;
 
     protected int maxSelectors = 200;
-    protected long sharedSelectorTimeout = 30000;
     protected int maxSpareSelectors = -1;
     protected boolean enabled = true;
     protected AtomicInteger active = new AtomicInteger(0);
@@ -118,23 +116,13 @@ public class NioSelectorPool {
             s.close();
         spare.set(0);
         active.set(0);
-        if (blockingSelector != null) {
-            blockingSelector.close();
-        }
         if (SHARED && getSharedSelector() != null) {
             getSharedSelector().close();
             SHARED_SELECTOR = null;
         }
     }
 
-    public void open() throws IOException {
-        enabled = true;
-        getSharedSelector();
-        if (SHARED) {
-            blockingSelector = new NioBlockingSelector();
-            blockingSelector.open(getSharedSelector());
-        }
-    }
+
 
     /**
      * Performs a write using the bytebuffer for data to be written and a selector to block (if blocking is requested).
@@ -305,43 +293,4 @@ public class NioSelectorPool {
         return read;
     }
 
-    public void setMaxSelectors(int maxSelectors) {
-        this.maxSelectors = maxSelectors;
-    }
-
-    public void setMaxSpareSelectors(int maxSpareSelectors) {
-        this.maxSpareSelectors = maxSpareSelectors;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public void setSharedSelectorTimeout(long sharedSelectorTimeout) {
-        this.sharedSelectorTimeout = sharedSelectorTimeout;
-    }
-
-    public int getMaxSelectors() {
-        return maxSelectors;
-    }
-
-    public int getMaxSpareSelectors() {
-        return maxSpareSelectors;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public long getSharedSelectorTimeout() {
-        return sharedSelectorTimeout;
-    }
-
-    public ConcurrentLinkedQueue<Selector> getSelectors() {
-        return selectors;
-    }
-
-    public AtomicInteger getSpare() {
-        return spare;
-    }
 }

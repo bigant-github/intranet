@@ -17,7 +17,6 @@
 package priv.bigant.intrance.common;
 
 
-import priv.bigant.intrance.common.util.http.parser.Cookie;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -32,13 +31,6 @@ import java.util.Collection;
  * @see javax.servlet.ServletResponse
  */
 public interface HttpServletResponse {
-
-    /**
-     * Adds the specified cookie to the response. This method can be called multiple times to set more than one cookie.
-     *
-     * @param cookie the Cookie to return to the client
-     */
-    public void addCookie(Cookie cookie);
 
     /**
      * Returns a boolean indicating whether the named response header has already been set.

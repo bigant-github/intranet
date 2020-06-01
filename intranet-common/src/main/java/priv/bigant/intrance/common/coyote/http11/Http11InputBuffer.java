@@ -102,12 +102,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     /**
-     * Filter library. Note: Filter[Constants.CHUNKED_FILTER] is always the "chunked" filter.
-     */
-    private InputFilter[] filterLibrary;
-
-
-    /**
      * Active filters (in order).
      */
     private InputFilter[] activeFilters;
@@ -135,7 +129,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
      * Maximum allowed size of the HTTP request line plus headers plus any leading blank lines.
      */
     private final int headerBufferSize;
-
     /**
      * Known size of the NioChannel read buffer.
      */
@@ -152,7 +145,10 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         this.rejectIllegalHeaderName = rejectIllegalHeaderName;
         this.httpParser = httpParser;
 
-        filterLibrary = new InputFilter[0];
+        /**
+         * Filter library. Note: Filter[Constants.CHUNKED_FILTER] is always the "chunked" filter.
+         */
+        InputFilter[] filterLibrary = new InputFilter[0];
         activeFilters = new InputFilter[0];
         lastActiveFilter = -1;
 
@@ -168,15 +164,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         inputStreamInputBuffer = new SocketInputBuffer();
     }
 
-
-    // ------------------------------------------------------------- Properties
-
-    /**
-     * Get filters.
-     */
-    InputFilter[] getFilters() {
-        return filterLibrary;
-    }
 
 
     /**
@@ -636,15 +623,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             // No filters. Assume request is not finished. EOF will signal end of
             // request.
             return false;
-        }
-    }
-
-    ByteBuffer getLeftover() {
-        int available = byteBuffer.remaining();
-        if (available > 0) {
-            return ByteBuffer.wrap(byteBuffer.array(), byteBuffer.position(), available);
-        } else {
-            return null;
         }
     }
 

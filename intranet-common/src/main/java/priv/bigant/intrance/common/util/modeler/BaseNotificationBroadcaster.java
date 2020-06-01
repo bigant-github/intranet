@@ -78,9 +78,8 @@ public class BaseNotificationBroadcaster implements NotificationBroadcaster {
                 BaseAttributeFilter newFilter = (BaseAttributeFilter) filter;
                 for (BaseNotificationBroadcasterEntry item : entries) {
                     if ((item.listener == listener) &&
-                        (item.filter != null) &&
-                        (item.filter instanceof BaseAttributeFilter) &&
-                        (item.handback == handback)) {
+                            (item.filter instanceof BaseAttributeFilter) &&
+                            (item.handback == handback)) {
                         BaseAttributeFilter oldFilter =
                             (BaseAttributeFilter) item.filter;
                         String newNames[] = newFilter.getNames();

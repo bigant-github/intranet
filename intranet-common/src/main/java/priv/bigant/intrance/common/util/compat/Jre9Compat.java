@@ -16,24 +16,11 @@
  */
 package priv.bigant.intrance.common.util.compat;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.util.res.StringManager;
-import sun.rmi.runtime.Log;
-
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.net.URLConnection;
-import java.util.Deque;
-import java.util.Set;
 import java.util.jar.JarFile;
-import java.util.zip.ZipFile;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
@@ -41,25 +28,8 @@ import javax.net.ssl.SSLParameters;
 
 class Jre9Compat extends Jre8Compat {
 
-    private static final Logger log = LoggerFactory.getLogger(Jre9Compat.class);
-    private static final StringManager sm = StringManager.getManager(Jre9Compat.class);
-
     private static final Class<?> inaccessibleObjectExceptionClazz;
     private static final Method setApplicationProtocolsMethod;
-    private static final Method getApplicationProtocolMethod;
-    private static final Method setDefaultUseCachesMethod;
-    private static final Method bootMethod;
-    private static final Method configurationMethod;
-    private static final Method modulesMethod;
-    private static final Method referenceMethod;
-    private static final Method locationMethod;
-    private static final Method isPresentMethod;
-    private static final Method getMethod;
-    private static final Constructor<JarFile> jarFileConstructor;
-    private static final Method isMultiReleaseMethod;
-
-    private static final Object RUNTIME_VERSION;
-    private static final int RUNTIME_MAJOR_VERSION;
 
     static {
         Class<?> c1 = null;
@@ -112,25 +82,7 @@ class Jre9Compat extends Jre8Compat {
 
         inaccessibleObjectExceptionClazz = c1;
         setApplicationProtocolsMethod = m2;
-        getApplicationProtocolMethod = m3;
-        setDefaultUseCachesMethod = m4;
-        bootMethod = m5;
-        configurationMethod = m6;
-        modulesMethod = m7;
-        referenceMethod = m8;
-        locationMethod = m9;
-        isPresentMethod = m10;
-        getMethod = m11;
-        jarFileConstructor = c12;
-        isMultiReleaseMethod = m13;
 
-        RUNTIME_VERSION = o14;
-        if (o15 != null) {
-            RUNTIME_MAJOR_VERSION = ((Integer) o15).intValue();
-        } else {
-            // Must be Java 8
-            RUNTIME_MAJOR_VERSION = 8;
-        }
     }
 
 
@@ -139,95 +91,4 @@ class Jre9Compat extends Jre8Compat {
     }
 
 
-    @Override
-    public boolean isInstanceOfInaccessibleObjectException(Throwable t) {
-        if (t == null) {
-            return false;
-        }
-
-        return inaccessibleObjectExceptionClazz.isAssignableFrom(t.getClass());
-    }
-
-
-    @Override
-    public void setApplicationProtocols(SSLParameters sslParameters, String[] protocols) {
-        try {
-            setApplicationProtocolsMethod.invoke(sslParameters, (Object) protocols);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new UnsupportedOperationException(e);
-        }
-    }
-
-
-    @Override
-    public String getApplicationProtocol(SSLEngine sslEngine) {
-        try {
-            return (String) getApplicationProtocolMethod.invoke(sslEngine);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new UnsupportedOperationException(e);
-        }
-    }
-
-
-    @Override
-    public void disableCachingForJarUrlConnections() throws IOException {
-        try {
-            setDefaultUseCachesMethod.invoke(null, "JAR", Boolean.FALSE);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new UnsupportedOperationException(e);
-        }
-    }
-
-
-    @Override
-    public void addBootModulePath(Deque<URL> classPathUrlsToProcess) {
-        try {
-            Object bootLayer = bootMethod.invoke(null);
-            Object bootConfiguration = configurationMethod.invoke(bootLayer);
-            Set<?> resolvedModules = (Set<?>) modulesMethod.invoke(bootConfiguration);
-            for (Object resolvedModule : resolvedModules) {
-                Object moduleReference = referenceMethod.invoke(resolvedModule);
-                Object optionalURI = locationMethod.invoke(moduleReference);
-                Boolean isPresent = (Boolean) isPresentMethod.invoke(optionalURI);
-                if (isPresent.booleanValue()) {
-                    URI uri = (URI) getMethod.invoke(optionalURI);
-                    try {
-                        URL url = uri.toURL();
-                        classPathUrlsToProcess.add(url);
-                    } catch (MalformedURLException e) {
-                        log.warn(sm.getString("jre9Compat.invalidModuleUri", uri), e);
-                    }
-                }
-            }
-        } catch (ReflectiveOperationException e) {
-            throw new UnsupportedOperationException(e);
-        }
-    }
-
-
-    @Override
-    public JarFile jarFileNewInstance(File f) throws IOException {
-        try {
-            return jarFileConstructor.newInstance(
-                    f, Boolean.TRUE, Integer.valueOf(ZipFile.OPEN_READ), RUNTIME_VERSION);
-        } catch (ReflectiveOperationException | IllegalArgumentException e) {
-            throw new IOException(e);
-        }
-    }
-
-
-    @Override
-    public boolean jarFileIsMultiRelease(JarFile jarFile) {
-        try {
-            return ((Boolean) isMultiReleaseMethod.invoke(jarFile)).booleanValue();
-        } catch (ReflectiveOperationException | IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-
-    @Override
-    public int jarFileRuntimeMajorVersion() {
-        return RUNTIME_MAJOR_VERSION;
-    }
 }

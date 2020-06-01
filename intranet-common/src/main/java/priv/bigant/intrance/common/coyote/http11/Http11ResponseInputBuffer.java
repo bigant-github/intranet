@@ -101,12 +101,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
 
 
     /**
-     * Filter library. Note: Filter[Constants.CHUNKED_FILTER] is always the "chunked" filter.
-     */
-    private InputFilter[] filterLibrary;
-
-
-    /**
      * Active filters (in order).
      */
     private InputFilter[] activeFilters;
@@ -148,7 +142,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
         this.rejectIllegalHeaderName = rejectIllegalHeaderName;
         this.httpParser = httpParser;
 
-        filterLibrary = new InputFilter[0];
         activeFilters = new InputFilter[0];
         lastActiveFilter = -1;
 
@@ -166,35 +159,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
 
 
     // ------------------------------------------------------------- Properties
-
-    /**
-     * Add an input filter to the filter library.
-     *
-     * @throws NullPointerException if the supplied filter is null
-     */
-    void addFilter(InputFilter filter) {
-
-        if (filter == null) {
-            throw new NullPointerException(sm.getString("iib.filter.npe"));
-        }
-
-        InputFilter[] newFilterLibrary = new InputFilter[filterLibrary.length + 1];
-        for (int i = 0; i < filterLibrary.length; i++) {
-            newFilterLibrary[i] = filterLibrary[i];
-        }
-        newFilterLibrary[filterLibrary.length] = filter;
-        filterLibrary = newFilterLibrary;
-
-        activeFilters = new InputFilter[filterLibrary.length];
-    }
-
-
-    /**
-     * Get filters.
-     */
-    InputFilter[] getFilters() {
-        return filterLibrary;
-    }
 
 
     /**
@@ -597,92 +561,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
 
     public int getParsingRequestLinePhase() {
         return parsingRequestLinePhase;
-    }
-
-
-    /**
-     * End response (consumes leftover bytes).
-     *
-     * @throws IOException an underlying I/O error occurred
-     */
-    void endRequest() throws IOException {
-
-        if (swallowInput && (lastActiveFilter != -1)) {
-            int extraBytes = (int) activeFilters[lastActiveFilter].end();
-            byteBuffer.position(byteBuffer.position() - extraBytes);
-        }
-    }
-
-
-    /**
-     * Available bytes in the buffers (note that due to encoding, this may not correspond).
-     */
-    int available(boolean read) {
-        int available = byteBuffer.remaining();
-        if ((available == 0) && (lastActiveFilter >= 0)) {
-            for (int i = 0; (available == 0) && (i <= lastActiveFilter); i++) {
-                available = activeFilters[i].available();
-            }
-        }
-        if (available > 0 || !read) {
-            return available;
-        }
-
-        try {
-            if (wrapper.hasDataToRead()) {
-                fill(false);
-                available = byteBuffer.remaining();
-            }
-        } catch (IOException ioe) {
-            if (log.isDebugEnabled()) {
-                log.debug(sm.getString("iib.available.readFail"), ioe);
-            }
-            // Not ideal. This will indicate that data is available which should
-            // trigger a read which in turn will trigger another IOException and
-            // that one can be thrown.
-            available = 1;
-        }
-        return available;
-    }
-
-
-    /**
-     * Has all of the response body been read? There are subtle differences between this and available() &gt; 0
-     * primarily because of having to handle faking non-blocking reads with the blocking IO connector.
-     */
-    boolean isFinished() {
-        if (byteBuffer.limit() > byteBuffer.position()) {
-            // Data to read in the buffer so not finished
-            return false;
-        }
-
-        /*
-         * Don't use fill(false) here because in the following circumstances
-         * BIO will block - possibly indefinitely
-         * - client is using keep-alive and connection is still open
-         * - client has sent the complete response
-         * - client has not sent any of the next response (i.e. no pipelining)
-         * - application has read the complete response
-         */
-
-        // Check the InputFilters
-
-        if (lastActiveFilter >= 0) {
-            return activeFilters[lastActiveFilter].isFinished();
-        } else {
-            // No filters. Assume response is not finished. EOF will signal end of
-            // response.
-            return false;
-        }
-    }
-
-    ByteBuffer getLeftover() {
-        int available = byteBuffer.remaining();
-        if (available > 0) {
-            return ByteBuffer.wrap(byteBuffer.array(), byteBuffer.position(), available);
-        } else {
-            return null;
-        }
     }
 
 

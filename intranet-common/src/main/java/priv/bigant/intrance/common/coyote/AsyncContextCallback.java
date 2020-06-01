@@ -25,12 +25,4 @@ package priv.bigant.intrance.common.coyote;
 public interface AsyncContextCallback {
     public void fireOnComplete();
 
-    /**
-     * Reports if the web application associated with this async request is
-     * available.
-     *
-     * @return {@code true} if the associated web application is available,
-     *         otherwise {@code false}
-     */
-    public boolean isAvailable();
 }

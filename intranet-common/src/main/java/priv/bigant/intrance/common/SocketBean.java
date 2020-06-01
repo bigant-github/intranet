@@ -20,11 +20,6 @@ public class SocketBean {
     private String id;
     private SocketChannel socketChannel;
 
-    public SocketBean(Socket socket, String id) {
-        this.socket = socket;
-        this.id = id;
-    }
-
     public SocketBean(SocketChannel socketChannel) throws IOException {
         Socket socket = socketChannel.socket();
         this.socketChannel = socketChannel;
@@ -97,44 +92,12 @@ public class SocketBean {
         return true;
     }
 
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public void setSocket(Socket socket) {
-        this.socket = socket;
-    }
-
     public InputStream getIs() {
         return is;
     }
 
-    public void setIs(InputStream is) {
-        this.is = is;
-    }
-
     public OutputStream getOs() {
         return os;
-    }
-
-    public void setOs(OutputStream os) {
-        this.os = os;
-    }
-
-    public InetAddress getInetAddress() {
-        return inetAddress;
-    }
-
-    public void setInetAddress(InetAddress inetAddress) {
-        this.inetAddress = inetAddress;
-    }
-
-    public String getDomainName() {
-        return domainName;
-    }
-
-    public void setDomainName(String domainName) {
-        this.domainName = domainName;
     }
 
     public String getId() {
@@ -144,10 +107,6 @@ public class SocketBean {
 
     public SocketChannel getSocketChannel() {
         return socketChannel;
-    }
-
-    public void setSocketChannel(SocketChannel socketChannel) {
-        this.socketChannel = socketChannel;
     }
 
     public void setId(String id) {

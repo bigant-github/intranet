@@ -18,7 +18,6 @@ package priv.bigant.intrance.common.util.modeler;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
-import java.util.Locale;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -35,18 +34,10 @@ public class OperationInfo extends FeatureInfo {
 
     // ----------------------------------------------------------- Constructors
 
-    /**
-     * Standard zero-arguments constructor.
-     */
-    public OperationInfo() {
-        super();
-    }
-
 
     // ----------------------------------------------------- Instance Variables
 
     protected String impact = "UNKNOWN";
-    protected String role = "operation";
     protected final ReadWriteLock parametersLock = new ReentrantReadWriteLock();
     protected ParameterInfo parameters[] = new ParameterInfo[0];
 
@@ -62,26 +53,6 @@ public class OperationInfo extends FeatureInfo {
         return this.impact;
     }
 
-    public void setImpact(String impact) {
-        if (impact == null)
-            this.impact = null;
-        else
-            this.impact = impact.toUpperCase(Locale.ENGLISH);
-    }
-
-
-    /**
-     * @return the role of this operation ("getter", "setter", "operation", or
-     * "constructor").
-     */
-    public String getRole() {
-        return this.role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
 
     /**
      * @return the fully qualified Java class name of the return type for this
@@ -92,10 +63,6 @@ public class OperationInfo extends FeatureInfo {
             type = "void";
         }
         return type;
-    }
-
-    public void setReturnType(String returnType) {
-        this.type = returnType;
     }
 
     /**
@@ -112,27 +79,6 @@ public class OperationInfo extends FeatureInfo {
     }
 
     // --------------------------------------------------------- Public Methods
-
-
-    /**
-     * Add a new parameter to the set of arguments for this operation.
-     *
-     * @param parameter The new parameter descriptor
-     */
-    public void addParameter(ParameterInfo parameter) {
-
-        Lock writeLock = parametersLock.writeLock();
-        writeLock.lock();
-        try {
-            ParameterInfo results[] = new ParameterInfo[parameters.length + 1];
-            System.arraycopy(parameters, 0, results, 0, parameters.length);
-            results[parameters.length] = parameter;
-            parameters = results;
-            this.info = null;
-        } finally {
-            writeLock.unlock();
-        }
-    }
 
 
     /**

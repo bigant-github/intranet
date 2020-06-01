@@ -66,10 +66,6 @@ public class ServerCookie implements Serializable {
         version=0;
     }
 
-    public MessageBytes getComment() {
-        return comment;
-    }
-
     public MessageBytes getDomain() {
         return domain;
     }

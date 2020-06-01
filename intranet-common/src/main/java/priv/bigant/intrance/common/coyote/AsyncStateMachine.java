@@ -295,12 +295,9 @@ public class AsyncStateMachine {
 
 
     public synchronized boolean asyncComplete() {
-        if (!ContainerThreadMarker.isContainerThread() && state == AsyncState.STARTING) {
-            state = AsyncState.COMPLETE_PENDING;
-            return false;
-        } else {
-            return doComplete();
-        }
+
+        return doComplete();
+
     }
 
 
@@ -341,12 +338,9 @@ public class AsyncStateMachine {
 
 
     public synchronized boolean asyncDispatch() {
-        if (!ContainerThreadMarker.isContainerThread() && state == AsyncState.STARTING) {
-            state = AsyncState.DISPATCH_PENDING;
-            return false;
-        } else {
-            return doDispatch();
-        }
+
+        return doDispatch();
+
     }
 
 
@@ -370,13 +364,6 @@ public class AsyncStateMachine {
             doDispatch = true;
         } else if (state == AsyncState.READ_WRITE_OP) {
             state = AsyncState.DISPATCHING;
-            // If on a container thread then the socket will be added to the
-            // poller poller when the thread exits the
-            // AbstractConnectionHandler.process() method so don't do a dispatch
-            // here which would add it to the poller a second time.
-            if (!ContainerThreadMarker.isContainerThread()) {
-                doDispatch = true;
-            }
         } else {
             throw new IllegalStateException(
                     sm.getString("asyncStateMachine.invalidAsyncState",

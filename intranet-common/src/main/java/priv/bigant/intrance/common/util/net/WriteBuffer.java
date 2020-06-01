@@ -73,32 +73,6 @@ public class WriteBuffer {
     }
 
 
-    /**
-     * Create an array of ByteBuffers from the current WriteBuffer, prefixing
-     * that array with the provided ByteBuffers.
-     *
-     * @param prefixes The additional ByteBuffers to add to the start of the
-     *                 array
-     *
-     * @return an array of ByteBuffers from the current WriteBuffer prefixed by
-     *         the provided ByteBuffers
-     */
-    ByteBuffer[] toArray(ByteBuffer... prefixes) {
-        List<ByteBuffer> result = new ArrayList<>();
-        for (ByteBuffer prefix : prefixes) {
-            if (prefix.hasRemaining()) {
-                result.add(prefix);
-            }
-        }
-        for (ByteBufferHolder buffer : buffers) {
-            buffer.flip();
-            result.add(buffer.getBuf());
-        }
-        buffers.clear();
-        return result.toArray(new ByteBuffer[result.size()]);
-    }
-
-
     boolean write(SocketWrapperBase<?> socketWrapper, boolean blocking) throws IOException {
         Iterator<ByteBufferHolder> bufIter = buffers.iterator();
         boolean dataLeft = false;

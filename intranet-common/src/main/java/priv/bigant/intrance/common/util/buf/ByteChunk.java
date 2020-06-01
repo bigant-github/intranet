@@ -222,39 +222,7 @@ public final class ByteChunk extends AbstractChunk {
     }
 
 
-    /**
-     * When the buffer is empty, read the data from the input channel.
-     *
-     * @param in The input channel
-     */
-    public void setByteInputChannel(ByteInputChannel in) {
-        this.in = in;
-    }
-
-
-    /**
-     * When the buffer is full, write the data to the output channel. Also used when large amount of data is appended.
-     * If not set, the buffer will grow to the limit.
-     *
-     * @param out The output channel
-     */
-    public void setByteOutputChannel(ByteOutputChannel out) {
-        this.out = out;
-    }
-
-
     // -------------------- Adding data to the buffer --------------------
-
-    public void append(byte b) throws IOException {
-        makeSpace(1);
-        int limit = getLimitInternal();
-
-        // couldn't make space
-        if (end >= limit) {
-            flushBuffer();
-        }
-        buff[end++] = b;
-    }
 
 
     public void append(ByteChunk src) throws IOException {
@@ -316,75 +284,7 @@ public final class ByteChunk extends AbstractChunk {
     }
 
 
-    /**
-     * Add data to the buffer.
-     *
-     * @param from the ByteBuffer with the data
-     * @throws IOException Writing overflow data to the output channel failed
-     */
-    public void append(ByteBuffer from) throws IOException {
-        int len = from.remaining();
-
-        // will grow, up to limit
-        makeSpace(len);
-        int limit = getLimitInternal();
-
-        // Optimize on a common case.
-        // If the buffer is empty and the source is going to fill up all the
-        // space in buffer, may as well write it directly to the output,
-        // and avoid an extra copy
-        if (len == limit && end == start && out != null) {
-            out.realWriteBytes(from);
-            from.position(from.limit());
-            return;
-        }
-        // if we have limit and we're below
-        if (len <= limit - end) {
-            // makeSpace will grow the buffer to the limit,
-            // so we have space
-            from.get(buff, end, len);
-            end += len;
-            return;
-        }
-
-        // need more space than we can afford, need to flush
-        // buffer
-
-        // the buffer is already at ( or bigger than ) limit
-
-        // We chunk the data into slices fitting in the buffer limit, although
-        // if the data is written directly if it doesn't fit
-
-        int avail = limit - end;
-        from.get(buff, end, avail);
-        end += avail;
-
-        flushBuffer();
-
-        int fromLimit = from.limit();
-        int remain = len - avail;
-        avail = limit - end;
-        while (remain >= avail) {
-            from.limit(from.position() + avail);
-            out.realWriteBytes(from);
-            from.position(from.limit());
-            remain = remain - avail;
-        }
-
-        from.limit(fromLimit);
-        from.get(buff, end, remain);
-        end += remain;
-    }
-
-
     // -------------------- Removing data from the buffer --------------------
-
-    public int substract() throws IOException {
-        if (checkEof()) {
-            return -1;
-        }
-        return buff[start++] & 0xFF;
-    }
 
 
     public byte substractB() throws IOException {
@@ -658,29 +558,6 @@ public final class ByteChunk extends AbstractChunk {
 
 
     /**
-     * Returns true if the buffer starts with the specified string when tested in a case sensitive manner.
-     *
-     * @param s   the string
-     * @param pos The position
-     * @return <code>true</code> if the start matches
-     */
-    public boolean startsWith(String s, int pos) {
-        byte[] b = buff;
-        int len = s.length();
-        if (b == null || len + pos > end - start) {
-            return false;
-        }
-        int off = start + pos;
-        for (int i = 0; i < len; i++) {
-            if (b[off++] != s.charAt(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    /**
      * Returns true if the buffer starts with the specified string when tested in a case insensitive manner.
      *
      * @param s   the string
@@ -710,44 +587,6 @@ public final class ByteChunk extends AbstractChunk {
 
 
     /**
-     * Returns the first instance of the given character in this ByteChunk starting at the specified byte. If the
-     * character is not found, -1 is returned. <br> NOTE: This only works for characters in the range 0-127.
-     *
-     * @param c        The character
-     * @param starting The start position
-     * @return The position of the first instance of the character or -1 if the character is not found.
-     */
-    public int indexOf(char c, int starting) {
-        int ret = indexOf(buff, start + starting, end, c);
-        return (ret >= start) ? ret - start : -1;
-    }
-
-
-    /**
-     * Returns the first instance of the given character in the given byte array between the specified start and end.
-     * <br> NOTE: This only works for characters in the range 0-127.
-     *
-     * @param bytes The array to search
-     * @param start The point to start searching from in the array
-     * @param end   The point to stop searching in the array
-     * @param s     The character to search for
-     * @return The position of the first instance of the character or -1 if the character is not found.
-     */
-    public static int indexOf(byte bytes[], int start, int end, char s) {
-        int offset = start;
-
-        while (offset < end) {
-            byte b = bytes[offset];
-            if (b == s) {
-                return offset;
-            }
-            offset++;
-        }
-        return -1;
-    }
-
-
-    /**
      * Returns the first instance of the given byte in the byte array between the specified start and end.
      *
      * @param bytes The byte array to search
@@ -761,30 +600,6 @@ public final class ByteChunk extends AbstractChunk {
         while (offset < end) {
             if (bytes[offset] == b) {
                 return offset;
-            }
-            offset++;
-        }
-        return -1;
-    }
-
-
-    /**
-     * Returns the first instance of any of the given bytes in the byte array between the specified start and end.
-     *
-     * @param bytes The byte array to search
-     * @param start The point to start searching from in the byte array
-     * @param end   The point to stop searching in the byte array
-     * @param b     The array of bytes to search for
-     * @return The position of the first instance of the byte or -1 if the byte is not found.
-     */
-    public static int findBytes(byte bytes[], int start, int end, byte b[]) {
-        int blen = b.length;
-        int offset = start;
-        while (offset < end) {
-            for (int i = 0; i < blen; i++) {
-                if (bytes[offset] == b[i]) {
-                    return offset;
-                }
             }
             offset++;
         }

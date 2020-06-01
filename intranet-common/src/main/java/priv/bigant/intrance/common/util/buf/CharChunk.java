@@ -141,28 +141,6 @@ public final class CharChunk extends AbstractChunk implements CharSequence {
     }
 
 
-    /**
-     * When the buffer is empty, read the data from the input channel.
-     *
-     * @param in The input channel
-     */
-    public void setCharInputChannel(CharInputChannel in) {
-        this.in = in;
-    }
-
-
-    /**
-     * When the buffer is full, write the data to the output channel. Also used
-     * when large amount of data is appended. If not set, the buffer will grow
-     * to the limit.
-     *
-     * @param out The output channel
-     */
-    public void setCharOutputChannel(CharOutputChannel out) {
-        this.out = out;
-    }
-
-
     // -------------------- Adding data to the buffer --------------------
 
     public void append(char b) throws IOException {
@@ -242,48 +220,6 @@ public final class CharChunk extends AbstractChunk implements CharSequence {
             flushBuffer();
 
             out.realWriteChars(src, off, len);
-        }
-    }
-
-
-    /**
-     * Append a string to the buffer.
-     *
-     * @param s The string
-     * @throws IOException Writing overflow data to the output channel failed
-     */
-    public void append(String s) throws IOException {
-        append(s, 0, s.length());
-    }
-
-
-    /**
-     * Append a string to the buffer.
-     *
-     * @param s The string
-     * @param off Offset
-     * @param len Length
-     * @throws IOException Writing overflow data to the output channel failed
-     */
-    public void append(String s, int off, int len) throws IOException {
-        if (s == null) {
-            return;
-        }
-
-        // will grow, up to limit
-        makeSpace(len);
-        int limit = getLimitInternal();
-
-        int sOff = off;
-        int sEnd = off + len;
-        while (sOff < sEnd) {
-            int d = min(limit - end, sEnd - sOff);
-            s.getChars(sOff, sOff + d, buff, end);
-            sOff += d;
-            end += d;
-            if (end >= limit) {
-                flushBuffer();
-            }
         }
     }
 
@@ -495,27 +431,6 @@ public final class CharChunk extends AbstractChunk implements CharSequence {
 
 
     /**
-     * @return <code>true</code> if the message bytes starts with the specified
-     *         string.
-     * @param s The string
-     */
-    public boolean startsWith(String s) {
-        char[] c = buff;
-        int len = s.length();
-        if (c == null || len > end - start) {
-            return false;
-        }
-        int off = start;
-        for (int i = 0; i < len; i++) {
-            if (c[off++] != s.charAt(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    /**
      * Returns true if the buffer starts with the specified string.
      *
      * @param s the string
@@ -539,35 +454,9 @@ public final class CharChunk extends AbstractChunk implements CharSequence {
     }
 
 
-    /**
-     * @return <code>true</code> if the message bytes end with the specified
-     *         string.
-     * @param s The string
-     */
-    public boolean endsWith(String s) {
-        char[] c = buff;
-        int len = s.length();
-        if (c == null || len > end - start) {
-            return false;
-        }
-        int off = end - len;
-        for (int i = 0; i < len; i++) {
-            if (c[off++] != s.charAt(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
     @Override
     protected int getBufferElement(int index) {
         return buff[index];
-    }
-
-
-    public int indexOf(char c) {
-        return indexOf(c, start);
     }
 
 

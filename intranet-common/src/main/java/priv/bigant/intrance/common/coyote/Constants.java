@@ -33,11 +33,6 @@ public final class Constants {
     public static final int MAX_NOTES = 32;
 
 
-    // Request states
-    public static final int STAGE_NEW = 0;
-    public static final int STAGE_SERVICE = 3;
-    public static final int STAGE_ENDED = 7;
-
     // Default protocol settings
     public static final int DEFAULT_CONNECTION_LINGER = -1;
     public static final boolean DEFAULT_TCP_NO_DELAY = true;

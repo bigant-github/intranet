@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.coyote;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 import priv.bigant.intrance.common.util.buf.B2CConverter;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
@@ -27,7 +25,6 @@ import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.Parameters;
 import priv.bigant.intrance.common.util.http.ServerCookies;
 import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
-import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -48,8 +45,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class Response {
 
-
-    private static final Logger LOG = LoggerFactory.getLogger(Response.class);
 
     // Expected maximum typical number of cookies per request.
     private static final int INITIAL_COOKIE_SIZE = 4;
@@ -134,10 +129,6 @@ public final class Response {
 
     private final AtomicBoolean allDataReadEventSent = new AtomicBoolean(false);
 
-    public boolean sendAllDataReadEvent() {
-        return allDataReadEventSent.compareAndSet(false, true);
-    }
-
 
     // ------------------------------------------------------------- Properties
 
@@ -145,10 +136,6 @@ public final class Response {
         return headers;
     }
 
-
-    public UDecoder getURLDecoder() {
-        return urlDecoder;
-    }
 
     // -------------------- Request data --------------------
 
@@ -165,75 +152,8 @@ public final class Response {
         return descriptionMB;
     }
 
-    /**
-     * Get the "virtual host", derived from the Host: header associated with this request.
-     *
-     * @return The buffer holding the server name, if any. Use isNull() to check if there is no value set.
-     */
-    public MessageBytes serverName() {
-        return serverNameMB;
-    }
-
-    public int getServerPort() {
-        return serverPort;
-    }
-
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
-    }
-
-
-    public int getRemotePort() {
-        return remotePort;
-    }
-
-    public void setRemotePort(int port) {
-        this.remotePort = port;
-    }
-
-    public int getLocalPort() {
-        return localPort;
-    }
-
-    public void setLocalPort(int port) {
-        this.localPort = port;
-    }
 
     // -------------------- encoding/type --------------------
-
-
-    /**
-     * Get the character encoding used for this request.
-     *
-     * @return The value set via {@link #setCharacterEncoding(String)} or if no call has been made to that method try to
-     * obtain if from the content type.
-     */
-    public String getCharacterEncoding() {
-        if (characterEncoding == null) {
-            characterEncoding = getCharsetFromContentType(getContentType());
-        }
-
-        return characterEncoding;
-    }
-
-
-    /**
-     * Get the character encoding used for this request.
-     *
-     * @return The value set via {@link #setCharacterEncoding(String)} or if no call has been made to that method try to
-     * obtain if from the content type.
-     * @throws UnsupportedEncodingException If the user agent has specified an invalid character encoding
-     */
-    public Charset getCharset() throws UnsupportedEncodingException {
-        if (charset == null) {
-            getCharacterEncoding();
-            if (characterEncoding != null) {
-                charset = B2CConverter.getCharset(characterEncoding);
-            }
-        }
-
-        return charset;
-    }
 
 
     /**
@@ -250,11 +170,6 @@ public final class Response {
     public void setCharset(Charset charset) {
         this.charset = charset;
         this.characterEncoding = charset.name();
-    }
-
-
-    public void setContentLength(long len) {
-        this.contentLength = len;
     }
 
 
@@ -288,11 +203,6 @@ public final class Response {
     }
 
 
-    public void setContentType(String type) {
-        contentTypeMB.setString(type);
-    }
-
-
     public MessageBytes contentType() {
         if (contentTypeMB == null) {
             contentTypeMB = headers.getValue("content-type");
@@ -301,140 +211,24 @@ public final class Response {
     }
 
 
-    public void setContentType(MessageBytes mb) {
-        contentTypeMB = mb;
-    }
-
-
-    public String getHeader(String name) {
-        return headers.getHeader(name);
-    }
-
-
-    public void setExpectation(boolean expectation) {
-        this.expectation = expectation;
-    }
-
-
-    public boolean hasExpectation() {
-        return expectation;
-    }
-
-
     // -------------------- Associated response --------------------
-
-    public Response getResponse() {
-        return response;
-    }
-
-    public void setResponse(Response response) {
-        this.response = response;
-    }
 
     protected void setHook(ActionHook hook) {
         this.hook = hook;
     }
 
-    public void action(ActionCode actionCode, Object param) {
-        if (hook != null) {
-            if (param == null) {
-                hook.action(actionCode, this);
-            } else {
-                hook.action(actionCode, param);
-            }
-        }
-    }
-
 
     // -------------------- Cookies --------------------
 
-    public ServerCookies getCookies() {
-        return serverCookies;
-    }
-
 
     // -------------------- Parameters --------------------
-
-    public Parameters getParameters() {
-        return parameters;
-    }
-
-
-    public void addPathParameter(String name, String value) {
-        pathParameters.put(name, value);
-    }
-
-    public String getPathParameter(String name) {
-        return pathParameters.get(name);
-    }
 
 
     // -------------------- Other attributes --------------------
     // We can use notes for most - need to discuss what is of general interest
 
-    public void setAttribute(String name, Object o) {
-        attributes.put(name, o);
-    }
-
-    public HashMap<String, Object> getAttributes() {
-        return attributes;
-    }
-
-    public Object getAttribute(String name) {
-        return attributes.get(name);
-    }
-
-    public MessageBytes getRemoteUser() {
-        return remoteUser;
-    }
-
-    public boolean getRemoteUserNeedsAuthorization() {
-        return remoteUserNeedsAuthorization;
-    }
-
-    public void setRemoteUserNeedsAuthorization(boolean remoteUserNeedsAuthorization) {
-        this.remoteUserNeedsAuthorization = remoteUserNeedsAuthorization;
-    }
-
-    public MessageBytes getAuthType() {
-        return authType;
-    }
-
-    public int getAvailable() {
-        return available;
-    }
-
-    public void setAvailable(int available) {
-        this.available = available;
-    }
-
-    public boolean getSendfile() {
-        return sendfile;
-    }
-
-    public void setSendfile(boolean sendfile) {
-        this.sendfile = sendfile;
-    }
-
-    public boolean isFinished() {
-        AtomicBoolean result = new AtomicBoolean(false);
-        action(ActionCode.REQUEST_BODY_FULLY_READ, result);
-        return result.get();
-    }
-
-    public boolean getSupportsRelativeRedirects() {
-        if (protocol().equals("") || protocol().equals("HTTP/1.0")) {
-            return false;
-        }
-        return true;
-    }
-
 
     // -------------------- Input Buffer --------------------
-
-    public InputBuffer getInputBuffer() {
-        return inputBuffer;
-    }
 
 
     public void setInputBuffer(InputBuffer inputBuffer) {
@@ -453,7 +247,6 @@ public final class Response {
      * @param chunk The destination to which to copy the data
      * @return The number of bytes copied
      * @throws IOException If an I/O error occurs during the copy
-     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doRead(ApplicationBufferHandler)}
      */
     @Deprecated
     public int doRead(ByteChunk chunk) throws IOException {
@@ -464,26 +257,6 @@ public final class Response {
         return n;
     }
 
-
-    /**
-     * Read data from the input buffer and put it into ApplicationBufferHandler.
-     * <p>
-     * The buffer is owned by the protocol implementation - it will be reused on the next read. The Adapter must either
-     * process the data in place or copy it to a separate buffer if it needs to hold it. In most cases this is done
-     * during byte-&gt;char conversions or via InputStream. Unlike InputStream, this interface allows the app to process
-     * data in place, without copy.
-     *
-     * @param handler The destination to which to copy the data
-     * @return The number of bytes copied
-     * @throws IOException If an I/O error occurs during the copy
-     */
-    public int doRead(ApplicationBufferHandler handler) throws IOException {
-        int n = inputBuffer.doRead(handler);
-        if (n > 0) {
-            bytesRead += n;
-        }
-        return n;
-    }
 
     public boolean isConnection() {
         // Check connection header
@@ -522,30 +295,6 @@ public final class Response {
     // -------------------- Per-Request "notes" --------------------
 
 
-    /**
-     * Used to store private data. Thread data could be used instead - but if you have the req, getting/setting a note
-     * is just a array access, may be faster than ThreadLocal for very frequent operations.
-     * <p>
-     * Example use: Catalina CoyoteAdapter: ADAPTER_NOTES = 1 - stores the HttpServletRequest object ( req/res)
-     * <p>
-     * To avoid conflicts, note in the range 0 - 8 are reserved for the servlet container ( catalina connector, etc ),
-     * and values in 9 - 16 for connector use.
-     * <p>
-     * 17-31 range is not allocated or used.
-     *
-     * @param pos   Index to use to store the note
-     * @param value The value to store at that index
-     */
-    public final void setNote(int pos, Object value) {
-        notes[pos] = value;
-    }
-
-
-    public final Object getNote(int pos) {
-        return notes[pos];
-    }
-
-
     // -------------------- Recycling --------------------
 
 
@@ -582,10 +331,6 @@ public final class Response {
         startTime = -1;
     }
 
-
-    public long getBytesRead() {
-        return bytesRead;
-    }
 
     /*public boolean isProcessing() {
         return reqProcessorMX.getStage() == org.apache.coyote.Constants.STAGE_SERVICE;

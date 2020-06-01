@@ -16,7 +16,6 @@
  */
 package priv.bigant.intrance.common.util;
 
-import java.lang.reflect.InvocationTargetException;
 
 
 /**

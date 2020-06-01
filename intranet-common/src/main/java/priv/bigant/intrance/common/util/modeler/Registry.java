@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 
 /*
@@ -56,7 +55,7 @@ import java.util.List;
  * @author Craig R. McClanahan
  * @author Costin Manolache
  */
-public class Registry implements RegistryMBean, MBeanRegistration {
+public class Registry implements MBeanRegistration {
     /**
      * The Log instance to which we will write our log messages.
      */
@@ -96,10 +95,6 @@ public class Registry implements RegistryMBean, MBeanRegistration {
 
     private Object guard;
 
-    // Id - small ints to use array access. No reset on stop()
-    // Used for notifications
-    private final Hashtable<String, Hashtable<String, Integer>> idDomains = new Hashtable<>();
-    private final Hashtable<String, int[]> ids = new Hashtable<>();
 
 
     // ----------------------------------------------------------- Constructors
@@ -158,130 +153,8 @@ public class Registry implements RegistryMBean, MBeanRegistration {
 
     // -------------------- Generic methods  --------------------
 
-    /**
-     * Lifecycle method - clean up the registry metadata. Called from resetMetadata().
-     *
-     * @since 1.1
-     */
-    @Override
-    public void stop() {
-        descriptorsByClass = new HashMap<>();
-        descriptors = new HashMap<>();
-        searchedPaths = new HashMap<>();
-    }
-
-    /**
-     * Register a bean by creating a modeler mbean and adding it to the MBeanServer.
-     * <p>
-     * If metadata is not loaded, we'll look up and read a file named "mbeans-descriptors.ser" or
-     * "mbeans-descriptors.xml" in the same package or parent.
-     * <p>
-     * If the bean is an instance of DynamicMBean. it's metadata will be converted to a model mbean and we'll wrap it -
-     * so modeler services will be supported
-     * <p>
-     * If the metadata is still not found, introspection will be used to extract it automatically.
-     * <p>
-     * If an mbean is already registered under this name, it'll be first unregistered.
-     * <p>
-     * If the component implements MBeanRegistration, the methods will be called. If the method has a method
-     * "setRegistry" that takes a RegistryMBean as parameter, it'll be called with the current registry.
-     *
-     * @param bean  Object to be registered
-     * @param oname Name used for registration
-     * @param type  The type of the mbean, as declared in mbeans-descriptors. If null, the name of the class will be
-     *              used. This can be used as a hint or by subclasses.
-     * @throws Exception if a registration error occurred
-     * @since 1.1
-     */
-    @Override
-    public void registerComponent(Object bean, String oname, String type) throws Exception {
-        registerComponent(bean, new ObjectName(oname), type);
-    }
-
-    /**
-     * Unregister a component. We'll first check if it is registered, and mask all errors. This is mostly a helper.
-     *
-     * @param oname Name used for unregistration
-     * @since 1.1
-     */
-    @Override
-    public void unregisterComponent(String oname) {
-        try {
-            unregisterComponent(new ObjectName(oname));
-        } catch (MalformedObjectNameException e) {
-            log.info("Error creating object name " + e);
-        }
-    }
-
-
-    /**
-     * Invoke a operation on a list of mbeans. Can be used to implement lifecycle operations.
-     *
-     * @param mbeans    list of ObjectName on which we'll invoke the operations
-     * @param operation Name of the operation ( init, start, stop, etc)
-     * @param failFirst If false, exceptions will be ignored
-     * @throws Exception Error invoking operation
-     * @since 1.1
-     */
-    @Override
-    public void invoke(List<ObjectName> mbeans, String operation, boolean failFirst) throws Exception {
-        if (mbeans == null) {
-            return;
-        }
-        for (ObjectName current : mbeans) {
-            try {
-                if (current == null) {
-                    continue;
-                }
-                if (getMethodInfo(current, operation) == null) {
-                    continue;
-                }
-                getMBeanServer().invoke(current, operation, new Object[]{}, new String[]{});
-            } catch (Exception t) {
-                if (failFirst) throw t;
-                log.info("Error initializing " + current + " " + t.toString());
-            }
-        }
-    }
 
     // -------------------- ID registry --------------------
-
-    /**
-     * Return an int ID for faster access. Will be used for notifications and for other operations we want to optimize.
-     *
-     * @param domain Namespace
-     * @param name   Type of the notification
-     * @return An unique id for the domain:name combination
-     * @since 1.1
-     */
-    @Override
-    public synchronized int getId(String domain, String name) {
-        if (domain == null) {
-            domain = "";
-        }
-        Hashtable<String, Integer> domainTable = idDomains.get(domain);
-        if (domainTable == null) {
-            domainTable = new Hashtable<>();
-            idDomains.put(domain, domainTable);
-        }
-        if (name == null) {
-            name = "";
-        }
-        Integer i = domainTable.get(name);
-
-        if (i != null) {
-            return i.intValue();
-        }
-
-        int id[] = ids.get(domain);
-        if (id == null) {
-            id = new int[1];
-            ids.put(domain, id);
-        }
-        int code = id[0]++;
-        domainTable.put(name, Integer.valueOf(code));
-        return code;
-    }
 
     // -------------------- Metadata   --------------------
     // methods from 1.0
@@ -319,74 +192,6 @@ public class Registry implements RegistryMBean, MBeanRegistration {
     }
 
     // -------------------- Helpers  --------------------
-
-    /**
-     * Get the type of an attribute of the object, from the metadata.
-     *
-     * @param oname   The bean name
-     * @param attName The attribute name
-     * @return null if metadata about the attribute is not found
-     * @since 1.1
-     */
-    public String getType(ObjectName oname, String attName) {
-        String type = null;
-        MBeanInfo info = null;
-        try {
-            info = server.getMBeanInfo(oname);
-        } catch (Exception e) {
-            log.info("Can't find metadata for object" + oname);
-            return null;
-        }
-
-        MBeanAttributeInfo attInfo[] = info.getAttributes();
-        for (int i = 0; i < attInfo.length; i++) {
-            if (attName.equals(attInfo[i].getName())) {
-                type = attInfo[i].getType();
-                return type;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Find the operation info for a method
-     *
-     * @param oname  The bean name
-     * @param opName The operation name
-     * @return the operation info for the specified operation
-     */
-    public MBeanOperationInfo getMethodInfo(ObjectName oname, String opName) {
-        MBeanInfo info = null;
-        try {
-            info = server.getMBeanInfo(oname);
-        } catch (Exception e) {
-            log.info("Can't find metadata " + oname);
-            return null;
-        }
-        MBeanOperationInfo attInfo[] = info.getOperations();
-        for (int i = 0; i < attInfo.length; i++) {
-            if (opName.equals(attInfo[i].getName())) {
-                return attInfo[i];
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Unregister a component. This is just a helper that avoids exceptions by checking if the mbean is already
-     * registered
-     *
-     * @param oname The bean name
-     */
-    public void unregisterComponent(ObjectName oname) {
-        try {
-            if (oname != null && getMBeanServer().isRegistered(oname)) {
-                getMBeanServer().unregisterMBean(oname);
-            }
-        } catch (Throwable t) {
-            log.error("Error unregistering mbean", t);
-        }
-    }
 
     /**
      * Factory method to create (if necessary) and return our
@@ -464,40 +269,6 @@ public class Registry implements RegistryMBean, MBeanRegistration {
         return managed;
     }
 
-
-    /**
-     * EXPERIMENTAL Convert a string to object, based on type. Used by several components. We could provide some
-     * pluggability. It is here to keep things consistent and avoid duplication in other tasks
-     *
-     * @param type  Fully qualified class name of the resulting value
-     * @param value String value to be converted
-     * @return Converted value
-     */
-    public Object convertValue(String type, String value) {
-        Object objValue = value;
-
-        if (type == null || "java.lang.String".equals(type)) {
-            // string is default
-            objValue = value;
-        } else if ("javax.management.ObjectName".equals(type) ||
-                "ObjectName".equals(type)) {
-            try {
-                objValue = new ObjectName(value);
-            } catch (MalformedObjectNameException e) {
-                return null;
-            }
-        } else if ("java.lang.Integer".equals(type) ||
-                "int".equals(type)) {
-            objValue = Integer.valueOf(value);
-        } else if ("java.lang.Long".equals(type) ||
-                "long".equals(type)) {
-            objValue = Long.valueOf(value);
-        } else if ("java.lang.Boolean".equals(type) ||
-                "boolean".equals(type)) {
-            objValue = Boolean.valueOf(value);
-        }
-        return objValue;
-    }
 
     /**
      * Experimental. Load descriptors.
@@ -668,8 +439,7 @@ public class Registry implements RegistryMBean, MBeanRegistration {
             type = "priv.bigant.intrance.common.util.modeler.modules." + type;
         }
         Class<?> c = Class.forName(type);
-        ModelerSource ds = (ModelerSource) c.getConstructor().newInstance();
-        return ds;
+        return (ModelerSource) c.getConstructor().newInstance();
     }
 
 

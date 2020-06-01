@@ -51,7 +51,6 @@ public class RequestProcessor implements Runnable {
 
     protected void process() throws IOException, ServletException {
         // Construct and initialize the objects we will need
-        input = new SocketInputStream(socketBean.getIs(), config.getBufferSize());
         // Parse the incoming request
         parseRequest(input);
         if (!protocol.startsWith("HTTP/0")) {
@@ -93,7 +92,7 @@ public class RequestProcessor implements Runnable {
                 if (header.valueEnd == 0) {
                     return;
                 } else {
-                    throw new ServletException("httpProcessor.parseHeaders.colon");
+                    throw new ServletException();
                 }
             }
 
@@ -104,7 +103,7 @@ public class RequestProcessor implements Runnable {
                 try {
                     n = Integer.parseInt(value);
                 } catch (Exception e) {
-                    throw new ServletException("httpProcessor.parseHeaders.contentLength");
+                    throw new ServletException();
                 }
                 contentLength = n;
             } /*else if (header.equals(DefaultHeaders.CONTENT_TYPE_NAME)) {
@@ -126,7 +125,7 @@ public class RequestProcessor implements Runnable {
                 if (header.valueEquals(DefaultHeaders.EXPECT_100_VALUE))
                     sendAck = true;
                 else
-                    throw new ServletException("httpProcessor.parseHeaders.unknownExpectation");
+                    throw new ServletException();
             } else if (header.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {//分块传输
                 chunked = true;
             }

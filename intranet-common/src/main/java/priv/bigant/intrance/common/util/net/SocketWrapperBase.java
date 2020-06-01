@@ -744,30 +744,6 @@ public abstract class SocketWrapperBase<E> {
 
     public abstract void registerWriteInterest();
 
-    public abstract SendfileDataBase createSendfileData(String filename, long pos, long length);
-
-    /**
-     * Starts the sendfile process. It is expected that if the sendfile process does not complete during this call and
-     * does not report an error, that the caller <b>will not</b> add the socket to the poller (or equivalent). That is
-     * the responsibility of this method.
-     *
-     * @param sendfileData Data representing the file to send
-     * @return The state of the sendfile process after the first write.
-     */
-    public abstract SendfileState processSendfile(SendfileDataBase sendfileData);
-
-    /**
-     * Require the client to perform CLIENT-CERT authentication if it hasn't already done so.
-     *
-     * @param sslSupport The SSL/TLS support instance currently being used by the connection that may need updating
-     *                   after the client authentication
-     * @throws IOException If authentication is required then there will be I/O with the client and this exception will
-     *                     be thrown if that goes wrong
-     */
-    public abstract void doClientAuth(SSLSupport sslSupport) throws IOException;
-
-    public abstract SSLSupport getSslSupport(String clientCertProvider);
-
 
     // ------------------------------------------------------- NIO 2 style APIs
 

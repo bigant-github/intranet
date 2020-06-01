@@ -16,11 +16,9 @@
  */
 package priv.bigant.intrance.common.util.buf;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Locale;
 
 /**
  * This class is used to represent a subarray of bytes in an HTTP message. It represents all request/response elements.
@@ -123,21 +121,6 @@ public final class MessageBytes implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the content to be a char[]
-     *
-     * @param c   the chars
-     * @param off the start offset of the chars
-     * @param len the length of the chars
-     */
-    public void setChars(char[] c, int off, int len) {
-        charC.setChars(c, off, len);
-        type = T_CHARS;
-        hasStrValue = false;
-        hasHashCode = false;
-        hasLongValue = false;
-    }
-
-    /**
      * Set the content to be a string
      *
      * @param s The string
@@ -203,38 +186,12 @@ public final class MessageBytes implements Cloneable, Serializable {
     }
 
     /**
-     * Returns the char chunk, representing the char[] and offset/length. Valid only if T_CHARS or after a conversion
-     * was made.
-     *
-     * @return the char chunk
-     */
-    public CharChunk getCharChunk() {
-        return charC;
-    }
-
-    /**
      * Returns the string value. Valid only if T_STR or after a conversion was made.
      *
      * @return the string
      */
     public String getString() {
         return strValue;
-    }
-
-    /**
-     * @return the Charset used for string&lt;-&gt;byte conversions.
-     */
-    public Charset getCharset() {
-        return byteC.getCharset();
-    }
-
-    /**
-     * Set the Charset used for string&lt;-&gt;byte conversions.
-     *
-     * @param charset The charset
-     */
-    public void setCharset(Charset charset) {
-        byteC.setCharset(charset);
     }
 
 
@@ -254,25 +211,6 @@ public final class MessageBytes implements Cloneable, Serializable {
         Charset charset = byteC.getCharset();
         ByteBuffer result = charset.encode(strValue);
         byteC.setBytes(result.array(), result.arrayOffset(), result.limit());
-    }
-
-
-    /**
-     * Convert to char[] and fill the CharChunk. XXX Not optimized - it converts to String first.
-     */
-    public void toChars() {
-        if (isNull()) {
-            return;
-        }
-        if (!charC.isNull()) {
-            type = T_CHARS;
-            return;
-        }
-        // inefficient
-        toString();
-        type = T_CHARS;
-        char cc[] = strValue.toCharArray();
-        charC.setChars(cc, 0, cc.length);
     }
 
 
@@ -386,38 +324,6 @@ public final class MessageBytes implements Cloneable, Serializable {
     }
 
 
-    /**
-     * @param s   the string
-     * @param pos The start position
-     * @return <code>true</code> if the message bytes starts with the specified string.
-     */
-    public boolean startsWithIgnoreCase(String s, int pos) {
-        switch (type) {
-            case T_STR:
-                if (strValue == null) {
-                    return false;
-                }
-                if (strValue.length() < pos + s.length()) {
-                    return false;
-                }
-
-                for (int i = 0; i < s.length(); i++) {
-                    if (Ascii.toLower(s.charAt(i)) !=
-                            Ascii.toLower(strValue.charAt(pos + i))) {
-                        return false;
-                    }
-                }
-                return true;
-            case T_CHARS:
-                return charC.startsWithIgnoreCase(s, pos);
-            case T_BYTES:
-                return byteC.startsWithIgnoreCase(s, pos);
-            default:
-                return false;
-        }
-    }
-
-
     // -------------------- Hash code  --------------------
     @Override
     public int hashCode() {
@@ -449,55 +355,6 @@ public final class MessageBytes implements Cloneable, Serializable {
             default:
                 return 0;
         }
-    }
-
-    // Inefficient initial implementation. Will be replaced on the next
-    // round of tune-up
-    public int indexOf(String s, int starting) {
-        toString();
-        return strValue.indexOf(s, starting);
-    }
-
-    // Inefficient initial implementation. Will be replaced on the next
-    // round of tune-up
-    public int indexOf(String s) {
-        return indexOf(s, 0);
-    }
-
-    public int indexOfIgnoreCase(String s, int starting) {
-        toString();
-        String upper = strValue.toUpperCase(Locale.ENGLISH);
-        String sU = s.toUpperCase(Locale.ENGLISH);
-        return upper.indexOf(sU, starting);
-    }
-
-    /**
-     * Copy the src into this MessageBytes, allocating more space if needed.
-     *
-     * @param src The source
-     * @throws IOException Writing overflow data to the output channel failed
-     */
-    public void duplicate(MessageBytes src) throws IOException {
-        switch (src.getType()) {
-            case MessageBytes.T_BYTES:
-                type = T_BYTES;
-                ByteChunk bc = src.getByteChunk();
-                byteC.allocate(2 * bc.getLength(), -1);
-                byteC.append(bc);
-                break;
-            case MessageBytes.T_CHARS:
-                type = T_CHARS;
-                CharChunk cc = src.getCharChunk();
-                charC.allocate(2 * cc.getLength(), -1);
-                charC.append(cc);
-                break;
-            case MessageBytes.T_STR:
-                type = T_STR;
-                String sc = src.getString();
-                this.setString(sc);
-                break;
-        }
-        setCharset(src.getCharset());
     }
 
     // -------------------- Deprecated code --------------------

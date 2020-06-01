@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.util.http;
 
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -34,10 +32,6 @@ public final class FastHttpDateFormat {
 
 
     // -------------------------------------------------------------- Variables
-
-
-    private static final int CACHE_SIZE =
-        Integer.parseInt(System.getProperty("org.apache.tomcat.util.http.FastHttpDateFormat.CACHE_SIZE", "1000"));
 
 
     /**
@@ -73,18 +67,6 @@ public final class FastHttpDateFormat {
     private static String currentDate = null;
 
 
-    /**
-     * Formatter cache.
-     */
-    private static final Map<Long, String> formatCache = new ConcurrentHashMap<>(CACHE_SIZE);
-
-
-    /**
-     * Parser cache.
-     */
-    private static final Map<String, Long> parseCache = new ConcurrentHashMap<>(CACHE_SIZE);
-
-
     // --------------------------------------------------------- Public Methods
 
 
@@ -105,113 +87,6 @@ public final class FastHttpDateFormat {
         }
         return currentDate;
 
-    }
-
-
-    /**
-     * Get the HTTP format of the specified date.
-     * @param value The date
-     * @param threadLocalformat Local format to avoid synchronization
-     * @return the HTTP date
-     */
-    public static final String formatDate
-        (long value, DateFormat threadLocalformat) {
-
-        Long longValue = Long.valueOf(value);
-        String cachedDate = formatCache.get(longValue);
-        if (cachedDate != null) {
-            return cachedDate;
-        }
-
-        String newDate = null;
-        Date dateValue = new Date(value);
-        if (threadLocalformat != null) {
-            newDate = threadLocalformat.format(dateValue);
-            updateFormatCache(longValue, newDate);
-        } else {
-            synchronized (format) {
-                newDate = format.format(dateValue);
-            }
-            updateFormatCache(longValue, newDate);
-        }
-        return newDate;
-    }
-
-
-    /**
-     * Try to parse the given date as a HTTP date.
-     * @param value The HTTP date
-     * @param threadLocalformats Local format to avoid synchronization
-     * @return the date as a long
-     */
-    public static final long parseDate(String value,
-                                       DateFormat[] threadLocalformats) {
-
-        Long cachedDate = parseCache.get(value);
-        if (cachedDate != null) {
-            return cachedDate.longValue();
-        }
-
-        Long date = null;
-        if (threadLocalformats != null) {
-            date = internalParseDate(value, threadLocalformats);
-            updateParseCache(value, date);
-        } else {
-            throw new IllegalArgumentException();
-        }
-        if (date == null) {
-            return (-1L);
-        }
-
-        return date.longValue();
-    }
-
-
-    /**
-     * Parse date with given formatters.
-     */
-    private static final Long internalParseDate
-        (String value, DateFormat[] formats) {
-        Date date = null;
-        for (int i = 0; (date == null) && (i < formats.length); i++) {
-            try {
-                date = formats[i].parse(value);
-            } catch (ParseException e) {
-                // Ignore
-            }
-        }
-        if (date == null) {
-            return null;
-        }
-        return Long.valueOf(date.getTime());
-    }
-
-
-    /**
-     * Update cache.
-     */
-    private static void updateFormatCache(Long key, String value) {
-        if (value == null) {
-            return;
-        }
-        if (formatCache.size() > CACHE_SIZE) {
-            formatCache.clear();
-        }
-        formatCache.put(key, value);
-    }
-
-
-    /**
-     * Update cache.
-     */
-    private static void updateParseCache(String key, Long value) {
-        if (value == null) {
-            return;
-        }
-        if (parseCache.size() > CACHE_SIZE) {
-            parseCache.clear();
-        }
-        parseCache.put(key, value);
     }
 
 

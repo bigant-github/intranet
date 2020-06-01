@@ -141,19 +141,4 @@ public class BaseAttributeFilter implements NotificationFilter {
     }
 
 
-    /**
-     * Remove an attribute name from the set of names accepted by this
-     * filter.
-     *
-     * @param name Name of the attribute to be removed
-     */
-    public void removeAttribute(String name) {
-
-        synchronized (names) {
-            names.remove(name);
-        }
-
-    }
-
-
 }

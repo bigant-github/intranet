@@ -17,7 +17,6 @@
 package priv.bigant.intrance.common.coyote;
 
 import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
-import priv.bigant.intrance.common.util.net.SSLSupport;
 import priv.bigant.intrance.common.util.net.SocketEvent;
 import priv.bigant.intrance.common.util.net.SocketWrapperBase;
 
@@ -41,14 +40,6 @@ public interface Processor {
     SocketState process(SocketWrapperBase<?> socketWrapper, SocketEvent status) throws IOException;
 
     /**
-     * Generate an upgrade token.
-     *
-     * @return An upgrade token encapsulating the information required to process the upgrade request
-     * @throws IllegalStateException if this is called on a Processor that does not support upgrading
-     */
-    UpgradeToken getUpgradeToken();
-
-    /**
      * @return {@code true} if the Processor is currently processing an upgrade request, otherwise {@code false}
      */
     boolean isUpgrade();
@@ -63,21 +54,6 @@ public interface Processor {
      * Recycle the processor, ready for the next request which may be on the same connection or a different connection.
      */
     void recycle();
-
-    /**
-     * Set the SSL information for this HTTP connection.
-     *
-     * @param sslSupport The SSL support object to use for this connection
-     */
-    void setSslSupport(SSLSupport sslSupport);
-
-    /**
-     * Allows retrieving additional input during the upgrade process.
-     *
-     * @return leftover bytes
-     * @throws IllegalStateException if this is called on a Processor that does not support upgrading
-     */
-    ByteBuffer getLeftoverInput();
 
     /**
      * Informs the processor that the underlying I/O layer has stopped accepting new connections. This is primarily

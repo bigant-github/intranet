@@ -2,10 +2,8 @@ package priv.bigant.test;
 
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 
 public class HttpClientTest {
     public static void main(String[] args) throws IOException, InterruptedException {

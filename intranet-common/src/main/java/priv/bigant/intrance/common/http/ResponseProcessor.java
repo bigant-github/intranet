@@ -41,7 +41,6 @@ public class ResponseProcessor implements Runnable {
 
     void process() {
         // Construct and initialize the objects we will need
-        input = new SocketInputStream(socketBean.getIs(), config.getBufferSize());
 
         try {
             parseRequest(input);
@@ -96,7 +95,7 @@ public class ResponseProcessor implements Runnable {
                 if (header.valueEnd == 0) {
                     return;
                 } else {
-                    throw new ServletException("httpProcessor.parseHeaders.colon");
+                    throw new ServletException();
                 }
             }
 
@@ -107,7 +106,7 @@ public class ResponseProcessor implements Runnable {
                 try {
                     n = Integer.parseInt(value);
                 } catch (Exception e) {
-                    throw new ServletException("httpProcessor.parseHeaders.contentLength");
+                    throw new ServletException();
                 }
                 contentLength = n;
             } /*else if (header.equals(DefaultHeaders.CONTENT_TYPE_NAME)) {

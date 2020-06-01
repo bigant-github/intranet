@@ -25,21 +25,10 @@ package priv.bigant.intrance.common.util.collections;
  */
 public class SynchronizedQueue<T> {
 
-    public static final int DEFAULT_SIZE = 128;
-
     private Object[] queue;
     private int size;
     private int insert = 0;
     private int remove = 0;
-
-    public SynchronizedQueue() {
-        this(DEFAULT_SIZE);
-    }
-
-    public SynchronizedQueue(int initialSize) {
-        queue = new Object[initialSize];
-        size = initialSize;
-    }
 
     public synchronized boolean offer(T t) {
         queue[insert++] = t;

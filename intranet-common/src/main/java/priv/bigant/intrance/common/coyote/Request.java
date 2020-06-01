@@ -24,7 +24,6 @@ import priv.bigant.intrance.common.util.buf.UDecoder;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.Parameters;
 import priv.bigant.intrance.common.util.http.ServerCookies;
-import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -101,11 +100,6 @@ public final class Request {
      */
     private final Map<String, String> pathParameters = new HashMap<>();
 
-    /**
-     * Notes.
-     */
-    private final Object[] notes = new Object[Constants.MAX_NOTES];
-
 
     /**
      * Associated input buffer.
@@ -156,10 +150,6 @@ public final class Request {
 
     private final AtomicBoolean allDataReadEventSent = new AtomicBoolean(false);
 
-    public boolean sendAllDataReadEvent() {
-        return allDataReadEventSent.compareAndSet(false, true);
-    }
-
 
     // ------------------------------------------------------------- Properties
 
@@ -168,16 +158,8 @@ public final class Request {
     }
 
 
-    public UDecoder getURLDecoder() {
-        return urlDecoder;
-    }
-
     // -------------------- Request data --------------------
 
-
-    public MessageBytes scheme() {
-        return schemeMB;
-    }
 
     public MessageBytes method() {
         return methodMB;
@@ -187,33 +169,12 @@ public final class Request {
         return uriMB;
     }
 
-    public MessageBytes decodedURI() {
-        return decodedUriMB;
-    }
-
     public MessageBytes queryString() {
         return queryMB;
     }
 
     public MessageBytes protocol() {
         return protoMB;
-    }
-
-    /**
-     * Get the "virtual host", derived from the Host: header associated with this request.
-     *
-     * @return The buffer holding the server name, if any. Use isNull() to check if there is no value set.
-     */
-    public MessageBytes serverName() {
-        return serverNameMB;
-    }
-
-    public int getServerPort() {
-        return serverPort;
-    }
-
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
     }
 
     public MessageBytes remoteAddr() {
@@ -232,16 +193,8 @@ public final class Request {
         return localAddrMB;
     }
 
-    public int getRemotePort() {
-        return remotePort;
-    }
-
     public void setRemotePort(int port) {
         this.remotePort = port;
-    }
-
-    public int getLocalPort() {
-        return localPort;
     }
 
     public void setLocalPort(int port) {
@@ -249,40 +202,6 @@ public final class Request {
     }
 
     // -------------------- encoding/type --------------------
-
-
-    /**
-     * Get the character encoding used for this request.
-     *
-     * @return The value set via {@link #setCharacterEncoding(String)} or if no call has been made to that method try to
-     * obtain if from the content type.
-     */
-    public String getCharacterEncoding() {
-        if (characterEncoding == null) {
-            characterEncoding = getCharsetFromContentType(getContentType());
-        }
-
-        return characterEncoding;
-    }
-
-
-    /**
-     * Get the character encoding used for this request.
-     *
-     * @return The value set via {@link #setCharacterEncoding(String)} or if no call has been made to that method try to
-     * obtain if from the content type.
-     * @throws UnsupportedEncodingException If the user agent has specified an invalid character encoding
-     */
-    public Charset getCharset() throws UnsupportedEncodingException {
-        if (charset == null) {
-            getCharacterEncoding();
-            if (characterEncoding != null) {
-                charset = B2CConverter.getCharset(characterEncoding);
-            }
-        }
-
-        return charset;
-    }
 
 
     /**
@@ -355,27 +274,6 @@ public final class Request {
         return false;
     }
 
-    public boolean isHttp11() {
-
-        //TODO
-        // if (endpoint.isSSLEnabled()) {
-        //    request.scheme().setString("https");
-        //}
-        if (protoMB.equals(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_11)) {
-            protoMB.setString(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_11);
-            return true;
-        } else if (protoMB.equals(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_10)) {
-            protoMB.setString(priv.bigant.intrance.common.coyote.http11.Constants.HTTP_10);
-            return false;
-        } else if (protoMB.equals("")) {
-            // HTTP/0.9
-            return false;
-        } else {
-            // Unsupported protocol
-            return false;
-        }
-    }
-
     public int getContentLength() {
         long length = getContentLengthLong();
 
@@ -396,42 +294,6 @@ public final class Request {
         return contentLength;
     }
 
-    public String getContentType() {
-        contentType();
-        if ((contentTypeMB == null) || contentTypeMB.isNull()) {
-            return null;
-        }
-        return contentTypeMB.toString();
-    }
-
-
-    public void setContentType(String type) {
-        contentTypeMB.setString(type);
-    }
-
-
-    public MessageBytes contentType() {
-        if (contentTypeMB == null) {
-            contentTypeMB = headers.getValue("content-type");
-        }
-        return contentTypeMB;
-    }
-
-
-    public void setContentType(MessageBytes mb) {
-        contentTypeMB = mb;
-    }
-
-
-    public String getHeader(String name) {
-        return headers.getHeader(name);
-    }
-
-
-    public void setExpectation(boolean expectation) {
-        this.expectation = expectation;
-    }
-
 
     public boolean hasExpectation() {
         return expectation;
@@ -439,10 +301,6 @@ public final class Request {
 
 
     // -------------------- Associated response --------------------
-
-    public Response getResponse() {
-        return response;
-    }
 
     public void setResponse(Response response) {
         this.response = response;
@@ -453,38 +311,11 @@ public final class Request {
         this.hook = hook;
     }
 
-    public void action(ActionCode actionCode, Object param) {
-        if (hook != null) {
-            if (param == null) {
-                hook.action(actionCode, this);
-            } else {
-                hook.action(actionCode, param);
-            }
-        }
-    }
-
 
     // -------------------- Cookies --------------------
 
-    public ServerCookies getCookies() {
-        return serverCookies;
-    }
-
 
     // -------------------- Parameters --------------------
-
-    public Parameters getParameters() {
-        return parameters;
-    }
-
-
-    public void addPathParameter(String name, String value) {
-        pathParameters.put(name, value);
-    }
-
-    public String getPathParameter(String name) {
-        return pathParameters.get(name);
-    }
 
 
     // -------------------- Other attributes --------------------
@@ -494,57 +325,8 @@ public final class Request {
         attributes.put(name, o);
     }
 
-    public HashMap<String, Object> getAttributes() {
-        return attributes;
-    }
-
-    public Object getAttribute(String name) {
-        return attributes.get(name);
-    }
-
-    public MessageBytes getRemoteUser() {
-        return remoteUser;
-    }
-
-    public boolean getRemoteUserNeedsAuthorization() {
-        return remoteUserNeedsAuthorization;
-    }
-
-    public void setRemoteUserNeedsAuthorization(boolean remoteUserNeedsAuthorization) {
-        this.remoteUserNeedsAuthorization = remoteUserNeedsAuthorization;
-    }
-
-    public MessageBytes getAuthType() {
-        return authType;
-    }
-
-    public int getAvailable() {
-        return available;
-    }
-
     public void setAvailable(int available) {
         this.available = available;
-    }
-
-    public boolean getSendfile() {
-        return sendfile;
-    }
-
-    public void setSendfile(boolean sendfile) {
-        this.sendfile = sendfile;
-    }
-
-    public boolean isFinished() {
-        AtomicBoolean result = new AtomicBoolean(false);
-        action(ActionCode.REQUEST_BODY_FULLY_READ, result);
-        return result.get();
-    }
-
-    public boolean getSupportsRelativeRedirects() {
-        if (protocol().equals("") || protocol().equals("HTTP/1.0")) {
-            return false;
-        }
-        return true;
     }
 
 
@@ -571,32 +353,10 @@ public final class Request {
      * @param chunk The destination to which to copy the data
      * @return The number of bytes copied
      * @throws IOException If an I/O error occurs during the copy
-     * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doRead(ApplicationBufferHandler)}
      */
     @Deprecated
     public int doRead(ByteChunk chunk) throws IOException {
         int n = inputBuffer.doRead(chunk);
-        if (n > 0) {
-            bytesRead += n;
-        }
-        return n;
-    }
-
-
-    /**
-     * Read data from the input buffer and put it into ApplicationBufferHandler.
-     * <p>
-     * The buffer is owned by the protocol implementation - it will be reused on the next read. The Adapter must either
-     * process the data in place or copy it to a separate buffer if it needs to hold it. In most cases this is done
-     * during byte-&gt;char conversions or via InputStream. Unlike InputStream, this interface allows the app to process
-     * data in place, without copy.
-     *
-     * @param handler The destination to which to copy the data
-     * @return The number of bytes copied
-     * @throws IOException If an I/O error occurs during the copy
-     */
-    public int doRead(ApplicationBufferHandler handler) throws IOException {
-        int n = inputBuffer.doRead(handler);
         if (n > 0) {
             bytesRead += n;
         }
@@ -620,30 +380,6 @@ public final class Request {
     }
 
     // -------------------- Per-Request "notes" --------------------
-
-
-    /**
-     * Used to store private data. Thread data could be used instead - but if you have the req, getting/setting a note
-     * is just a array access, may be faster than ThreadLocal for very frequent operations.
-     * <p>
-     * Example use: Catalina CoyoteAdapter: ADAPTER_NOTES = 1 - stores the HttpServletRequest object ( req/res)
-     * <p>
-     * To avoid conflicts, note in the range 0 - 8 are reserved for the servlet container ( catalina connector, etc ),
-     * and values in 9 - 16 for connector use.
-     * <p>
-     * 17-31 range is not allocated or used.
-     *
-     * @param pos   Index to use to store the note
-     * @param value The value to store at that index
-     */
-    public final void setNote(int pos, Object value) {
-        notes[pos] = value;
-    }
-
-
-    public final Object getNote(int pos) {
-        return notes[pos];
-    }
 
 
     // -------------------- Recycling --------------------
@@ -700,40 +436,8 @@ public final class Request {
         return reqProcessorMX;
     }
 
-    public long getBytesRead() {
-        return bytesRead;
-    }
-
     /*public boolean isProcessing() {
         return reqProcessorMX.getStage() == org.apache.coyote.Constants.STAGE_SERVICE;
     }*/
 
-    /**
-     * Parse the character encoding from the specified content type header. If the content type is null, or there is no
-     * explicit character encoding,
-     * <code>null</code> is returned.
-     *
-     * @param contentType a content type header
-     */
-    private static String getCharsetFromContentType(String contentType) {
-
-        if (contentType == null) {
-            return null;
-        }
-        int start = contentType.indexOf("charset=");
-        if (start < 0) {
-            return null;
-        }
-        String encoding = contentType.substring(start + 8);
-        int end = encoding.indexOf(';');
-        if (end >= 0) {
-            encoding = encoding.substring(0, end);
-        }
-        encoding = encoding.trim();
-        if ((encoding.length() > 2) && (encoding.startsWith("\"")) && (encoding.endsWith("\""))) {
-            encoding = encoding.substring(1, encoding.length() - 1);
-        }
-
-        return encoding.trim();
-    }
 }

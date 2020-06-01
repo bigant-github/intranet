@@ -17,7 +17,6 @@
 package priv.bigant.intrance.common.util.res;
 
 import java.text.MessageFormat;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -173,16 +172,6 @@ public class StringManager {
     }
 
 
-    /**
-     * Identify the Locale this StringManager is associated with.
-     *
-     * @return The Locale associated with the StringManager
-     */
-    public Locale getLocale() {
-        return locale;
-    }
-
-
     // --------------------------------------------------------------
     // STATIC SUPPORT METHODS
     // --------------------------------------------------------------
@@ -267,26 +256,4 @@ public class StringManager {
     }
 
 
-    /**
-     * Retrieve the StringManager for a list of Locales. The first StringManager
-     * found will be returned.
-     *
-     * @param packageName      The package for which the StringManager was
-     *                         requested
-     * @param requestedLocales The list of Locales
-     *
-     * @return the found StringManager or the default StringManager
-     */
-    public static StringManager getManager(String packageName,
-            Enumeration<Locale> requestedLocales) {
-        while (requestedLocales.hasMoreElements()) {
-            Locale locale = requestedLocales.nextElement();
-            StringManager result = getManager(packageName, locale);
-            if (result.getLocale().equals(locale)) {
-                return result;
-            }
-        }
-        // Return the default
-        return getManager(packageName);
-    }
 }

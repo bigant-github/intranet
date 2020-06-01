@@ -34,13 +34,6 @@ public class ParameterInfo extends FeatureInfo {
 
 
     /**
-     * Standard zero-arguments constructor.
-     */
-    public ParameterInfo() {
-        super();
-    }
-
-    /**
      * Create and return a <code>MBeanParameterInfo</code> object that corresponds to the parameter described by this
      * instance.
      *

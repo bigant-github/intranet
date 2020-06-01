@@ -47,15 +47,12 @@ public final class Parameters {
 
     private final Map<String, ArrayList<String>> paramHashValues =
             new LinkedHashMap<>();
-    private boolean didQueryParameters = false;
 
-    private MessageBytes queryMB;
 
     private UDecoder urlDec;
     private final MessageBytes decodedQuery = MessageBytes.newInstance();
 
     private Charset charset = StandardCharsets.ISO_8859_1;
-    private Charset queryStringCharset = StandardCharsets.UTF_8;
 
     private int limit = -1;
     private int parameterCount = 0;
@@ -71,11 +68,6 @@ public final class Parameters {
     }
 
     public void setQuery(MessageBytes queryMB) {
-        this.queryMB = queryMB;
-    }
-
-    public void setLimit(int limit) {
-        this.limit = limit;
     }
 
     /**
@@ -85,10 +77,6 @@ public final class Parameters {
     @Deprecated
     public String getEncoding() {
         return charset.name();
-    }
-
-    public Charset getCharset() {
-        return charset;
     }
 
     /**
@@ -123,21 +111,10 @@ public final class Parameters {
         if (queryStringCharset == null) {
             queryStringCharset = DEFAULT_URI_CHARSET;
         }
-        this.queryStringCharset = queryStringCharset;
 
         if (log.isDebugEnabled()) {
             log.debug("Set query string encoding to " + queryStringCharset.name());
         }
-    }
-
-
-    public boolean isParseFailed() {
-        return parseFailedReason != null;
-    }
-
-
-    public FailReason getParseFailedReason() {
-        return parseFailedReason;
     }
 
 
@@ -151,7 +128,7 @@ public final class Parameters {
     public void recycle() {
         parameterCount = 0;
         paramHashValues.clear();
-        didQueryParameters = false;
+        boolean didQueryParameters = false;
         charset = DEFAULT_BODY_CHARSET;
         decodedQuery.recycle();
         parseFailedReason = null;
@@ -162,61 +139,7 @@ public final class Parameters {
     // Access to the current name/values, no side effect ( processing ).
     // You must explicitly call handleQueryParameters and the post methods.
 
-    public String[] getParameterValues(String name) {
-        handleQueryParameters();
-        // no "facade"
-        ArrayList<String> values = paramHashValues.get(name);
-        if (values == null) {
-            return null;
-        }
-        return values.toArray(new String[values.size()]);
-    }
-
-    public Enumeration<String> getParameterNames() {
-        handleQueryParameters();
-        return Collections.enumeration(paramHashValues.keySet());
-    }
-
-    public String getParameter(String name) {
-        handleQueryParameters();
-        ArrayList<String> values = paramHashValues.get(name);
-        if (values != null) {
-            if (values.size() == 0) {
-                return "";
-            }
-            return values.get(0);
-        } else {
-            return null;
-        }
-    }
     // -------------------- Processing --------------------
-
-    /**
-     * Process the query string into parameters
-     */
-    public void handleQueryParameters() {
-        if (didQueryParameters) {
-            return;
-        }
-
-        didQueryParameters = true;
-
-        if (queryMB == null || queryMB.isNull()) {
-            return;
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Decoding query " + decodedQuery + " " + queryStringCharset.name());
-        }
-
-        try {
-            decodedQuery.duplicate(queryMB);
-        } catch (IOException e) {
-            // Can't happen, as decodedQuery can't overflow
-            e.printStackTrace();
-        }
-        processParameters(decodedQuery, queryStringCharset);
-    }
 
 
     public void addParameter(String key, String value)
@@ -262,10 +185,6 @@ public final class Parameters {
     private static final Charset DEFAULT_BODY_CHARSET = StandardCharsets.ISO_8859_1;
     private static final Charset DEFAULT_URI_CHARSET = StandardCharsets.UTF_8;
 
-
-    public void processParameters(byte bytes[], int start, int len) {
-        processParameters(bytes, start, len, charset);
-    }
 
     private void processParameters(byte bytes[], int start, int len, Charset charset) {
 
@@ -554,7 +473,6 @@ public final class Parameters {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, ArrayList<String>> e : paramHashValues.entrySet()) {
             sb.append(e.getKey()).append('=');
-            StringUtils.join(e.getValue(), ',', sb);
             sb.append('\n');
         }
         return sb.toString();
@@ -562,15 +480,8 @@ public final class Parameters {
 
 
     public enum FailReason {
-        CLIENT_DISCONNECT,
-        MULTIPART_CONFIG_INVALID,
-        INVALID_CONTENT_TYPE,
-        IO_ERROR,
         NO_NAME,
-        POST_TOO_LARGE,
-        REQUEST_BODY_INCOMPLETE,
         TOO_MANY_PARAMETERS,
-        UNKNOWN,
         URL_DECODING
     }
 }

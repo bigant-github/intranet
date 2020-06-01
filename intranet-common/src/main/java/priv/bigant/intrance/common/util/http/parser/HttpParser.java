@@ -19,7 +19,6 @@ package priv.bigant.intrance.common.util.http.parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.util.res.StringManager;
-import sun.rmi.runtime.Log;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -22,7 +22,6 @@ package priv.bigant.intrance.common.coyote;
  * ProtocolHandler, using the ActionHook interface.
  *
  * @author Remy Maucherat
- * @see ProtocolHandler
  * @see ActionHook
  */
 public enum ActionCode {

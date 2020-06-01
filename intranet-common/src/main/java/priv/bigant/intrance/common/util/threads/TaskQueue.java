@@ -16,7 +16,7 @@
  */
 package priv.bigant.intrance.common.util.threads;
 
-import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -38,25 +38,8 @@ public class TaskQueue extends LinkedBlockingQueue<Runnable> {
     // (when stopping a context and firing the  listeners)
     private Integer forcedRemainingCapacity = null;
 
-    public TaskQueue() {
-        super();
-    }
-
-    public TaskQueue(int capacity) {
-        super(capacity);
-    }
-
-    public TaskQueue(Collection<? extends Runnable> c) {
-        super(c);
-    }
-
     public void setParent(ThreadPoolExecutor tp) {
         parent = tp;
-    }
-
-    public boolean force(Runnable o) {
-        if ( parent==null || parent.isShutdown() ) throw new RejectedExecutionException("Executor not running, can't force a command into the queue");
-        return super.offer(o); //forces the item onto the queue, to be used if the task is rejected
     }
 
     public boolean force(Runnable o, long timeout, TimeUnit unit) throws InterruptedException {
@@ -94,8 +77,8 @@ public class TaskQueue extends LinkedBlockingQueue<Runnable> {
     @Override
     public Runnable take() throws InterruptedException {
         if (parent != null && parent.currentThreadShouldBeStopped()) {
-            return poll(parent.getKeepAliveTime(TimeUnit.MILLISECONDS),
-                    TimeUnit.MILLISECONDS);
+            return Objects.requireNonNull(poll(parent.getKeepAliveTime(TimeUnit.MILLISECONDS),
+                    TimeUnit.MILLISECONDS));
             // yes, this may return null (in case of timeout) which normally
             // does not occur with take()
             // but the ThreadPoolExecutor implementation allows this
@@ -113,10 +96,6 @@ public class TaskQueue extends LinkedBlockingQueue<Runnable> {
             return forcedRemainingCapacity.intValue();
         }
         return super.remainingCapacity();
-    }
-
-    public void setForcedRemainingCapacity(Integer forcedRemainingCapacity) {
-        this.forcedRemainingCapacity = forcedRemainingCapacity;
     }
 
 }

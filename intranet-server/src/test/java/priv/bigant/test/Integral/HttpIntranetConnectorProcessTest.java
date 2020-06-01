@@ -2,10 +2,9 @@ package priv.bigant.test.Integral;
 
 import org.junit.Test;
 import priv.bigant.intrance.common.ServerConnector;
-import priv.bigant.intrance.common.LifecycleException;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
-import priv.bigant.intranet.server.*;
+import priv.bigant.intranet.server.ServerConfig;
 import priv.bigant.intranet.server.process.CommunicationProcess;
 
 import java.io.IOException;
@@ -17,7 +16,7 @@ import java.util.Arrays;
 public class HttpIntranetConnectorProcessTest {
 
     @Test
-    public void start() throws LifecycleException, IOException {
+    public void start() throws IOException {
         ServerConfig config = (ServerConfig) ServerConfig.getConfig();
         CommunicationProcess httpIntranetConnectorProcess = new CommunicationProcess();
         ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999);

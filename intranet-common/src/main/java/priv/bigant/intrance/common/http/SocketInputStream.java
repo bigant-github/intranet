@@ -77,20 +77,6 @@ public class SocketInputStream extends InputStream {
     // ----------------------------------------------------------- Constructors
 
 
-    /**
-     * Construct a servlet input stream associated with the specified socket input.
-     *
-     * @param is         socket input stream
-     * @param bufferSize size of the internal buffer
-     */
-    public SocketInputStream(InputStream is, int bufferSize) {
-
-        this.is = is;
-        buf = new byte[bufferSize];
-
-    }
-
-
     // -------------------------------------------------------------- Variables
 
 

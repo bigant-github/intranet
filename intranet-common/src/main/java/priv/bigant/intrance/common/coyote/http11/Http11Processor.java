@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.*;
-import priv.bigant.intrance.common.coyote.http11.filters.BufferedInputFilter;
 import priv.bigant.intrance.common.coyote.http11.filters.SavedRequestInputFilter;
 import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.Ascii;
@@ -112,11 +111,6 @@ public abstract class Http11Processor extends AbstractProcessor {
      * Allow a customized the server header for the tin-foil hat folks.
      */
     private String server = "BigAnt";
-
-    /**
-     * Instance of the new protocol to use after the HTTP connection has been upgraded.
-     */
-    protected UpgradeToken upgradeToken = null;
 
 
     /**
@@ -358,7 +352,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 break;
             }
         }
-        while (!getErrorState().isError() && request.isConnection() && response.isConnection() && upgradeToken == null && !isPaused());
+        while (!getErrorState().isError() && request.isConnection() && response.isConnection() && !isPaused());
         log.debug("http 完成");
         close();
         return null;
@@ -659,37 +653,6 @@ public abstract class Http11Processor extends AbstractProcessor {
 
 
     @Override
-    protected final void sslReHandShake() throws IOException {
-        if (sslSupport != null) {
-            // Consume and buffer the request body, so that it does not
-            // interfere with the client's handshake messages
-            InputFilter[] inputFilters = inputBuffer.getFilters();
-            ((BufferedInputFilter) inputFilters[Constants.BUFFERED_FILTER]).setLimit(maxSavePostSize);
-            inputBuffer.addActiveFilter(inputFilters[Constants.BUFFERED_FILTER]);
-
-            /*
-             * Outside the try/catch because we want I/O errors during
-             * renegotiation to be thrown for the caller to handle since they
-             * will be fatal to the connection.
-             */
-            socketWrapper.doClientAuth(sslSupport);
-            try {
-                /*
-                 * Errors processing the cert chain do not affect the client
-                 * connection so they can be logged and swallowed here.
-                 */
-                Object sslO = sslSupport.getPeerCertificateChain();
-                if (sslO != null) {
-                    request.setAttribute(SSLSupport.CERTIFICATE_KEY, sslO);
-                }
-            } catch (IOException ioe) {
-                log.warn(sm.getString("http11processor.socket.ssl"), ioe);
-            }
-        }
-    }
-
-
-    @Override
     protected final boolean isRequestBodyFullyRead() {
         return inputBuffer.isFinished();
     }
@@ -708,32 +671,6 @@ public abstract class Http11Processor extends AbstractProcessor {
 
 
     @Override
-    public UpgradeToken getUpgradeToken() {
-        return upgradeToken;
-    }
-
-
-    @Override
-    protected final void doHttpUpgrade(UpgradeToken upgradeToken) {
-        this.upgradeToken = upgradeToken;
-        // Stop further HTTP output
-        //TODO outputBuffer.responseFinished = true;
-    }
-
-
-    @Override
-    public ByteBuffer getLeftoverInput() {
-        return inputBuffer.getLeftover();
-    }
-
-
-    @Override
-    public boolean isUpgrade() {
-        return upgradeToken != null;
-    }
-
-
-    @Override
     public final void recycle() {
         //getAdapter().checkRecycled(request, response);
         request.recycle();
@@ -742,7 +679,6 @@ public abstract class Http11Processor extends AbstractProcessor {
         inputBuffer.recycle();
         //TODO outputBuffer.recycle();
         responseInputBuffer.recycle();
-        upgradeToken = null;
         socketWrapper = null;
         sendFileData = null;
     }

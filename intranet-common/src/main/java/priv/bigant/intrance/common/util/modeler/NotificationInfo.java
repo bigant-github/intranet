@@ -87,28 +87,6 @@ public class NotificationInfo extends FeatureInfo {
 
 
     /**
-     * Add a new notification type to the set managed by an MBean.
-     *
-     * @param notifType The new notification type
-     */
-    public void addNotifType(String notifType) {
-
-        Lock writeLock = notifTypesLock.writeLock();
-        writeLock.lock();
-        try {
-
-            String results[] = new String[notifTypes.length + 1];
-            System.arraycopy(notifTypes, 0, results, 0, notifTypes.length);
-            results[notifTypes.length] = notifType;
-            notifTypes = results;
-            this.info = null;
-        } finally {
-            writeLock.unlock();
-        }
-    }
-
-
-    /**
      * Create and return a <code>ModelMBeanNotificationInfo</code> object that
      * corresponds to the attribute described by this instance.
      * @return the notification info
