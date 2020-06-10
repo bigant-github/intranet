@@ -31,6 +31,7 @@ public class LimitLatch {
 
     private static final Logger log = LoggerFactory.getLogger(LimitLatch.class);
 
+
     private class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = 1L;
 
@@ -80,16 +81,6 @@ public class LimitLatch {
             log.debug("Counting down[" + Thread.currentThread().getName() + "] latch=" + result);
         }
         return result;
-    }
-
-    /**
-     * Releases all waiting threads and causes the {@link #limit} to be ignored until {@link #reset()} is called.
-     *
-     * @return <code>true</code> if release was done
-     */
-    public boolean releaseAll() {
-        released = true;
-        return sync.releaseShared(0);
     }
 
 }

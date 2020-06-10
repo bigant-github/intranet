@@ -16,14 +16,6 @@
  */
 package priv.bigant.intrance.common.util.net;
 
-import org.slf4j.Logger;
-import priv.bigant.intrance.common.util.ExceptionUtils;
-import priv.bigant.intrance.common.util.collections.SynchronizedStack;
-import priv.bigant.intrance.common.util.res.StringManager;
-import priv.bigant.intrance.common.util.threads.LimitLatch;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.RejectedExecutionException;
 
 /**
  * @param <S> The type for the sockets managed by this endpoint.
@@ -33,8 +25,6 @@ import java.util.concurrent.RejectedExecutionException;
 public abstract class AbstractEndpoint<S> {
 
     // -------------------------------------------------------------- Constants
-
-    protected static final StringManager sm = StringManager.getManager(AbstractEndpoint.class);
 
     protected AbstractEndpoint() {
     }
@@ -51,14 +41,6 @@ public abstract class AbstractEndpoint<S> {
         }
 
 
-        /**
-         * Release any resources associated with the given SocketWrapper.
-         *
-         * @param socketWrapper The socketWrapper to release resources for
-         */
-        public void release(SocketWrapperBase<S> socketWrapper);
-
-
     }
 
     protected enum BindState {
@@ -68,40 +50,11 @@ public abstract class AbstractEndpoint<S> {
 
     // ----------------------------------------------------------------- Fields
 
-    /**
-     * Running state of the endpoint.
-     */
-    protected volatile boolean running = false;
-
-
-    /**
-     * Will be set to true whenever the endpoint is paused.
-     */
-    protected volatile boolean paused = false;
-
-
-    /**
-     * counter for nr of connections handled by an endpoint
-     */
-    private volatile LimitLatch connectionLimitLatch = null;
 
     /**
      * Socket properties
      */
-    SocketProperties socketProperties = new SocketProperties();
-
-    public SocketProperties getSocketProperties() {
-        return socketProperties;
-    }
-
-    /**
-     * External Executor based thread pool.
-     */
-    private Executor executor = null;
-
-    public Executor getExecutor() {
-        return executor;
-    }
+    private SocketProperties socketProperties = new SocketProperties();
 
 
     /**
@@ -128,14 +81,6 @@ public abstract class AbstractEndpoint<S> {
         return getAcceptCount();
     }
 
-    private volatile BindState bindState = BindState.UNBOUND;
-
-
-    public void setTcpNoDelay(boolean tcpNoDelay) {
-        socketProperties.setTcpNoDelay(tcpNoDelay);
-    }
-
-
     /**
      * Socket linger.
      *
@@ -161,15 +106,6 @@ public abstract class AbstractEndpoint<S> {
     }
 
 
-    /**
-     * Socket timeout.
-     *
-     * @return The current socket timeout for sockets created by this endpoint
-     */
-    public int getConnectionTimeout() {
-        return socketProperties.getSoTimeout();
-    }
-
     public void setConnectionTimeout(int soTimeout) {
         socketProperties.setSoTimeout(soTimeout);
     }
@@ -181,12 +117,6 @@ public abstract class AbstractEndpoint<S> {
 
 
     /**
-     * Name of the thread pool, which will be used for naming child threads.
-     */
-    private String name = "TP";
-
-
-    /**
      * Handling of accepted sockets.
      */
     private Handler<S> handler = null;
@@ -194,80 +124,6 @@ public abstract class AbstractEndpoint<S> {
     public Handler<S> getHandler() {
         return handler;
     }
-
-
-
-    /**
-     * Process the given SocketWrapper with the given status. Used to trigger processing as if the Poller (for those
-     * endpoints that have one) selected the socket.
-     *
-     * @param socketWrapper The socket wrapper to process
-     * @param event         The socket event to be processed
-     * @param dispatch      Should the processing be performed on a new container thread
-     * @return if processing was triggered successfully
-     */
-    public boolean processSocket(SocketWrapperBase<S> socketWrapper, SocketEvent event, boolean dispatch) {
-        try {
-            if (socketWrapper == null) {
-                return false;
-            }
-            SocketProcessorBase sc = createSocketProcessor(socketWrapper, event);
-            Executor executor = getExecutor();
-            if (dispatch && executor != null) {
-                executor.execute(sc);
-            } else {
-                sc.run();
-            }
-        } catch (RejectedExecutionException ree) {
-            getLog().warn(sm.getString("endpoint.executor.fail", socketWrapper), ree);
-            return false;
-        } catch (Throwable t) {
-            ExceptionUtils.handleThrowable(t);
-            // This means we got an OOM or similar creating a thread, or that
-            // the pool and its queue are full
-            getLog().error(sm.getString("endpoint.process.fail"), t);
-            return false;
-        }
-        return true;
-    }
-
-
-    protected abstract SocketProcessorBase<S> createSocketProcessor(SocketWrapperBase<S> socketWrapper, SocketEvent event);
-
-
-    protected abstract Logger getLog();
-
-    protected long countDownConnection() {
-        LimitLatch latch = connectionLimitLatch;
-        if (latch != null) {
-            long result = latch.countDown();
-            if (result < 0) {
-                getLog().warn(sm.getString("endpoint.warn.incorrectConnectionCount"));
-            }
-            return result;
-        } else return -1;
-    }
-
-
-// --Commented out by Inspection START (2020/6/1 上午10:14):
-//    /**
-//     * Close the server socket (to prevent further connections) if the server socket was originally bound on {@link
-//     * #start()} (rather than on {@link #init()}).
-//     *
-//     * @see #getBindOnInit()
-//     */
-//    public final void closeServerSocketGraceful() {
-//        if (bindState == BindState.BOUND_ON_START) {
-//            bindState = BindState.SOCKET_CLOSED_ON_STOP;
-//            try {
-//                doCloseServerSocket();
-//            } catch (IOException ioe) {
-//                getLog().warn(sm.getString("endpoint.serverSocket.closeFailed", getName()), ioe);
-//            }
-//        }
-//    }
-// --Commented out by Inspection STOP (2020/6/1 上午10:14)
-
 
 }
 

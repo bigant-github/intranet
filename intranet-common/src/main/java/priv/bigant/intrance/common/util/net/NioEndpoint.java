@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Mladen Turk
  * @author Remy Maucherat
  */
-public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
+public class NioEndpoint {
 
 
     // -------------------------------------------------------------- Constants
@@ -56,12 +56,6 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
 
     // ----------------------------------------------------------------- Fields
 
-    private NioSelectorPool selectorPool = new NioSelectorPool();
-
-    /**
-     * Server socket "pointer".
-     */
-    private volatile ServerSocketChannel serverSock = null;
     /**
      *
      */
@@ -81,30 +75,12 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
     // ------------------------------------------------------------- Properties
 
 
-    public boolean getUseInheritedChannel() {
-        /**
-         * Use System.inheritableChannel to obtain channel from stdin/stdout.
-         */
-        return false;
-    }
-
-
     private long selectorTimeout = 1000;
 
     /**
      * The socket poller.
      */
     private Poller[] pollers = null;
-
-
-    private void doCloseServerSocket() throws IOException {
-        if (!getUseInheritedChannel() && serverSock != null) {
-            // Close server socket
-            serverSock.socket().close();
-            serverSock.close();
-        }
-        serverSock = null;
-    }
 
 
     // ------------------------------------------------------ Protected Methods
@@ -239,17 +215,6 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
 
         public Selector getSelector() {
             return selector;
-        }
-
-        /**
-         * Destroy the poller.
-         */
-        protected void destroy() {
-            // Wait for polltime before doing anything, so that the poller threads
-            // exit, otherwise parallel closure of sockets which are still
-            // in the poller can cause problems
-            close = true;
-            selector.wakeup();
         }
 
         private void addEvent(PollerEvent event) {

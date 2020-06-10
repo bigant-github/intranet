@@ -8,16 +8,12 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
     private final NioSelectorPool pool;
 
     private Poller poller = null;
     private int interestOps = 0;
-    private CountDownLatch readLatch = null;
-    private CountDownLatch writeLatch = null;
     private volatile NioEndpoint.SendfileData sendfileData = null;
     private volatile long lastRead = System.currentTimeMillis();
     private volatile long lastWrite = lastRead;
@@ -40,57 +36,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
     public int interestOps(int ops) {
         this.interestOps = ops;
         return ops;
-    }
-
-    public CountDownLatch getReadLatch() {
-        return readLatch;
-    }
-
-    public CountDownLatch getWriteLatch() {
-        return writeLatch;
-    }
-
-    protected CountDownLatch resetLatch(CountDownLatch latch) {
-        if (latch == null || latch.getCount() == 0) return null;
-        else throw new IllegalStateException("Latch must be at count 0");
-    }
-
-    public void resetReadLatch() {
-        readLatch = resetLatch(readLatch);
-    }
-
-    public void resetWriteLatch() {
-        writeLatch = resetLatch(writeLatch);
-    }
-
-    protected CountDownLatch startLatch(CountDownLatch latch, int cnt) {
-        if (latch == null || latch.getCount() == 0) {
-            return new CountDownLatch(cnt);
-        } else throw new IllegalStateException("Latch must be at count 0 or null.");
-    }
-
-    public void startReadLatch(int cnt) {
-        readLatch = startLatch(readLatch, cnt);
-    }
-
-    public void startWriteLatch(int cnt) {
-        writeLatch = startLatch(writeLatch, cnt);
-    }
-
-    protected void awaitLatch(CountDownLatch latch, long timeout, TimeUnit unit) throws InterruptedException {
-        if (latch == null) throw new IllegalStateException("Latch cannot be null");
-        // Note: While the return value is ignored if the latch does time
-        //       out, logic further up the call stack will trigger a
-        //       SocketTimeoutException
-        latch.await(timeout, unit);
-    }
-
-    public void awaitReadLatch(long timeout, TimeUnit unit) throws InterruptedException {
-        awaitLatch(readLatch, timeout, unit);
-    }
-
-    public void awaitWriteLatch(long timeout, TimeUnit unit) throws InterruptedException {
-        awaitLatch(writeLatch, timeout, unit);
     }
 
     public void setSendfileData(NioEndpoint.SendfileData sf) {

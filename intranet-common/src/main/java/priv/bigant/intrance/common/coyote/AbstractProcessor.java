@@ -134,58 +134,6 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
 
 
     @Override
-    public final AbstractEndpoint.Handler.SocketState dispatch(SocketEvent status) throws IOException {
-
-        if (status == SocketEvent.OPEN_WRITE /* TODO && response.getWriteListener() != null*/) {
-            asyncStateMachine.asyncOperation();
-            try {
-                if (flushBufferedWrite()) {
-                    return AbstractEndpoint.Handler.SocketState.LONG;
-                }
-            } catch (IOException ioe) {
-                if (getLog().isDebugEnabled()) {
-                    getLog().debug("Unable to write async data.", ioe);
-                }
-                status = SocketEvent.ERROR;
-                //TODO request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, ioe);
-            }
-        } else if (status == SocketEvent.OPEN_READ /*TODO && request.getReadListener() != null*/) {
-            dispatchNonBlockingRead();
-        } else if (status == SocketEvent.ERROR) {
-            // An I/O error occurred on a non-container thread. This includes:
-            // - read/write timeouts fired by the Poller (NIO & APR)
-            // - completion handler failures in NIO2
-
-            /*TODO if (request.getAttribute(RequestDispatcher.ERROR_EXCEPTION) == null) {
-                // Because the error did not occur on a container thread the
-                // request's error attribute has not been set. If an exception
-                // is available from the socketWrapper, use it to set the
-                // request's error attribute here so it is visible to the error
-                // handling.
-                request.setAttribute(RequestDispatcher.ERROR_EXCEPTION, socketWrapper.getError());
-            }*/
-
-            /*TODO if (request.getReadListener() != null || response.getWriteListener() != null) {
-                // The error occurred during non-blocking I/O. Set the correct
-                // state else the error handling will trigger an ISE.
-                asyncStateMachine.asyncOperation();
-            }*/
-        }
-
-
-
-
-        if (getErrorState().isError()) {
-            request.updateCounters();
-            return AbstractEndpoint.Handler.SocketState.CLOSED;
-        } else {
-            request.updateCounters();
-            return dispatchEndRequest();
-        }
-    }
-
-
-    @Override
     public final void action(ActionCode actionCode, Object param) {
         switch (actionCode) {
             // 'Normal' servlet support

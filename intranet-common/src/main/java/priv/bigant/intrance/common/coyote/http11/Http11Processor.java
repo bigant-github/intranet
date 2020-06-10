@@ -22,7 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
-import priv.bigant.intrance.common.coyote.*;
+import priv.bigant.intrance.common.coyote.AbstractProcessor;
+import priv.bigant.intrance.common.coyote.ActionCode;
+import priv.bigant.intrance.common.coyote.ErrorState;
+import priv.bigant.intrance.common.coyote.HttpResponseStatus;
 import priv.bigant.intrance.common.coyote.http11.filters.SavedRequestInputFilter;
 import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.Ascii;
@@ -187,9 +190,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     @Override
     public AbstractEndpoint.Handler.SocketState service(SocketWrapperBase<?> socketWrapper) throws IOException {
-        //RequestInfo rp = request.getRequestProcessor();
-        //rp.setStage(priv.bigant.intrance.common.coyote.Constants.STAGE_PARSE);
-        // Setting up the I/O
+
         setSocketWrapper(socketWrapper);
         inputBuffer.init(socketWrapper);
         // Flags
@@ -218,25 +219,19 @@ public abstract class Http11Processor extends AbstractProcessor {
                     }
                 }
 
-                if (isPaused()) {
-                    // 503 - Service unavailable
-                    //TODO response.setStatus(503);
-                    setErrorState(ErrorState.CLOSE_CLEAN, null);
-                } else {
-                    keptAlive = true;
-                    // Set this every time in case limit has been changed via JMX
-                    request.getMimeHeaders().setLimit(getMaxHeaderCount());
-                    if (!inputBuffer.parseHeaders()) {//解析http请求头
-                        // We've read part of the request, don't recycle it
-                        // instead associate it with the socket
-                        openSocket = true;
-                        readComplete = false;
-                        break;
-                    }
-                    /*if (!disableUploadTimeout) {
-                        socketWrapper.setReadTimeout(connectionUploadTimeout);
-                    }*/
+                keptAlive = true;
+                // Set this every time in case limit has been changed via JMX
+                request.getMimeHeaders().setLimit(getMaxHeaderCount());
+                if (!inputBuffer.parseHeaders()) {//解析http请求头
+                    // We've read part of the request, don't recycle it
+                    // instead associate it with the socket
+                    openSocket = true;
+                    readComplete = false;
+                    break;
                 }
+                /*if (!disableUploadTimeout) {
+                    socketWrapper.setReadTimeout(connectionUploadTimeout);
+                }*/
             } catch (IOException e) {
                 log.debug("Error parsing HTTP request header:", e);
                 setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
@@ -293,25 +288,20 @@ public abstract class Http11Processor extends AbstractProcessor {
                     }
                 }
 
-                if (isPaused()) {
-                    // 503 - Service unavailable
-                    //TODO response.setStatus(503);
-                    setErrorState(ErrorState.CLOSE_CLEAN, null);
-                } else {
-                    keptAlive = true;
-                    // Set this every time in case limit has been changed via JMX
-                    response.getMimeHeaders().setLimit(getMaxHeaderCount());
-                    if (!responseInputBuffer.parseHeaders()) {//解析http请求头
-                        // We've read part of the request, don't recycle it
-                        // instead associate it with the socket
-                        openSocket = true;
-                        readComplete = false;
-                        prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应头失败");
-                        break;
-                    }
-                    if (!disableUploadTimeout) {
-                        socketWrapper.setReadTimeout(connectionUploadTimeout);
-                    }
+
+                keptAlive = true;
+                // Set this every time in case limit has been changed via JMX
+                response.getMimeHeaders().setLimit(getMaxHeaderCount());
+                if (!responseInputBuffer.parseHeaders()) {//解析http请求头
+                    // We've read part of the request, don't recycle it
+                    // instead associate it with the socket
+                    openSocket = true;
+                    readComplete = false;
+                    prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应头失败");
+                    break;
+                }
+                if (!disableUploadTimeout) {
+                    socketWrapper.setReadTimeout(connectionUploadTimeout);
                 }
 
             } catch (SocketTimeoutException e) {
@@ -351,8 +341,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 log.error("response mutual error", e);
                 break;
             }
-        }
-        while (!getErrorState().isError() && request.isConnection() && response.isConnection() && !isPaused());
+        } while (!getErrorState().isError() && request.isConnection() && response.isConnection() && !isPaused());
         log.debug("http 完成");
         close();
         return null;
@@ -681,12 +670,6 @@ public abstract class Http11Processor extends AbstractProcessor {
         responseInputBuffer.recycle();
         socketWrapper = null;
         sendFileData = null;
-    }
-
-
-    @Override
-    public void pause() {
-        // NOOP for HTTP
     }
 
 

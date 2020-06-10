@@ -74,9 +74,12 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
                 if (pop == null) {
                     pop = createHttp11Processor();
                 }
+
+                //TODO
                 NioChannel nioChannel = new NioChannel(socketChannel, new SocketBufferHandler(config.getHttpProcessReadBufferSize(), config.getHttpProcessWriteBufferSize(), true));
                 NioSocketWrapper nioSocketWrapper = new NioSocketWrapper(nioChannel, nioSelectorPool);
                 AbstractEndpoint.Handler.SocketState service = pop.process(nioSocketWrapper, SocketEvent.OPEN_READ);
+
                 pop.recycle();
                 //recycledProcessors.push(pop);
             } catch (Exception e) {
