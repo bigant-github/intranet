@@ -2,7 +2,7 @@ package priv.bigant.intrance.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.coyote.Processor;
+import priv.bigant.intrance.common.coyote.AbstractProcessor;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 import priv.bigant.intrance.common.util.collections.SynchronizedStack;
 import priv.bigant.intrance.common.util.net.*;
@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.*;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -24,10 +26,6 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
      * http 线程池
      */
     private ThreadPoolExecutor executor;
-    /**
-     * http client 与 server 段交互缓存堆
-     */
-    protected SynchronizedStack<SocketProcessorBase> processorCache;
 
     private RecycledProcessors recycledProcessors = new RecycledProcessors();
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
@@ -35,7 +33,6 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
     public HttpIntranetServiceProcessAbs() {
         this.config = Config.getConfig();
-        this.processorCache = new SynchronizedStack<>();
         this.executor = new ThreadPoolExecutor(config.getHttpProcessCoreSize(), config.getHttpProcessMaxSize(), Config.getConfig().getHttpProcessWaitTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
@@ -70,7 +67,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
         @Override
         public void run() {
             try {
-                Processor pop = recycledProcessors.pop();
+                AbstractProcessor pop = recycledProcessors.pop();
                 if (pop == null) {
                     pop = createHttp11Processor();
                 }
@@ -78,17 +75,15 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
                 //TODO
                 NioChannel nioChannel = new NioChannel(socketChannel, new SocketBufferHandler(config.getHttpProcessReadBufferSize(), config.getHttpProcessWriteBufferSize(), true));
                 NioSocketWrapper nioSocketWrapper = new NioSocketWrapper(nioChannel, nioSelectorPool);
-                AbstractEndpoint.Handler.SocketState service = pop.process(nioSocketWrapper, SocketEvent.OPEN_READ);
+                pop.service(nioSocketWrapper);
 
-                pop.recycle();
-                //recycledProcessors.push(pop);
             } catch (Exception e) {
                 LOG.error("service error", e);
             }
         }
     }
 
-    public static class RecycledProcessors extends SynchronizedStack<Processor> {
+    public static class RecycledProcessors extends SynchronizedStack<AbstractProcessor> {
 
         private static final Logger LOG = LoggerFactory.getLogger(RecycledProcessors.class);
         protected final AtomicInteger size = new AtomicInteger(0);
@@ -98,7 +93,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
         @SuppressWarnings("sync-override") // Size may exceed cache size a bit
         @Override
-        public boolean push(Processor processor) {
+        public boolean push(AbstractProcessor processor) {
             int processorCacheSize = 200;
             int cacheSize = processorCacheSize;
             boolean offer = cacheSize == -1 || size.get() < cacheSize;
@@ -116,8 +111,8 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
         @SuppressWarnings("sync-override") // OK if size is too big briefly
         @Override
-        public Processor pop() {
-            Processor result = super.pop();
+        public AbstractProcessor pop() {
+            AbstractProcessor result = super.pop();
             if (result != null) {
                 size.decrementAndGet();
             }
@@ -127,7 +122,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
         @Override
         public synchronized void clear() {
-            Processor next = pop();
+            AbstractProcessor next = pop();
             while (next != null) {
                 next = pop();
             }

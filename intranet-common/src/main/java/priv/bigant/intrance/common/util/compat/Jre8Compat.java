@@ -30,7 +30,6 @@ import javax.net.ssl.SSLParameters;
 class Jre8Compat extends JreCompat {
 
     private static final Method setUseCipherSuitesOrderMethod;
-    private static final Constructor<?> domainLoadStoreParameterConstructor;
 
 
     static {
@@ -51,7 +50,6 @@ class Jre8Compat extends JreCompat {
             // Should never happen
         }
         setUseCipherSuitesOrderMethod = m1;
-        domainLoadStoreParameterConstructor = c2;
     }
 
 

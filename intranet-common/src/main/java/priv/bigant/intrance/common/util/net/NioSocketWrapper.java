@@ -1,22 +1,13 @@
 package priv.bigant.intrance.common.util.net;
 
-import priv.bigant.intrance.common.util.net.NioEndpoint.Poller;
-
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 
 public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
     private final NioSelectorPool pool;
 
-    private Poller poller = null;
-    private int interestOps = 0;
-    private volatile NioEndpoint.SendfileData sendfileData = null;
-    private volatile long lastRead = System.currentTimeMillis();
-    private volatile long lastWrite = lastRead;
     public volatile boolean closed = false;
 
     public NioSocketWrapper(NioChannel channel, NioSelectorPool pool) {
@@ -24,59 +15,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
         this.pool = pool;
         socketBufferHandler = channel.getBufHandler();
     }
-
-    public Poller getPoller() {
-        return poller;
-    }
-
-    public int interestOps() {
-        return interestOps;
-    }
-
-    public int interestOps(int ops) {
-        this.interestOps = ops;
-        return ops;
-    }
-
-    public void setSendfileData(NioEndpoint.SendfileData sf) {
-        this.sendfileData = sf;
-    }
-
-    public NioEndpoint.SendfileData getSendfileData() {
-        return this.sendfileData;
-    }
-
-    public void updateLastWrite() {
-        lastWrite = System.currentTimeMillis();
-    }
-
-    public long getLastWrite() {
-        return lastWrite;
-    }
-
-    public void updateLastRead() {
-        lastRead = System.currentTimeMillis();
-    }
-
-    public long getLastRead() {
-        return lastRead;
-    }
-
-
-    @Override
-    public boolean isReadyForRead() throws IOException {
-        socketBufferHandler.configureReadBufferForRead();
-
-        if (socketBufferHandler.getReadBuffer().remaining() > 0) {
-            return true;
-        }
-
-        fillReadBuffer(false);
-
-        boolean isReady = socketBufferHandler.getReadBuffer().position() > 0;
-        return isReady;
-    }
-
 
     @Override
     public int read(boolean block, byte[] b, int off, int len) throws IOException {
@@ -94,7 +32,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
 
         // Fill the read buffer as best we can.
         nRead = fillReadBuffer(block);
-        updateLastRead();
 
         // Fill as much of the remaining byte array as possible with the
         // data that was just read
@@ -129,14 +66,12 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
             /*if (LOG.isDebugEnabled()) {
                 LOG.debug("Socket: [" + this + "], Read direct from socket: [" + nRead + "]");
             }*/
-            updateLastRead();
         } else {
             // Fill the read buffer as best we can.
             nRead = fillReadBuffer(block);
             /*if (LOG.isDebugEnabled()) {
                 LOG.debug("Socket: [" + this + "], Read into buffer: [" + nRead + "]");
             }*/
-            updateLastRead();
 
             // Fill as much of the remaining byte array as possible with the
             // data that was just read
@@ -213,7 +148,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
                     }
                 } while (true);
             }
-            updateLastWrite();
         } finally {
             if (selector != null) {
                 pool.put(selector);
@@ -225,68 +159,6 @@ public class NioSocketWrapper extends SocketWrapperBase<NioChannel> {
         // write registration.
     }
 
-
-    @Override
-    public void registerReadInterest() {
-        getPoller().add(getSocket(), SelectionKey.OP_READ);
-    }
-
-
-    @Override
-    public void registerWriteInterest() {
-        getPoller().add(getSocket(), SelectionKey.OP_WRITE);
-    }
-
-
-    @Override
-    protected void populateRemoteAddr() {
-        InetAddress inetAddr = getSocket().getIOChannel().socket().getInetAddress();
-        if (inetAddr != null) {
-            remoteAddr = inetAddr.getHostAddress();
-        }
-    }
-
-
-    @Override
-    protected void populateRemoteHost() {
-        InetAddress inetAddr = getSocket().getIOChannel().socket().getInetAddress();
-        if (inetAddr != null) {
-            remoteHost = inetAddr.getHostName();
-            if (remoteAddr == null) {
-                remoteAddr = inetAddr.getHostAddress();
-            }
-        }
-    }
-
-
-    @Override
-    protected void populateRemotePort() {
-        remotePort = getSocket().getIOChannel().socket().getPort();
-    }
-
-
-    @Override
-    protected void populateLocalName() {
-        InetAddress inetAddr = getSocket().getIOChannel().socket().getLocalAddress();
-        if (inetAddr != null) {
-            localName = inetAddr.getHostName();
-        }
-    }
-
-
-    @Override
-    protected void populateLocalAddr() {
-        InetAddress inetAddr = getSocket().getIOChannel().socket().getLocalAddress();
-        if (inetAddr != null) {
-            localAddr = inetAddr.getHostAddress();
-        }
-    }
-
-
-    @Override
-    protected void populateLocalPort() {
-        localPort = getSocket().getIOChannel().socket().getLocalPort();
-    }
 
 
     @Override

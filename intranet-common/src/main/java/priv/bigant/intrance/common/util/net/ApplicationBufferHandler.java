@@ -28,6 +28,4 @@ public interface ApplicationBufferHandler {
 
     public ByteBuffer getByteBuffer();
 
-    public void expand(int size);
-
 }

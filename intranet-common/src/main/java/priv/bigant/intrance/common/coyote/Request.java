@@ -17,7 +17,6 @@
 package priv.bigant.intrance.common.coyote;
 
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
-import priv.bigant.intrance.common.util.buf.B2CConverter;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
 import priv.bigant.intrance.common.util.buf.UDecoder;
@@ -136,17 +135,11 @@ public final class Request {
     private final MessageBytes authType = MessageBytes.newInstance();
     private final HashMap<String, Object> attributes = new HashMap<>();
 
-    private Response response;
-    private volatile ActionHook hook;
-
     private long bytesRead = 0;
     // Time of the request - useful to avoid repeated calls to System.currentTime
     private long startTime = -1;
     private int available = 0;
 
-    private final RequestInfo reqProcessorMX = new RequestInfo(this);
-
-    private boolean sendfile = true;
 
     private final AtomicBoolean allDataReadEventSent = new AtomicBoolean(false);
 
@@ -204,15 +197,6 @@ public final class Request {
     // -------------------- encoding/type --------------------
 
 
-    /**
-     * @param enc The new encoding
-     * @throws UnsupportedEncodingException If the encoding is invalid
-     * @deprecated This method will be removed in Tomcat 9.0.x
-     */
-    @Deprecated
-    public void setCharacterEncoding(String enc) throws UnsupportedEncodingException {
-        setCharset(B2CConverter.getCharset(enc));
-    }
 
 
     public void setCharset(Charset charset) {
@@ -303,12 +287,7 @@ public final class Request {
     // -------------------- Associated response --------------------
 
     public void setResponse(Response response) {
-        this.response = response;
         //TODO response.setRequest(this);
-    }
-
-    protected void setHook(ActionHook hook) {
-        this.hook = hook;
     }
 
 
@@ -403,7 +382,7 @@ public final class Request {
         remoteHostMB.recycle();
         remotePort = -1;
         available = 0;
-        sendfile = true;
+        boolean sendfile = true;
 
         serverCookies.recycle();
         parameters.recycle();
@@ -425,15 +404,6 @@ public final class Request {
         allDataReadEventSent.set(false);
 
         startTime = -1;
-    }
-
-    // -------------------- Info  --------------------
-    public void updateCounters() {
-        reqProcessorMX.updateCounters();
-    }
-
-    public RequestInfo getRequestProcessor() {
-        return reqProcessorMX;
     }
 
     /*public boolean isProcessing() {

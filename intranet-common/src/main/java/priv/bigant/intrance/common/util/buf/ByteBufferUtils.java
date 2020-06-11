@@ -29,7 +29,6 @@ import java.nio.ByteBuffer;
 
 public class ByteBufferUtils {
 
-    private static final StringManager sm = StringManager.getManager(Constants.Package);
     private static final Logger log = LoggerFactory.getLogger(ByteBufferUtils.class);
 
     private static final Object unsafe;
@@ -54,7 +53,7 @@ public class ByteBufferUtils {
             } catch (IllegalAccessException | IllegalArgumentException
                     | InvocationTargetException | NoSuchMethodException | SecurityException
                     | ClassNotFoundException | NoSuchFieldException e) {
-                log.warn(sm.getString("byteBufferUtils.cleaner"), e);
+                log.warn("byteBufferUtils.cleaner");
                 unsafeLocal = null;
                 invokeCleanerMethodLocal = null;
             }
@@ -67,7 +66,7 @@ public class ByteBufferUtils {
                 cleanMethodLocal.invoke(cleanerObject);
             } catch (NoSuchMethodException | SecurityException | IllegalAccessException |
                     IllegalArgumentException | InvocationTargetException e) {
-                log.warn(sm.getString("byteBufferUtils.cleaner"), e);
+                log.warn("byteBufferUtils.cleaner");
                 cleanerMethodLocal = null;
                 cleanMethodLocal = null;
             }

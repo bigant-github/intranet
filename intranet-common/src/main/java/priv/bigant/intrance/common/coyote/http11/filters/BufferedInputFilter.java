@@ -156,8 +156,4 @@ public class BufferedInputFilter implements InputFilter, ApplicationBufferHandle
     }
 
 
-    @Override
-    public void expand(int size) {
-        // no-op
-    }
 }

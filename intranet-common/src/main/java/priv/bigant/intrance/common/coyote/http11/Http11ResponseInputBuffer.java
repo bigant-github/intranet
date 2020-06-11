@@ -972,15 +972,4 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
     }
 
 
-    @Override
-    public void expand(int size) {
-        if (byteBuffer.capacity() >= size) {
-            byteBuffer.limit(size);
-        }
-        ByteBuffer temp = ByteBuffer.allocate(size);
-        temp.put(byteBuffer);
-        byteBuffer = temp;
-        byteBuffer.mark();
-        temp = null;
-    }
 }

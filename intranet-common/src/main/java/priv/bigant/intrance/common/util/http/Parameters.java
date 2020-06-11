@@ -21,8 +21,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -79,14 +77,6 @@ public final class Parameters {
         return charset.name();
     }
 
-    /**
-     * @param s The new encoding
-     * @deprecated This method will be removed in Tomcat 9.0.x
-     */
-    @Deprecated
-    public void setEncoding(String s) {
-        setCharset(getCharset(s, DEFAULT_BODY_CHARSET));
-    }
 
     public void setCharset(Charset charset) {
         if (charset == null) {
@@ -96,15 +86,6 @@ public final class Parameters {
         if (log.isDebugEnabled()) {
             log.debug("Set encoding to " + charset.name());
         }
-    }
-
-    /**
-     * @param s The new query string encoding
-     * @deprecated This method will be removed in Tomcat 9
-     */
-    @Deprecated
-    public void setQueryStringEncoding(String s) {
-        setQueryStringCharset(getCharset(s, DEFAULT_URI_CHARSET));
     }
 
     public void setQueryStringCharset(Charset queryStringCharset) {
@@ -432,15 +413,6 @@ public final class Parameters {
         urlDec.convert(bc, true);
     }
 
-    /**
-     * @param data     Parameter data
-     * @param encoding Encoding to use for encoded bytes
-     * @deprecated This method will be removed in Tomcat 9.0.x
-     */
-    @Deprecated
-    public void processParameters(MessageBytes data, String encoding) {
-        processParameters(data, getCharset(encoding, DEFAULT_BODY_CHARSET));
-    }
 
     public void processParameters(MessageBytes data, Charset charset) {
         if (data == null || data.isNull() || data.getLength() <= 0) {
@@ -452,17 +424,6 @@ public final class Parameters {
         }
         ByteChunk bc = data.getByteChunk();
         processParameters(bc.getBytes(), bc.getOffset(), bc.getLength(), charset);
-    }
-
-    private Charset getCharset(String encoding, Charset defaultCharset) {
-        if (encoding == null) {
-            return defaultCharset;
-        }
-        try {
-            return B2CConverter.getCharset(encoding);
-        } catch (UnsupportedEncodingException e) {
-            return defaultCharset;
-        }
     }
 
     /**

@@ -17,17 +17,14 @@
 package priv.bigant.intrance.common.coyote;
 
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
-import priv.bigant.intrance.common.util.buf.B2CConverter;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
 import priv.bigant.intrance.common.util.buf.UDecoder;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.Parameters;
 import priv.bigant.intrance.common.util.http.ServerCookies;
-import priv.bigant.intrance.common.util.net.ApplicationBufferHandler;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,11 +73,6 @@ public final class Response {
      */
     private final Map<String, String> pathParameters = new HashMap<>();
 
-    /**
-     * Notes.
-     */
-    private final Object notes[] = new Object[Constants.MAX_NOTES];
-
 
     /**
      * Associated input buffer.
@@ -118,7 +110,6 @@ public final class Response {
     private final HashMap<String, Object> attributes = new HashMap<>();
 
     private Response response;
-    private volatile ActionHook hook;
 
     private long bytesRead = 0;
     // Time of the request - useful to avoid repeated calls to System.currentTime
@@ -153,18 +144,7 @@ public final class Response {
     }
 
 
-    // -------------------- encoding/type --------------------
 
-
-    /**
-     * @param enc The new encoding
-     * @throws UnsupportedEncodingException If the encoding is invalid
-     * @deprecated This method will be removed in Tomcat 9.0.x
-     */
-    @Deprecated
-    public void setCharacterEncoding(String enc) throws UnsupportedEncodingException {
-        setCharset(B2CConverter.getCharset(enc));
-    }
 
 
     public void setCharset(Charset charset) {
@@ -212,10 +192,6 @@ public final class Response {
 
 
     // -------------------- Associated response --------------------
-
-    protected void setHook(ActionHook hook) {
-        this.hook = hook;
-    }
 
 
     // -------------------- Cookies --------------------

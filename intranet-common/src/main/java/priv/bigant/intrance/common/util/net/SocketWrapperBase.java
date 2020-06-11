@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.util.net;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
@@ -31,8 +29,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 public abstract class SocketWrapperBase<E> {
 
-    private static final Logger log = LoggerFactory.getLogger(SocketWrapperBase.class);
-
     protected static final StringManager sm = StringManager.getManager(SocketWrapperBase.class);
 
     private final E socket;
@@ -42,26 +38,6 @@ public abstract class SocketWrapperBase<E> {
     private volatile long readTimeout = -1;
     private volatile long writeTimeout = -1;
 
-    private volatile int keepAliveLeft = 100;
-    private volatile boolean upgraded = false;
-    private boolean secure = false;
-    private String negotiatedProtocol = null;
-    /*
-     * Following cached for speed / reduced GC
-     */
-    protected String localAddr = null;
-    protected String localName = null;
-    protected int localPort = -1;
-    protected String remoteAddr = null;
-    protected String remoteHost = null;
-    protected int remotePort = -1;
-    /*
-     * Used if block/non-blocking is set at the socket level. The client is
-     * responsible for the thread-safe use of this field via the locks provided.
-     */
-    private volatile boolean blockingStatus = true;
-    private final Lock blockingStatusReadLock;
-    private final WriteLock blockingStatusWriteLock;
     /*
      * Used to record the first IOException that occurs during non-blocking
      * read/writes that can't be usefully propagated up the stack since there is
@@ -91,8 +67,6 @@ public abstract class SocketWrapperBase<E> {
     public SocketWrapperBase(E socket) {
         this.socket = socket;
         ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-        this.blockingStatusReadLock = lock.readLock();
-        this.blockingStatusWriteLock = lock.writeLock();
     }
 
     public E getSocket() {
@@ -112,36 +86,6 @@ public abstract class SocketWrapperBase<E> {
         this.error = error;
     }
 
-    public void checkError() throws IOException {
-        if (error != null) {
-            throw error;
-        }
-    }
-
-    public boolean isUpgraded() {
-        return upgraded;
-    }
-
-    public void setUpgraded(boolean upgraded) {
-        this.upgraded = upgraded;
-    }
-
-    public boolean isSecure() {
-        return secure;
-    }
-
-    public void setSecure(boolean secure) {
-        this.secure = secure;
-    }
-
-    public String getNegotiatedProtocol() {
-        return negotiatedProtocol;
-    }
-
-    public void setNegotiatedProtocol(String negotiatedProtocol) {
-        this.negotiatedProtocol = negotiatedProtocol;
-    }
-
     /**
      * Set the timeout for reading. Values of zero or less will be changed to -1.
      *
@@ -159,101 +103,10 @@ public abstract class SocketWrapperBase<E> {
         return this.readTimeout;
     }
 
-    /**
-     * Set the timeout for writing. Values of zero or less will be changed to -1.
-     *
-     * @param writeTimeout The timeout in milliseconds. A value of zero or less indicates an infinite timeout.
-     */
-    public void setWriteTimeout(long writeTimeout) {
-        if (writeTimeout > 0) {
-            this.writeTimeout = writeTimeout;
-        } else {
-            this.writeTimeout = -1;
-        }
-    }
-
     public long getWriteTimeout() {
         return this.writeTimeout;
     }
 
-
-    public void setKeepAliveLeft(int keepAliveLeft) {
-        this.keepAliveLeft = keepAliveLeft;
-    }
-
-    public int decrementKeepAlive() {
-        return (--keepAliveLeft);
-    }
-
-    public String getRemoteHost() {
-        if (remoteHost == null) {
-            populateRemoteHost();
-        }
-        return remoteHost;
-    }
-
-    protected abstract void populateRemoteHost();
-
-    public String getRemoteAddr() {
-        if (remoteAddr == null) {
-            populateRemoteAddr();
-        }
-        return remoteAddr;
-    }
-
-    protected abstract void populateRemoteAddr();
-
-    public int getRemotePort() {
-        if (remotePort == -1) {
-            populateRemotePort();
-        }
-        return remotePort;
-    }
-
-    protected abstract void populateRemotePort();
-
-    public String getLocalName() {
-        if (localName == null) {
-            populateLocalName();
-        }
-        return localName;
-    }
-
-    protected abstract void populateLocalName();
-
-    public String getLocalAddr() {
-        if (localAddr == null) {
-            populateLocalAddr();
-        }
-        return localAddr;
-    }
-
-    protected abstract void populateLocalAddr();
-
-    public int getLocalPort() {
-        if (localPort == -1) {
-            populateLocalPort();
-        }
-        return localPort;
-    }
-
-    protected abstract void populateLocalPort();
-
-    public boolean getBlockingStatus() {
-        return blockingStatus;
-    }
-
-    public void setBlockingStatus(boolean blockingStatus) {
-        this.blockingStatus = blockingStatus;
-    }
-
-    public Lock getBlockingStatusReadLock() {
-        return blockingStatusReadLock;
-    }
-
-    public WriteLock getBlockingStatusWriteLock() {
-        return blockingStatusWriteLock;
-    }
 
     public SocketBufferHandler getSocketBufferHandler() {
         return socketBufferHandler;
@@ -262,37 +115,6 @@ public abstract class SocketWrapperBase<E> {
     public boolean hasDataToRead() {
         // Return true because it is always safe to make a read attempt
         return true;
-    }
-
-    public boolean hasDataToWrite() {
-        return !socketBufferHandler.isWriteBufferEmpty() || !nonBlockingWriteBuffer.isEmpty();
-    }
-
-    /**
-     * Checks to see if there are any writes pending and if there are calls {@link #registerWriteInterest()} to trigger
-     * a callback once the pending writes have completed.
-     * <p>
-     * Note: Once this method has returned <code>false</code> it <b>MUST NOT</b> be called again until the pending write
-     * has completed and the callback has been fired. TODO: Modify {@link #registerWriteInterest()} so the above
-     * restriction is enforced there rather than relying on the caller.
-     *
-     * @return <code>true</code> if no writes are pending and data can be
-     * written otherwise <code>false</code>
-     */
-    public boolean isReadyForWrite() {
-        boolean result = canWrite();
-        if (!result) {
-            registerWriteInterest();
-        }
-        return result;
-    }
-
-
-    public boolean canWrite() {
-        if (socketBufferHandler == null) {
-            throw new IllegalStateException(sm.getString("socket.closed"));
-        }
-        return socketBufferHandler.isWriteBufferWritable() && nonBlockingWriteBuffer.isEmpty();
     }
 
 
@@ -311,8 +133,6 @@ public abstract class SocketWrapperBase<E> {
     public abstract int read(boolean block, byte[] b, int off, int len) throws IOException;
 
     public abstract int read(boolean block, ByteBuffer to) throws IOException;
-
-    public abstract boolean isReadyForRead() throws IOException;
 
     public abstract void setAppReadBufHandler(ApplicationBufferHandler handler);
 
@@ -345,23 +165,6 @@ public abstract class SocketWrapperBase<E> {
             log.debug("Socket: [" + this + "], Read from buffer: [" + nRead + "]");
         }*/
         return nRead;
-    }
-
-
-    /**
-     * Return input that has been read to the input buffer for re-reading by the correct component. There are times when
-     * a component may read more data than it needs before it passes control to another component. One example of this
-     * is during HTTP upgrade. If an (arguably misbehaving client) sends data associated with the upgraded protocol
-     * before the HTTP upgrade completes, the HTTP handler may read it. This method provides a way for that data to be
-     * returned so it can be processed by the correct component.
-     *
-     * @param returnedInput The input to return to the input buffer.
-     */
-    public void unRead(ByteBuffer returnedInput) {
-        if (returnedInput != null) {
-            socketBufferHandler.configureReadBufferForWrite();
-            socketBufferHandler.getReadBuffer().put(returnedInput);
-        }
     }
 
 
@@ -740,11 +543,6 @@ public abstract class SocketWrapperBase<E> {
     }*/
 
 
-    public abstract void registerReadInterest();
-
-    public abstract void registerWriteInterest();
-
-
     // ------------------------------------------------------- NIO 2 style APIs
 
 
@@ -803,94 +601,6 @@ public abstract class SocketWrapperBase<E> {
     }
 
     public interface CompletionCheck {
-        /**
-         * Determine what call, if any, should be made to the completion handler.
-         *
-         * @param state   of the operation (done or done in-line since the IO call is done)
-         * @param buffers ByteBuffer[] that has been passed to the original IO call
-         * @param offset  that has been passed to the original IO call
-         * @param length  that has been passed to the original IO call
-         * @return The call, if any, to make to the completion handler
-         */
-        public CompletionHandlerCall callHandler(CompletionState state, ByteBuffer[] buffers,
-                                                 int offset, int length);
-    }
-
-    /**
-     * This utility CompletionCheck will cause the write to fully write all remaining data. If the operation completes
-     * inline, the completion handler will not be called.
-     */
-    public static final CompletionCheck COMPLETE_WRITE = new CompletionCheck() {
-        @Override
-        public CompletionHandlerCall callHandler(CompletionState state, ByteBuffer[] buffers,
-                                                 int offset, int length) {
-            for (int i = 0; i < length; i++) {
-                if (buffers[offset + i].remaining() > 0) {
-                    return CompletionHandlerCall.CONTINUE;
-                }
-            }
-            return (state == CompletionState.DONE) ? CompletionHandlerCall.DONE
-                    : CompletionHandlerCall.NONE;
-        }
-    };
-
-    /**
-     * This utility CompletionCheck will cause the write to fully write all remaining data. The completion handler will
-     * then be called.
-     */
-    public static final CompletionCheck COMPLETE_WRITE_WITH_COMPLETION = new CompletionCheck() {
-        @Override
-        public CompletionHandlerCall callHandler(CompletionState state, ByteBuffer[] buffers,
-                                                 int offset, int length) {
-            for (int i = 0; i < length; i++) {
-                if (buffers[offset + i].remaining() > 0) {
-                    return CompletionHandlerCall.CONTINUE;
-                }
-            }
-            return CompletionHandlerCall.DONE;
-        }
-    };
-
-    /**
-     * This utility CompletionCheck will cause the completion handler to be called once some data has been read. If the
-     * operation completes inline, the completion handler will not be called.
-     */
-    public static final CompletionCheck READ_DATA = new CompletionCheck() {
-        @Override
-        public CompletionHandlerCall callHandler(CompletionState state, ByteBuffer[] buffers,
-                                                 int offset, int length) {
-            return (state == CompletionState.DONE) ? CompletionHandlerCall.DONE
-                    : CompletionHandlerCall.NONE;
-        }
-    };
-
-    /**
-     * Allows using NIO2 style read/write only for connectors that can efficiently support it.
-     *
-     * @return This default implementation always returns {@code false}
-     */
-    public boolean hasAsyncIO() {
-        return false;
-    }
-
-    /**
-     * Allows checking if an asynchronous read operation is currently pending.
-     *
-     * @return <code>true</code> if the endpoint supports asynchronous IO and
-     * a read operation is being processed asynchronously
-     */
-    public boolean isReadPending() {
-        return false;
-    }
-
-    /**
-     * Allows checking if an asynchronous write operation is currently pending.
-     *
-     * @return <code>true</code> if the endpoint supports asynchronous IO and
-     * a write operation is being processed asynchronously
-     */
-    public boolean isWritePending() {
-        return false;
     }
 
     /**

@@ -21,11 +21,9 @@ import priv.bigant.intrance.common.util.res.StringManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-import priv.bigant.intrance.common.util.net.NioEndpoint.Poller;
 
 
 /**
@@ -44,8 +42,6 @@ public class NioChannel implements ByteChannel {
     protected SocketWrapperBase<NioChannel> socketWrapper = null;
 
     protected final SocketBufferHandler bufHandler;
-
-    protected Poller poller;
 
     public NioChannel(SocketChannel channel, SocketBufferHandler bufHandler) {
         this.sc = channel;
@@ -134,20 +130,8 @@ public class NioChannel implements ByteChannel {
         return sc.read(dst);
     }
 
-    public Object getAttachment() {
-        Poller pol = getPoller();
-        Selector sel = pol != null ? pol.getSelector() : null;
-        SelectionKey key = sel != null ? getIOChannel().keyFor(sel) : null;
-        Object att = key != null ? key.attachment() : null;
-        return att;
-    }
-
     public SocketBufferHandler getBufHandler() {
         return bufHandler;
-    }
-
-    public Poller getPoller() {
-        return poller;
     }
 
     public SocketChannel getIOChannel() {

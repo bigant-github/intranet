@@ -23,19 +23,14 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.AbstractProcessor;
-import priv.bigant.intrance.common.coyote.ActionCode;
-import priv.bigant.intrance.common.coyote.ErrorState;
 import priv.bigant.intrance.common.coyote.HttpResponseStatus;
-import priv.bigant.intrance.common.coyote.http11.filters.SavedRequestInputFilter;
 import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.Ascii;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.http.FastHttpDateFormat;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.parser.HttpParser;
-import priv.bigant.intrance.common.util.log.UserDataHelper;
 import priv.bigant.intrance.common.util.net.*;
-import priv.bigant.intrance.common.util.net.AbstractEndpoint.Handler.SocketState;
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
@@ -116,12 +111,6 @@ public abstract class Http11Processor extends AbstractProcessor {
     private String server = "BigAnt";
 
 
-    /**
-     * Sendfile data.
-     */
-    protected SendfileDataBase sendFileData = null;
-
-
     private Config config;
 
     private int maxHttpHeaderSize;
@@ -189,7 +178,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
 
     @Override
-    public AbstractEndpoint.Handler.SocketState service(SocketWrapperBase<?> socketWrapper) throws IOException {
+    public void service(SocketWrapperBase<?> socketWrapper) throws IOException {
 
         setSocketWrapper(socketWrapper);
         inputBuffer.init(socketWrapper);
@@ -212,7 +201,7 @@ public abstract class Http11Processor extends AbstractProcessor {
             try {
                 if (!inputBuffer.parseRequestLine(keptAlive)) {//解析http请求第一行
                     if (inputBuffer.getParsingRequestLinePhase() == -1) {
-                        return AbstractEndpoint.Handler.SocketState.UPGRADING;
+                        //TODO 此处为http协议升级
                     } else if (handleIncompleteRequestLineRead()) {
                         //prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析请求失败");
                         break;
@@ -232,29 +221,14 @@ public abstract class Http11Processor extends AbstractProcessor {
                 /*if (!disableUploadTimeout) {
                     socketWrapper.setReadTimeout(connectionUploadTimeout);
                 }*/
+            } catch (SocketTimeoutException e) {
+                break;
             } catch (IOException e) {
-                log.debug("Error parsing HTTP request header:", e);
-                setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
+                log.debug("Error parsing HTTP response header", e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                UserDataHelper.Mode logMode = userDataHelper.getNextMode();
-                if (logMode != null) {
-                    String message = sm.getString("http11processor.header.parse");
-                    switch (logMode) {
-                        case INFO_THEN_DEBUG:
-                            message += sm.getString("http11processor.fallToDebug");
-                            //$FALL-THROUGH$
-                        case INFO:
-                            log.info(message, t);
-                            break;
-                        case DEBUG:
-                            log.debug(message, t);
-                    }
-                }
-                // 400 - Bad Request
-                //TODO response.setStatus(400);
-                setErrorState(ErrorState.CLOSE_CLEAN, t);
+                log.debug("Error parsing HTTP response header", t);
             }
 
 
@@ -281,7 +255,7 @@ public abstract class Http11Processor extends AbstractProcessor {
             try {
                 if (!responseInputBuffer.parseResponseLine(keptAlive)) {//解析http请求第一行
                     if (responseInputBuffer.getParsingRequestLinePhase() == -1) {
-                        return AbstractEndpoint.Handler.SocketState.UPGRADING;
+                        //TODO 此处为http协议升级
                     } else if (handleIncompleteRequestLineRead()) {
                         prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应失败");
                         break;
@@ -305,32 +279,13 @@ public abstract class Http11Processor extends AbstractProcessor {
                 }
 
             } catch (SocketTimeoutException e) {
-                //log.debug("Error parsing HTTP request header time out", e);
-                setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
                 break;
             } catch (IOException e) {
                 log.debug("Error parsing HTTP response header", e);
-                setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                UserDataHelper.Mode logMode = userDataHelper.getNextMode();
-                if (logMode != null) {
-                    String message = sm.getString("http11processor.header.parse");
-                    switch (logMode) {
-                        case INFO_THEN_DEBUG:
-                            message += sm.getString("http11processor.fallToDebug");
-                            //$FALL-THROUGH$
-                        case INFO:
-                            log.info(message, t);
-                            break;
-                        case DEBUG:
-                            log.debug(message, t);
-                    }
-                }
-                // 400 - Bad Request
-                //TODO response.setStatus(400);
-                setErrorState(ErrorState.CLOSE_CLEAN, t);
+                log.debug("Error parsing HTTP response header", t);
             }
 
             log.debug(request.requestURI().getString() + "响应完成");
@@ -341,10 +296,9 @@ public abstract class Http11Processor extends AbstractProcessor {
                 log.error("response mutual error", e);
                 break;
             }
-        } while (!getErrorState().isError() && request.isConnection() && response.isConnection() && !isPaused());
+        } while (request.isConnection() && response.isConnection() && !isPaused());
         log.debug("http 完成");
         close();
-        return null;
     }
 
     public abstract SocketBean getSocketBean() throws IOException;
@@ -433,9 +387,6 @@ public abstract class Http11Processor extends AbstractProcessor {
         if (inputBuffer.getParsingRequestLinePhase() > 1) {
             // Started to read request line.
             if (isPaused()) {
-                // Partially processed the request so need to respond
-                //TODO response.setStatus(503);
-                setErrorState(ErrorState.CLOSE_CLEAN, null);
                 return false;
             } else {
                 // Need to keep processor associated with socket
@@ -443,22 +394,6 @@ public abstract class Http11Processor extends AbstractProcessor {
             }
         }
         return true;
-    }
-
-
-    private void checkExpectationAndResponseStatus() {
-        if (request.hasExpectation()
-            //TODO      && (response.getStatus() < 200 || response.getStatus() > 299)
-        ) {
-            // Client sent Expect: 100-continue but received a
-            // non-2xx final response. Disable keep-alive (if enabled)
-            // to ensure that the connection is closed. Some clients may
-            // still send the body, some may send the next request.
-            // No way to differentiate, so close the connection to
-            // force the client to send the next request.
-            inputBuffer.setSwallowInput(false);
-            keepAlive = false;
-        }
     }
 
 
@@ -499,8 +434,9 @@ public abstract class Http11Processor extends AbstractProcessor {
         }
         outputBuffer.endHeaders();
 
-        if (ArrayUtils.isNotEmpty(body))
+        if (ArrayUtils.isNotEmpty(body)) {
             outputBuffer.write(body);
+        }
 
         outputBuffer.commit();
 
@@ -530,146 +466,14 @@ public abstract class Http11Processor extends AbstractProcessor {
     }
 
 
-    @Override
-    protected boolean flushBufferedWrite() throws IOException {
-        /*TODO if (outputBuffer.hasDataToWrite()) {
-            if (outputBuffer.flushBuffer(false)) {
-                // The buffer wasn't fully flushed so re-register the
-                // socket for write. Note this does not go via the
-                // Response since the write registration state at
-                // that level should remain unchanged. Once the buffer
-                // has been emptied then the code below will call
-                // Adaptor.asyncDispatch() which will enable the
-                // Response to respond to this event.
-                outputBuffer.registerWriteInterest();
-                return true;
-            }
-        }*/
-        return false;
-    }
-
-
-    @Override
-    protected SocketState dispatchEndRequest() {
-        if (!keepAlive) {
-            return SocketState.CLOSED;
-        } else {
-            endRequest();
-            inputBuffer.nextRequest();
-            //TODO outputBuffer.nextRequest();
-            if (socketWrapper.isReadPending()) {
-                return AbstractEndpoint.Handler.SocketState.LONG;
-            } else {
-                return AbstractEndpoint.Handler.SocketState.OPEN;
-            }
-        }
-    }
-
-
-    @Override
-    protected Logger getLog() {
-        return log;
-    }
-
-
-    /*
-     * No more input will be passed to the application. Remaining input will be
-     * swallowed or the connection dropped depending on the error and
-     * expectation status.
-     */
-    private void endRequest() {
-        if (getErrorState().isError()) {
-            // If we know we are closing the connection, don't drain
-            // input. This way uploading a 100GB file doesn't tie up the
-            // thread if the servlet has rejected it.
-            inputBuffer.setSwallowInput(false);
-        } else {
-            // Need to check this again here in case the response was
-            // committed before the error that requires the connection
-            // to be closed occurred.
-            checkExpectationAndResponseStatus();
-        }
-
-        // Finish the handling of the request
-        if (getErrorState().isIoAllowed()) {
-            try {
-                inputBuffer.endRequest();
-            } catch (IOException e) {
-                setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
-            } catch (Throwable t) {
-                ExceptionUtils.handleThrowable(t);
-                // 500 - Internal Server Error
-                // Can't add a 500 to the access log since that has already been
-                // written in the Adapter.service method.
-                //TODO response.setStatus(500);
-                setErrorState(ErrorState.CLOSE_NOW, t);
-                log.error(sm.getString("http11processor.request.finish"), t);
-            }
-        }
-        if (getErrorState().isIoAllowed()) {
-            try {
-                action(ActionCode.COMMIT, null);
-                //TODO outputBuffer.end();
-            } /*catch (IOException e) {
-                setErrorState(ErrorState.CLOSE_CONNECTION_NOW, e);
-            }*/ catch (Throwable t) {
-                ExceptionUtils.handleThrowable(t);
-                setErrorState(ErrorState.CLOSE_NOW, t);
-                log.error(sm.getString("http11processor.response.finish"), t);
-            }
-        }
-    }
-
-
-    @Override
-    protected final int available(boolean doRead) {
-        return inputBuffer.available(doRead);
-    }
-
-
-    @Override
-    protected final void setRequestBody(ByteChunk body) {
-        InputFilter savedBody = new SavedRequestInputFilter(body);
-        Http11InputBuffer internalBuffer = (Http11InputBuffer) request.getInputBuffer();
-        internalBuffer.addActiveFilter(savedBody);
-    }
-
-
-    @Override
-    protected final void disableSwallowRequest() {
-        inputBuffer.setSwallowInput(false);
-    }
-
-
-    @Override
-    protected final boolean isRequestBodyFullyRead() {
-        return inputBuffer.isFinished();
-    }
-
-
-    @Override
-    protected final void registerReadInterest() {
-        socketWrapper.registerReadInterest();
-    }
-
-
-    @Override
-    protected final boolean isReadyForWrite() {
-        return false;//TODO outputBuffer.isReady();
-    }
-
-
-    @Override
     public final void recycle() {
         //getAdapter().checkRecycled(request, response);
         request.recycle();
         response.recycle();
-        super.recycle();
         inputBuffer.recycle();
         //TODO outputBuffer.recycle();
         responseInputBuffer.recycle();
         socketWrapper = null;
-        sendFileData = null;
     }
 
 
