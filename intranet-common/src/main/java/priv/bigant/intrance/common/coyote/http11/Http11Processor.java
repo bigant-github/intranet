@@ -121,7 +121,7 @@ public abstract class Http11Processor extends AbstractProcessor {
         config = Config.getConfig();
         HttpParser httpParser = new HttpParser(relaxedPathChars, relaxedQueryChars);
 
-        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
+        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, httpParser);
         request.setInputBuffer(inputBuffer);
 
         responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
@@ -255,8 +255,6 @@ public abstract class Http11Processor extends AbstractProcessor {
             try {
                 if (!responseInputBuffer.parseResponseLine(keptAlive)) {//解析http请求第一行
                     if (responseInputBuffer.getParsingRequestLinePhase() == -1) {
-                        //TODO 此处为http协议升级
-                    } else if (handleIncompleteRequestLineRead()) {
                         prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应失败");
                         break;
                     }
