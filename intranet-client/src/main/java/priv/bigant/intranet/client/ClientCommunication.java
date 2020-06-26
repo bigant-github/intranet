@@ -31,9 +31,9 @@ public class ClientCommunication extends Communication {
      */
     private ConnectorThread connectorThread;
 
-    public ClientCommunication(ConnectorThread serviceConnectorThread) {
+    public ClientCommunication(ConnectorThread serviceConnectorThread, ClientConfig clientConfig) {
         this.serviceConnectorThread = serviceConnectorThread;
-        clientConfig = (ClientConfig) ClientConfig.getConfig();
+        this.clientConfig = clientConfig;
         byteBuffer = ByteBuffer.allocate(clientConfig.getCommunicationByteBufferSize());
     }
 

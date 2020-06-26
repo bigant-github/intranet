@@ -15,9 +15,9 @@ public class Http11ProcessorServer extends Http11Processor {
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
     private ClientConfig clientConfig;
 
-    public Http11ProcessorServer(int maxHttpHeaderSize, boolean allowHostHeaderMismatch, boolean rejectIllegalHeaderName, String relaxedPathChars, String relaxedQueryChars) {
-        super(maxHttpHeaderSize, rejectIllegalHeaderName, relaxedPathChars, relaxedQueryChars);
-        clientConfig = (ClientConfig) ClientConfig.getConfig();
+    public Http11ProcessorServer(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars, ClientConfig clientConfig) {
+        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars);
+        this.clientConfig = clientConfig;
     }
 
     @Override

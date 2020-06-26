@@ -27,7 +27,7 @@ public class Start {
         ClientConfig config = (ClientConfig) ClientConfig.getConfig();
 
         ConnectorThread serviceConnectorThread;
-        HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess();
+        HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess(config);
 
         try {
             serviceConnectorThread = new ConnectorThread(httpIntranetServiceProcess, "clientHttpIntranetServiceProcess-thread");
@@ -37,7 +37,7 @@ public class Start {
             return;
         }
 
-        ClientCommunication clientCommunication = new ClientCommunication(serviceConnectorThread);
+        ClientCommunication clientCommunication = new ClientCommunication(serviceConnectorThread, config);
         try {
             clientCommunication.createCommunicationProcess();
             clientCommunication.connect();
