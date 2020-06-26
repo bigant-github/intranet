@@ -63,18 +63,10 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
     private final MimeHeaders headers;
 
 
-    private final boolean rejectIllegalHeaderName;
-
     /**
      * State.
      */
     private boolean parsingHeader;
-
-
-    /**
-     * Swallow input ? (in the case of an expectation)
-     */
-    private boolean swallowInput;
 
 
     /**
@@ -102,18 +94,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     /**
-     * Active filters (in order).
-     */
-    private InputFilter[] activeFilters;
-
-
-    /**
-     * Index of the last active filter.
-     */
-    private int lastActiveFilter;
-
-
-    /**
      * Parsing state - used for non blocking parsing so that when more data arrives, we can pick up where we left off.
      */
     private boolean parsingRequestLine;
@@ -136,21 +116,13 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     // ----------------------------------------------------------- Constructors
-    public Http11InputBuffer(Request request, int headerBufferSize, boolean rejectIllegalHeaderName, HttpParser httpParser) {
+    public Http11InputBuffer(Request request, int headerBufferSize, HttpParser httpParser) {
 
         this.request = request;
         headers = request.getMimeHeaders();
 
         this.headerBufferSize = headerBufferSize;
-        this.rejectIllegalHeaderName = rejectIllegalHeaderName;
         this.httpParser = httpParser;
-
-        /**
-         * Filter library. Note: Filter[Constants.CHUNKED_FILTER] is always the "chunked" filter.
-         */
-        InputFilter[] filterLibrary = new InputFilter[0];
-        activeFilters = new InputFilter[0];
-        lastActiveFilter = -1;
 
         parsingHeader = true;
         parsingRequestLine = true;
@@ -159,43 +131,10 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         parsingRequestLineStart = 0;
         parsingRequestLineQPos = -1;
         headerParsePos = HeaderParsePosition.HEADER_START;
-        swallowInput = true;
 
         inputStreamInputBuffer = new SocketInputBuffer();
     }
 
-
-
-    /**
-     * Add an input filter to the filter library.
-     */
-    void addActiveFilter(InputFilter filter) {
-
-        if (lastActiveFilter == -1) {
-            filter.setBuffer(inputStreamInputBuffer);
-        } else {
-            for (int i = 0; i <= lastActiveFilter; i++) {
-                if (activeFilters[i] == filter)
-                    return;
-            }
-            filter.setBuffer(activeFilters[lastActiveFilter]);
-        }
-
-        activeFilters[++lastActiveFilter] = filter;
-
-        filter.setRequest(request);
-    }
-
-
-    /**
-     * Set the swallow input flag.
-     */
-    public void setSwallowInput(boolean swallowInput) {
-        this.swallowInput = swallowInput;
-    }
-
-
-    // ---------------------------------------------------- InputBuffer Methods
 
     /**
      * @deprecated Unused. Will be removed in Tomcat 9. Use {@link #doRead(ApplicationBufferHandler)}
@@ -203,22 +142,12 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
     @Deprecated
     @Override
     public int doRead(ByteChunk chunk) throws IOException {
-
-        if (lastActiveFilter == -1)
-            return inputStreamInputBuffer.doRead(chunk);
-        else
-            return activeFilters[lastActiveFilter].doRead(chunk);
-
+        return inputStreamInputBuffer.doRead(chunk);
     }
 
     @Override
     public int doRead(ApplicationBufferHandler handler) throws IOException {
-
-        if (lastActiveFilter == -1)
-            return inputStreamInputBuffer.doRead(handler);
-        else
-            return activeFilters[lastActiveFilter].doRead(handler);
-
+        return inputStreamInputBuffer.doRead(handler);
     }
 
 
@@ -231,14 +160,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
         wrapper = null;
         request.recycle();
 
-        for (int i = 0; i <= lastActiveFilter; i++) {
-            activeFilters[i].recycle();
-        }
-
         byteBuffer.limit(0).position(0);
-        lastActiveFilter = -1;
         parsingHeader = true;
-        swallowInput = true;
 
         headerParsePos = HeaderParsePosition.HEADER_START;
         parsingRequestLine = true;
@@ -268,15 +191,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             }
         }
 
-        // Recycle filters
-        for (int i = 0; i <= lastActiveFilter; i++) {
-            activeFilters[i].recycle();
-        }
-
         // Reset pointers
-        lastActiveFilter = -1;
         parsingHeader = true;
-        swallowInput = true;
 
         headerParsePos = HeaderParsePosition.HEADER_START;
         parsingRequestLine = true;
@@ -310,20 +226,12 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             do {
                 // Read new bytes if needed
                 if (byteBuffer.position() >= byteBuffer.limit()) {
-                    if (keptAlive) {
-                        // Haven't read any request data yet so use the keep-alive
-                        // timeout.
-                        wrapper.setReadTimeout(Config.getSoTimeout());
-                    }
-                    LOG.debug("first read isKeep=" + keptAlive);
+                    wrapper.setReadTimeout(Config.getSoTimeout());
                     if (!fill(false)) {
                         // A read is pending, so no longer in initial state
                         parsingRequestLinePhase = 1;
                         return false;
                     }
-                    // At least one byte of the request has been received.
-                    // Switch to the socket timeout.
-                    wrapper.setReadTimeout(Config.getSoTimeout());
                 }
                 if (!keptAlive && byteBuffer.position() == 0 && byteBuffer.limit() >= CLIENT_PREFACE_START.length - 1) {
                     boolean prefaceMatch = true;
@@ -349,6 +257,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
+
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
             }
@@ -551,29 +460,10 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     /**
-     * End request (consumes leftover bytes).
-     *
-     * @throws IOException an underlying I/O error occurred
-     */
-    void endRequest() throws IOException {
-
-        if (swallowInput && (lastActiveFilter != -1)) {
-            int extraBytes = (int) activeFilters[lastActiveFilter].end();
-            byteBuffer.position(byteBuffer.position() - extraBytes);
-        }
-    }
-
-
-    /**
      * Available bytes in the buffers (note that due to encoding, this may not correspond).
      */
     int available(boolean read) {
         int available = byteBuffer.remaining();
-        if ((available == 0) && (lastActiveFilter >= 0)) {
-            for (int i = 0; (available == 0) && (i <= lastActiveFilter); i++) {
-                available = activeFilters[i].available();
-            }
-        }
         if (available > 0 || !read) {
             return available;
         }
@@ -593,37 +483,6 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             available = 1;
         }
         return available;
-    }
-
-
-    /**
-     * Has all of the request body been read? There are subtle differences between this and available() &gt; 0 primarily
-     * because of having to handle faking non-blocking reads with the blocking IO connector.
-     */
-    boolean isFinished() {
-        if (byteBuffer.limit() > byteBuffer.position()) {
-            // Data to read in the buffer so not finished
-            return false;
-        }
-
-        /*
-         * Don't use fill(false) here because in the following circumstances
-         * BIO will block - possibly indefinitely
-         * - client is using keep-alive and connection is still open
-         * - client has sent the complete request
-         * - client has not sent any of the next request (i.e. no pipelining)
-         * - application has read the complete request
-         */
-
-        // Check the InputFilters
-
-        if (lastActiveFilter >= 0) {
-            return activeFilters[lastActiveFilter].isFinished();
-        } else {
-            // No filters. Assume request is not finished. EOF will signal end of
-            // request.
-            return false;
-        }
     }
 
 
@@ -885,16 +744,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                 headerData.lastSignificantChar = pos;
             }
         }
-        if (rejectIllegalHeaderName || LOG.isDebugEnabled()) {
-            String message = sm.getString("iib.invalidheader",
-                    new String(byteBuffer.array(), headerData.start,
-                            headerData.lastSignificantChar - headerData.start + 1,
-                            StandardCharsets.ISO_8859_1));
-            if (rejectIllegalHeaderName) {
-                throw new IllegalArgumentException(message);
-            }
-            LOG.debug(message);
-        }
+
 
         headerParsePos = HeaderParsePosition.HEADER_START;
         return HeaderParseStatus.HAVE_MORE_HEADERS;

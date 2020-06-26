@@ -11,6 +11,7 @@
         <module>intranet-common</module>
         <module>intranet-client</module>
         <module>intranet-server</module>
+        <module>intranet-visual</module>
     </modules>
 
     <dependencies>

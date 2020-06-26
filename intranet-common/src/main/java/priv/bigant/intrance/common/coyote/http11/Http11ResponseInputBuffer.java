@@ -62,8 +62,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
     private final MimeHeaders headers;
 
 
-    private final boolean rejectIllegalHeaderName;
-
     /**
      * State.
      */
@@ -133,13 +131,12 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
 
     // ----------------------------------------------------------- Constructors
 
-    public Http11ResponseInputBuffer(Response response, int headerBufferSize, boolean rejectIllegalHeaderName, HttpParser httpParser) {
+    public Http11ResponseInputBuffer(Response response, int headerBufferSize, HttpParser httpParser) {
 
         this.response = response;
         headers = this.response.getMimeHeaders();
 
         this.headerBufferSize = headerBufferSize;
-        this.rejectIllegalHeaderName = rejectIllegalHeaderName;
         this.httpParser = httpParser;
 
         activeFilters = new InputFilter[0];
@@ -821,16 +818,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
             } else {
                 headerData.lastSignificantChar = pos;
             }
-        }
-        if (rejectIllegalHeaderName || log.isDebugEnabled()) {
-            String message = sm.getString("iib.invalidheader",
-                    new String(byteBuffer.array(), headerData.start,
-                            headerData.lastSignificantChar - headerData.start + 1,
-                            StandardCharsets.ISO_8859_1));
-            if (rejectIllegalHeaderName) {
-                throw new IllegalArgumentException(message);
-            }
-            log.debug(message);
         }
 
         headerParsePos = HeaderParsePosition.HEADER_START;

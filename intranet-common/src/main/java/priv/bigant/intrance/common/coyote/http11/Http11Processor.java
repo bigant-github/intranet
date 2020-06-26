@@ -31,7 +31,6 @@ import priv.bigant.intrance.common.util.http.FastHttpDateFormat;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.parser.HttpParser;
 import priv.bigant.intrance.common.util.net.*;
-import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -45,11 +44,11 @@ import static java.lang.System.arraycopy;
 public abstract class Http11Processor extends AbstractProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(Http11Processor.class);
-    private SocketBean receiver;
+
     /**
-     * The string manager for this package.
+     * 接收端
      */
-    private static final StringManager sm = StringManager.getManager(Http11Processor.class);
+    private SocketBean receiver;
 
     /**
      * Input.
@@ -115,16 +114,16 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     private int maxHttpHeaderSize;
 
-    public Http11Processor(int maxHttpHeaderSize, boolean rejectIllegalHeaderName, String relaxedPathChars, String relaxedQueryChars) {
+    public Http11Processor(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars) {
 
         super();
         config = Config.getConfig();
         HttpParser httpParser = new HttpParser(relaxedPathChars, relaxedQueryChars);
 
-        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
+        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, httpParser);
         request.setInputBuffer(inputBuffer);
 
-        responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
+        responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, httpParser);
         response.setInputBuffer(responseInputBuffer);
 
         this.maxHttpHeaderSize = maxHttpHeaderSize;
@@ -255,8 +254,6 @@ public abstract class Http11Processor extends AbstractProcessor {
             try {
                 if (!responseInputBuffer.parseResponseLine(keptAlive)) {//解析http请求第一行
                     if (responseInputBuffer.getParsingRequestLinePhase() == -1) {
-                        //TODO 此处为http协议升级
-                    } else if (handleIncompleteRequestLineRead()) {
                         prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应失败");
                         break;
                     }
