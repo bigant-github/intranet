@@ -8,7 +8,6 @@ public class MainWin extends JFrame {
     private JSplitPane jSplitPane;
     private JButton addButton;
     private GridPanel gridPanel;
-    private IntranetWin nullPanel;
     private JTabbedPane tabbedPane;//选项卡面板
     private JMenuBar menuBar;//菜单条
 
@@ -65,22 +64,18 @@ public class MainWin extends JFrame {
         JMenuItem menu = new JMenuItem("新建");
 
         menu.addActionListener(e -> {
-            System.out.println("123123123");
-            JDesktopPane desktopPane = new JDesktopPane();
-            JInternalFrame internalFrame = createInternalFrame();
-            desktopPane.add(internalFrame);
-            this.add(desktopPane);
+            AddInsuranceWin addInsuranceWin = new AddInsuranceWin(this, (x, y, z) -> {
+                System.out.println(123123);
+            });
         });
 
         menuBar.add(menu);
         setJMenuBar(menuBar);
 
         gridPanel = new GridPanel();//实例化格子面板对象
-        nullPanel = new IntranetWin();//实例化空布局面板对象
         tabbedPane = new JTabbedPane();//实例化选项卡面板
         //将两个自定义的面板加入到选项卡面板下，通过选项卡可进行切换
         tabbedPane.add("格子布局面板", gridPanel);
-        tabbedPane.add("空布局面板", nullPanel);
         //设置这个MixedForm的布局模式为BorderLayout
         //将这个选项卡面板添加入该MixedForm的中区域
         add(tabbedPane);

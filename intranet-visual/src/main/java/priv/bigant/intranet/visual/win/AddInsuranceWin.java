@@ -1,14 +1,12 @@
 package priv.bigant.intranet.visual.win;
 
 import org.apache.commons.lang3.StringUtils;
-import sun.swing.StringUIClientPropertyKey;
 
 import javax.swing.*;
-import java.awt.event.*;
 
 public class AddInsuranceWin extends JDialog {
     private JPanel contentPane;
-    private JTextField textField1;
+    private JTextField hostNameField;
     private JTextField ipTextField;
     private JTextField 端口TextField;
     private JButton 提交Button;
@@ -19,18 +17,7 @@ public class AddInsuranceWin extends JDialog {
         pack();
         setVisible(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        提交Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(123123123);
-            }
-        });
-        /*提交Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });*/
+        提交Button.addActionListener(e -> System.out.println(123123123));
     }
 
     public AddInsuranceWin(JFrame jFrame, AddInsuranceAction actionListener) {
@@ -41,17 +28,16 @@ public class AddInsuranceWin extends JDialog {
         setVisible(true);
         //setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         提交Button.addActionListener(e -> {
-            String toolTipText = textField1.getToolTipText();
-            if (StringUtils.isEmpty(toolTipText)) {
-                JOptionPane.showMessageDialog(this, "请输入域名", "域名输入错误", JOptionPane.ERROR_MESSAGE);
+            String hostName = hostNameField.getText();
+            if (StringUtils.isEmpty(hostName)) {
+                JOptionPane.showMessageDialog(this, "请输入域名", "域名错误", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (toolTipText.length() > 20)
-                JOptionPane.showMessageDialog(this, "请输入域名", "请输入域名", JOptionPane.ERROR_MESSAGE);
+            if (hostName.length() > 20)
+                JOptionPane.showMessageDialog(this, "域名长度不可超过20", "域名错误", JOptionPane.ERROR_MESSAGE);
 
-            JOptionPane.showMessageDialog(this, "请输入域名", "请输入域名", JOptionPane.ERROR_MESSAGE);
 
-            actionListener.action("", "", "");
+            actionListener.action(hostName, ipTextField.getText(), 端口TextField.getText());
 
         });
     }

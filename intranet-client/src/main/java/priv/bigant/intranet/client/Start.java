@@ -20,12 +20,12 @@ public class Start {
 
     private final static Logger LOG = LoggerFactory.getLogger(Start.class);
 
-    public static void main(String[] args) {
-        boolean b = createdConfig();
-        if (!b)
-            return;
-        ClientConfig config = (ClientConfig) ClientConfig.getConfig();
+    public static void main(String[] args) throws IllegalAccessException, IOException, InvocationTargetException {
+        ClientConfig config = createdConfig();
+        start(config);
+    }
 
+    public static void start(ClientConfig config) {
         ConnectorThread serviceConnectorThread;
         HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess(config);
 
@@ -51,9 +51,11 @@ public class Start {
 
     /**
      * 加载配置文件
+     *
+     * @return
      */
-    public static boolean createdConfig() {
-        ClientConfig clientConfig = (ClientConfig) ClientConfig.getConfig();
+    public static ClientConfig createdConfig() throws IOException, InvocationTargetException, IllegalAccessException {
+        ClientConfig clientConfig = new ClientConfig();
         String configFile = System.getProperty("configFile");//通过启动参数指定配置文件位置
         if (StringUtils.isBlank(configFile))
             configFile = System.getProperty("user.dir") + "/conf.properties";
@@ -63,7 +65,7 @@ public class Start {
             properties.load(inputStream);
         } catch (IOException e) {
             LOG.error("加载配置文件错误", e);
-            return false;
+            throw e;
         }
 
         try {
@@ -72,9 +74,9 @@ public class Start {
             BeanUtils.copyProperties(clientConfig, properties);
         } catch (IllegalAccessException | InvocationTargetException e) {
             LOG.error("加载配置文件错误", e);
-            return false;
+            throw e;
         }
         LOG.info("请求穿透域名" + clientConfig.getHostName() + "本地端口" + clientConfig.getHostName());
-        return true;
+        return clientConfig;
     }
 }
