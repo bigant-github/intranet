@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.*;
 import java.util.Iterator;
 
-public class ServerConnector implements BigAnt, Connector {
+public class ServerConnector implements Connector {
 
     private String name;
     private Process process;
@@ -31,7 +31,7 @@ public class ServerConnector implements BigAnt, Connector {
 
     public void start() {
         try {
-            build();
+            connect();
             connectorThread = new ConnectorThread(process, getName() + "-thread");
             connectorThread.register(server, SelectionKey.OP_ACCEPT);
             connectorThread.start();
@@ -40,16 +40,22 @@ public class ServerConnector implements BigAnt, Connector {
         }
     }
 
-    private void build() throws IOException {
+    private void connect() throws IOException {
         this.server = ServerSocketChannel.open();
         server.configureBlocking(false);
         server.bind(new InetSocketAddress(port));
     }
 
 
-    @Override
     public void showdown() {
-        connectorThread.showdown();
+        try {
+            if (server != null) server.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            connectorThread.showdown();
+        }
+
     }
 
     /**
@@ -65,7 +71,6 @@ public class ServerConnector implements BigAnt, Connector {
             super(name);
             this.process = process;
             this.selector = Selector.open();
-            ConnectorManager.add(this);
         }
 
         public void register(SelectableChannel selectableChannel, int ops, Object attn) throws ClosedChannelException {
@@ -77,7 +82,13 @@ public class ServerConnector implements BigAnt, Connector {
         }
 
         public void showdown() {
-            stopStatus = true;
+            try {
+                selector.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                stopStatus = true;
+            }
         }
 
         private boolean isShowDown() {

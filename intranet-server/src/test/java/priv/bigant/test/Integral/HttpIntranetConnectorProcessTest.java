@@ -5,7 +5,7 @@ import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intranet.server.ServerConfig;
-import priv.bigant.intranet.server.process.CommunicationProcess;
+import priv.bigant.intranet.server.process.CommunicationProcessor;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -18,7 +18,7 @@ public class HttpIntranetConnectorProcessTest {
     @Test
     public void start() throws IOException {
         ServerConfig config = (ServerConfig) ServerConfig.getConfig();
-        CommunicationProcess httpIntranetConnectorProcess = new CommunicationProcess();
+        CommunicationProcessor httpIntranetConnectorProcess = new CommunicationProcessor();
         ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999);
         testHttpIntranetConnectorProcess.start();
         System.in.read();

@@ -5,6 +5,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
 import priv.bigant.intrance.common.manager.ConnectorManager;
 
@@ -20,17 +21,19 @@ public class Start {
 
     private final static Logger LOG = LoggerFactory.getLogger(Start.class);
 
-    public static void main(String[] args) throws IllegalAccessException, IOException, InvocationTargetException {
+    public static void main(String[] args) throws Exception {
         ClientConfig config = createdConfig();
-        start(config);
+        Domain domain = new Domain(config);
+        domain.connect();
+        //start(config);
     }
 
     public static void start(ClientConfig config) {
         ConnectorThread serviceConnectorThread;
-        HttpIntranetServiceProcess httpIntranetServiceProcess = new HttpIntranetServiceProcess(config);
+        HttpProcessor httpProcessor = new HttpProcessor(config);
 
         try {
-            serviceConnectorThread = new ConnectorThread(httpIntranetServiceProcess, "clientHttpIntranetServiceProcess-thread");
+            serviceConnectorThread = new ConnectorThread(httpProcessor, "clientHttpIntranetServiceProcess-thread");
             serviceConnectorThread.start();
         } catch (IOException e) {
             LOG.error("http处理器启动失败");
@@ -77,6 +80,7 @@ public class Start {
             throw e;
         }
         LOG.info("请求穿透域名" + clientConfig.getHostName() + "本地端口" + clientConfig.getHostName());
+        Config.config = clientConfig;
         return clientConfig;
     }
 }

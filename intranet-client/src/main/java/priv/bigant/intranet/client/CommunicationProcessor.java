@@ -16,16 +16,20 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
-public class CommunicationProcess extends ProcessBase {
+public class CommunicationProcessor extends ProcessBase {
 
 
-    private static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
-    private ClientCommunication clientCommunication;
+    private static final Logger LOG = LoggerFactory.getLogger(CommunicationProcessor.class);
+    private Communication clientCommunication;
     private Connector connector;
 
-    public CommunicationProcess(ClientCommunication clientCommunication, ConnectorThread serviceConnector) {
+    public CommunicationProcessor(Communication clientCommunication, ConnectorThread serviceConnector) {
         this.clientCommunication = clientCommunication;
         clientCommunication.setCommunicationDispose(new ClientCommunicationDispose(serviceConnector, this));
+    }
+
+    public CommunicationProcessor(Communication clientCommunication) {
+        this.clientCommunication = clientCommunication;
     }
 
     public void showdown() {
@@ -63,12 +67,17 @@ public class CommunicationProcess extends ProcessBase {
     public static class ClientCommunicationDispose extends CommunicationDispose {
         private ClientConfig clientConfig;
         private static final Logger LOG = LoggerFactory.getLogger(ClientCommunicationDispose.class);
-        private CommunicationProcess communicationProcess;
+        private CommunicationProcessor communicationProcessor;
         private ConnectorThread serviceConnector;
 
-        public ClientCommunicationDispose(ConnectorThread serviceConnector, CommunicationProcess communicationProcess) {
+        public ClientCommunicationDispose(ConnectorThread serviceConnector, CommunicationProcessor communicationProcessor) {
             this.serviceConnector = serviceConnector;
-            this.communicationProcess = communicationProcess;
+            this.communicationProcessor = communicationProcessor;
+            clientConfig = (ClientConfig) Config.getConfig();
+        }
+
+        public ClientCommunicationDispose(ConnectorThread serviceConnector) {
+            this.serviceConnector = serviceConnector;
             clientConfig = (ClientConfig) Config.getConfig();
         }
 
@@ -81,12 +90,12 @@ public class CommunicationProcess extends ProcessBase {
                         LOG.info("连接成功");
                         break;
                     case DOMAIN_OCCUPIED:
-                        communicationProcess.showdown();
+                        communicationProcessor.showdown();
                         LOG.error("域名已被占用");
                         break;
                 }
             } catch (Exception e) {
-                communicationProcess.showdown();
+                communicationProcessor.showdown();
                 LOG.error("连接失败", e);
             }
         }

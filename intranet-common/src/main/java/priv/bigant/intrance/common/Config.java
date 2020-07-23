@@ -10,7 +10,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 
 public abstract class Config {
-    protected static Config config;
+    public static Config config;
     /**
      * 服务器端口
      */

@@ -7,7 +7,6 @@ import priv.bigant.intrance.common.HttpSocketManager;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.communication.*;
 import priv.bigant.intranet.server.ServerConfig;
-import priv.bigant.intranet.server.process.CommunicationProcess;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;

@@ -1,6 +1,5 @@
 package priv.bigant.intrance.common.communication;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.ChannelStream;
@@ -15,7 +14,7 @@ import java.util.List;
 /**
  * 客户端与服务端通信的工具
  */
-public class Communication extends Thread {
+public class Communication {
     private static final Logger LOGGER = LoggerFactory.getLogger(Communication.class);
 
     protected byte[] bytes = new byte[1024];
@@ -59,23 +58,6 @@ public class Communication extends Thread {
             LOGGER.error("communication 关闭失败");
         }
         socketChannel = null;
-    }
-
-    @Deprecated
-    public synchronized byte[] readN() throws IOException {
-        byteBuffer.clear();
-
-        int readNum = socketChannel.read(byteBuffer);
-        if (readNum < 0)
-            throw new IOException("read -1");
-
-        byte[] subArray = ArrayUtils.subarray(byteBuffer.array(), 0, readNum);
-        byteBuffer.flip();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("读取到数据 :" + new String(subArray, StandardCharsets.UTF_8));
-        }
-
-        return subArray;
     }
 
     /**
@@ -180,10 +162,6 @@ public class Communication extends Thread {
             throw new NullPointerException("未找到request");
         communicationDispose.invoke(readRequest(), this);
 
-    }
-
-    public synchronized CommunicationResponse readResponse() throws IOException {
-        return CommunicationResponse.createCommunicationResponse(readN());
     }
 
 

@@ -6,11 +6,11 @@ import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 /**
  * 客户端 http Nio 处理中心
  */
-public class HttpIntranetServiceProcess extends HttpIntranetServiceProcessAbs {
+public class HttpProcessor extends HttpIntranetServiceProcessAbs {
 
     private ClientConfig clientConfig;
 
-    public HttpIntranetServiceProcess(ClientConfig config) {
+    public HttpProcessor(ClientConfig config) {
         this.clientConfig = config;
     }
 

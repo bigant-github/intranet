@@ -2,17 +2,18 @@ package priv.bigant.intranet.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.ChannelStream;
 import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
-import priv.bigant.intrance.common.communication.*;
+import priv.bigant.intrance.common.communication.Communication;
+import priv.bigant.intrance.common.communication.CommunicationEnum;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
-import static priv.bigant.intrance.common.communication.CommunicationRequest.*;
+import static priv.bigant.intrance.common.communication.CommunicationRequest.CommunicationRequestHttpFirst;
+import static priv.bigant.intrance.common.communication.CommunicationRequest.createCommunicationRequest;
 
 /**
  * @author GaoLei 保持客户端与服务端通信
@@ -21,7 +22,6 @@ public class ClientCommunication extends Communication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientCommunication.class);
     private ClientConfig clientConfig;
-    private ByteBuffer byteBuffer;
     /**
      * http 交互 监控线程
      */
@@ -34,7 +34,6 @@ public class ClientCommunication extends Communication {
     public ClientCommunication(ConnectorThread serviceConnectorThread, ClientConfig clientConfig) {
         this.serviceConnectorThread = serviceConnectorThread;
         this.clientConfig = clientConfig;
-        byteBuffer = ByteBuffer.allocate(clientConfig.getCommunicationByteBufferSize());
     }
 
 
@@ -44,11 +43,8 @@ public class ClientCommunication extends Communication {
      * @throws Exception
      */
     public void connect() throws Exception {
-        //      if (socketChannel == null)
         this.socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getIntranetPort()));
         this.channelStream = new ChannelStream(socketChannel, 1024);
-/*        else
-            this.socketChannel.connect(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getPort()));*/
 
         socketChannel.socket().setKeepAlive(true);
         socketChannel.socket().setOOBInline(false);
@@ -66,84 +62,14 @@ public class ClientCommunication extends Communication {
      * 创建客户端与服务端交互器
      */
     public void createCommunicationProcess() {
-        CommunicationProcess communicationProcess = new CommunicationProcess(this, serviceConnectorThread);
+        CommunicationProcessor communicationProcessor = new CommunicationProcessor(this, serviceConnectorThread);
         try {
-            this.connectorThread = new ConnectorThread(communicationProcess, "clientCommunication-thread");
-            communicationProcess.setConnector(connectorThread);/*将当前连接器给与处理器    使处理器拥有管理连接器功能*/
+            this.connectorThread = new ConnectorThread(communicationProcessor, "clientCommunication-thread");
+            communicationProcessor.setConnector(connectorThread);/*将当前连接器给与处理器    使处理器拥有管理连接器功能*/
             connectorThread.start();            /*启动当前连接器*/
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-
-    @Override
-    public void run() {
-        //while (true) {//监控是否断开
-        try {
-            CommunicationResponse.CommunicationResponseP communicationResponseP = null;
-            connect();
-
-            if (!(socketChannel != null && socketChannel.isConnected())) {
-                LOGGER.error("连接服务器失败");
-            }
-
-            //new CommunicationListener(this).start();
-            if (communicationResponseP.isSuccess()) {
-                LOGGER.info("connect success:host=" + clientConfig.getHostName());
-                while (true) {
-                    CommunicationRequest communicationRequest = readRequest();
-                    CommunicationEnum type = communicationRequest.getType();
-                    if (type.equals(CommunicationEnum.HTTP_ADD)) {
-                        add(communicationRequest);
-                    }
-                }
-            }
-            CodeEnum code = communicationResponseP.getCode();
-            if (CodeEnum.HOST_ALREADY_EXIST.equals(code)) {
-                LOGGER.error("connect error:" + code.getMsg());
-            }
-        } catch (IOException e) {
-            LOGGER.error("connect error: host =" + clientConfig.getHostName() + "     try connect    ", e);
-            super.close();
-            try {
-                sleep(10000);
-            } catch (InterruptedException ignored) {
-                ;
-            }
-        } catch (Exception e) {
-            super.close();
-            LOGGER.error("连接失败", e);
-        }
-        //}
-    }
-
-    /**
-     * 创建http通信连接
-     *
-     * @param communicationRequest
-     */
-    public void add(CommunicationRequest communicationRequest) {
-        SocketChannel socketChannel;
-        CommunicationRequestHttpAdd communicationRequestHttpAdd = communicationRequest.toJavaObject(CommunicationRequestHttpAdd.class);
-        String id = communicationRequestHttpAdd.getId();
-        try {
-            socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getHttpAcceptPort()));
-            socketChannel.socket().setKeepAlive(true);
-            CommunicationRequestHttpAdd communicationRequestHttpAdd1 = new CommunicationRequestHttpAdd();
-            communicationRequestHttpAdd1.setId(id);
-            CommunicationRequest type = createCommunicationRequest(communicationRequestHttpAdd1);
-            byteBuffer.clear();
-            byteBuffer.put(type.toByte());
-            byteBuffer.flip();
-            socketChannel.write(byteBuffer);
-            CommunicationResponse communicationResponse = CommunicationResponse.createCommunicationResponse(new CommunicationResponse.CommunicationResponseHttpAdd(id));
-            writeN(communicationResponse);
-            socketChannel.configureBlocking(false);
-            serviceConnectorThread.register(socketChannel, SelectionKey.OP_READ);
-        } catch (Exception e) {
-            LOGGER.error("add http socket error", e);
-            //write(new CommunicationResponse(CodeEnum.ERROR));
-        }
-    }
 }
