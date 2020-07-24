@@ -36,6 +36,11 @@ public class CommunicationProcessor extends ProcessBase {
     }
 
     @Override
+    public void showdown() {
+
+    }
+
+    @Override
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         ServerCommunication serverCommunication = (ServerCommunication) selectionKey.attachment();
         serverCommunication.disposeRequests();

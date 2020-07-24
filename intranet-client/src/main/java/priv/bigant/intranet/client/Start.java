@@ -25,6 +25,7 @@ public class Start {
         ClientConfig config = createdConfig();
         Domain domain = new Domain(config);
         domain.connect();
+        domain.startListener();
         //start(config);
     }
 

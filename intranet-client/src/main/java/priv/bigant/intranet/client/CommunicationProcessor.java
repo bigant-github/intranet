@@ -21,7 +21,6 @@ public class CommunicationProcessor extends ProcessBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(CommunicationProcessor.class);
     private Communication clientCommunication;
-    private Connector connector;
 
     public CommunicationProcessor(Communication clientCommunication, ConnectorThread serviceConnector) {
         this.clientCommunication = clientCommunication;
@@ -33,16 +32,11 @@ public class CommunicationProcessor extends ProcessBase {
     }
 
     public void showdown() {
-        connector.showdown();
+        if (!clientCommunication.isClose()) {
+            clientCommunication.close();
+        }
     }
 
-    public Connector getConnector() {
-        return connector;
-    }
-
-    public void setConnector(Connector connector) {
-        this.connector = connector;
-    }
 
     @Override
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {

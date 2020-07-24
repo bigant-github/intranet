@@ -65,7 +65,6 @@ public class ClientCommunication extends Communication {
         CommunicationProcessor communicationProcessor = new CommunicationProcessor(this, serviceConnectorThread);
         try {
             this.connectorThread = new ConnectorThread(communicationProcessor, "clientCommunication-thread");
-            communicationProcessor.setConnector(connectorThread);/*将当前连接器给与处理器    使处理器拥有管理连接器功能*/
             connectorThread.start();            /*启动当前连接器*/
         } catch (IOException e) {
             e.printStackTrace();

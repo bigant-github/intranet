@@ -5,7 +5,10 @@ import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.coyote.AbstractProcessor;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
 import priv.bigant.intrance.common.util.collections.SynchronizedStack;
-import priv.bigant.intrance.common.util.net.*;
+import priv.bigant.intrance.common.util.net.NioChannel;
+import priv.bigant.intrance.common.util.net.NioSelectorPool;
+import priv.bigant.intrance.common.util.net.NioSocketWrapper;
+import priv.bigant.intrance.common.util.net.SocketBufferHandler;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -34,6 +37,11 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
     public HttpIntranetServiceProcessAbs() {
         this.config = Config.getConfig();
         this.executor = new ThreadPoolExecutor(config.getHttpProcessCoreSize(), config.getHttpProcessMaxSize(), Config.getConfig().getHttpProcessWaitTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+    }
+
+    @Override
+    public void showdown() {
+        executor.shutdown();
     }
 
     public abstract Http11Processor createHttp11Processor();

@@ -18,19 +18,28 @@ import static priv.bigant.intrance.common.communication.CommunicationRequest.cre
 public class Domain implements Connector {
 
     private static final Logger LOG = LoggerFactory.getLogger(Domain.class);
-    ServerConnector.ConnectorThread httpConnect;
-    ClientConfig clientConfig;
-    ServerConnector.ConnectorThread communicationConnect;
 
+    private ClientConfig clientConfig;
+
+    private ServerConnector.ConnectorThread httpConnect;
+    private ServerConnector.ConnectorThread communicationConnect;
+
+    private Communication communication;
+
+    private DomainListener domainListener;
 
     public Domain(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
     }
 
-
     public void connect() throws Exception {
         connectHttp();
         connectCommunication();
+    }
+
+    public void startListener() {
+        this.domainListener = new DomainListener(clientConfig, this);
+        domainListener.start();
     }
 
     public void connectHttp() throws IOException {
@@ -45,7 +54,7 @@ public class Domain implements Connector {
         channel.socket().setOOBInline(false);
         channel.configureBlocking(false);
 
-        Communication communication = new Communication(channel, new CommunicationProcessor.ClientCommunicationDispose(httpConnect));
+        this.communication = new Communication(channel, new CommunicationProcessor.ClientCommunicationDispose(httpConnect));
         CommunicationProcessor communicationProcessor = new CommunicationProcessor(communication);
         communicationConnect = new ServerConnector.ConnectorThread(communicationProcessor, "clientCommunication");
         communicationConnect.register(channel, SelectionKey.OP_READ);//注册事件
@@ -59,11 +68,70 @@ public class Domain implements Connector {
 
     @Override
     public void showdown() {
-
+        communicationConnect.showdown();
+        httpConnect.showdown();
+        domainListener.showdown();
     }
 
     @Override
     public String getName() {
         return "client domain";
+    }
+
+    public ServerConnector.ConnectorThread getHttpConnect() {
+        return httpConnect;
+    }
+
+    public ClientConfig getClientConfig() {
+        return clientConfig;
+    }
+
+    public ServerConnector.ConnectorThread getCommunicationConnect() {
+        return communicationConnect;
+    }
+
+    public Communication getCommunication() {
+        return communication;
+    }
+
+    /**
+     * 主进程监听器
+     */
+    public static class DomainListener extends Thread {
+        private final static Logger LOGGER = LoggerFactory.getLogger(DomainListener.class);
+        private ClientConfig clientConfig;
+        private Domain domain;
+        private boolean isRun = true;
+
+        public DomainListener(ClientConfig clientConfig, Domain domain) {
+            super("DomainListener");
+            this.clientConfig = clientConfig;
+            this.domain = domain;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                if (domain.getCommunication().isClose()) {
+                    LOGGER.info("CommunicationListener 连接已断开");
+                    try {
+                        if (isRun) domain.connect();
+                    } catch (Exception e) {
+                        LOGGER.error("连接失败", e);
+                    }
+                } else {
+                    LOGGER.info("CommunicationListener 连接正常");
+                }
+                try {
+                    sleep(clientConfig.getListenerTime());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void showdown() {
+            isRun = false;
+        }
     }
 }

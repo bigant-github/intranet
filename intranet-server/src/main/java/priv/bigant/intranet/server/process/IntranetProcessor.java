@@ -42,6 +42,11 @@ public class IntranetProcessor extends ProcessBase {
     }
 
     @Override
+    public void showdown() {
+
+    }
+
+    @Override
     public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         selectionKey.cancel();
 
