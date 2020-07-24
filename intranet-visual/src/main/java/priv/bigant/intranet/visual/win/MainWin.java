@@ -1,5 +1,9 @@
 package priv.bigant.intranet.visual.win;
 
+import priv.bigant.intrance.common.Config;
+import priv.bigant.intranet.client.ClientConfig;
+import priv.bigant.intranet.client.Domain;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -65,7 +69,18 @@ public class MainWin extends JFrame {
 
         menu.addActionListener(e -> {
             AddInsuranceWin addInsuranceWin = new AddInsuranceWin(this, (x, y, z) -> {
-                System.out.println(123123);
+                ClientConfig clientConfig = new ClientConfig();
+                clientConfig.setHostName("mmm.mmm.mmm");
+                clientConfig.setLocalHost("192.168.201.90");
+                clientConfig.setLocalPort(80);
+                Config.config = clientConfig;
+                Domain domain = new Domain(clientConfig);
+                try {
+                    domain.connect();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                domain.startListener();
             });
         });
 
