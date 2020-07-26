@@ -9,9 +9,7 @@ import java.awt.*;
 
 public class MainWin extends JFrame {
 
-    private JSplitPane jSplitPane;
     private JButton addButton;
-    private GridPanel gridPanel;
     private JTabbedPane tabbedPane;//选项卡面板
     private JMenuBar menuBar;//菜单条
 
@@ -20,81 +18,30 @@ public class MainWin extends JFrame {
         init();
     }
 
-    /**
-     * 格子布局演示
-     */
-    public class GridPanel extends JPanel {
-        public GridPanel() {
-            GridLayout gridLayout = new GridLayout(12, 12);//生成格子布局对象。构造时设置格子
-            setLayout(gridLayout);//为该panel设置布局
-            JLabel[][] labels = new JLabel[12][12];//格子中的组件
-            for (int i = 0; i <= 11; i++) {
-                for (int j = 0; j <= 11; j++) {
-                    labels[i][j] = new JLabel();
-                    if ((i + j) % 2 == 0)
-                        labels[i][j].setText("A");
-                    else
-                        labels[i][j].setText("B");
-                    add(labels[i][j]);//将该组件加入到面板中
-                }
-            }
-        }
-    }
-
-    /**
-     * 自定义的空布局面板
-     */
-    public class NullPanel extends JPanel {
-        JButton button;
-        JTextField textField;
-
-        public NullPanel() {
-            setLayout(null);//设置布局类型
-            button = new JButton("确定");//实例化组件
-            textField = new JTextField();//实例化组件
-            //将组件加入该面板
-            add(button);
-            add(textField);
-            //设置他们大小和位置
-            textField.setBounds(100, 30, 90, 30);
-            button.setBounds(190, 30, 66, 30);
-        }
-    }
-
     private void init() {
-        //setLayout(new FlowLayout());//设置布局
-
         menuBar = new JMenuBar();
         JMenuItem menu = new JMenuItem("新建");
 
         menu.addActionListener(e -> {
-            AddInsuranceWin addInsuranceWin = new AddInsuranceWin(this, (x, y, z) -> {
+            new AddInsuranceWin(this, (hostName, ip, port) -> {
                 ClientConfig clientConfig = new ClientConfig();
-                clientConfig.setHostName("mmm.mmm.mmm");
-                clientConfig.setLocalHost("192.168.201.90");
-                clientConfig.setLocalPort(80);
+                clientConfig.setHostName(hostName);
+                clientConfig.setLocalHost(ip);
+                clientConfig.setLocalPort(port);
                 Config.config = clientConfig;
                 Domain domain = new Domain(clientConfig);
-                try {
-                    domain.connect();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                domain.startListener();
+                tabbedPane.add(hostName, new InsuranceWin(domain, x -> tabbedPane.remove(x)).getContent());
             });
         });
 
         menuBar.add(menu);
         setJMenuBar(menuBar);
 
-        gridPanel = new GridPanel();//实例化格子面板对象
         tabbedPane = new JTabbedPane();//实例化选项卡面板
         //将两个自定义的面板加入到选项卡面板下，通过选项卡可进行切换
-        tabbedPane.add("格子布局面板", gridPanel);
         //设置这个MixedForm的布局模式为BorderLayout
         //将这个选项卡面板添加入该MixedForm的中区域
         add(tabbedPane);
-
         //设置MixedForm的相关属性
         setBounds(10, 10, 570, 390);
         setVisible(true);

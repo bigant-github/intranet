@@ -19,7 +19,7 @@ public abstract class CommunicationReturn {
         jsonObject.put(key, value);
     }
 
-    public void add(CommunicationP communicationP) throws Exception {
+    public void add(CommunicationP communicationP) {
         String s = JSONObject.toJSONString(communicationP);
         Map<String, Object> jsonObject = JSONObject.parseObject(s).getInnerMap();
         this.jsonObject.putAll(jsonObject);

@@ -7,6 +7,7 @@ import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationEnum;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
+import priv.bigant.intranet.client.ex.ServerConnectException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,9 +33,14 @@ public class Domain implements Connector {
         this.clientConfig = clientConfig;
     }
 
-    public void connect() throws Exception {
-        connectHttp();
-        connectCommunication();
+    public void connect() throws ServerConnectException, IOException {
+
+        startHttpProcessor();
+        try {
+            connectCommunication();
+        } catch (IOException e) {
+            throw new ServerConnectException("服务器链接失败", e);
+        }
     }
 
     public void startListener() {
@@ -42,13 +48,13 @@ public class Domain implements Connector {
         domainListener.start();
     }
 
-    public void connectHttp() throws IOException {
+    public void startHttpProcessor() throws IOException {
         HttpProcessor httpProcessor = new HttpProcessor(clientConfig);
         httpConnect = new ServerConnector.ConnectorThread(httpProcessor, "clientHttpIntranetServiceProcess-thread");
         httpConnect.start();
     }
 
-    public void connectCommunication() throws Exception {
+    public void connectCommunication() throws IOException {
         SocketChannel channel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getIntranetPort()));
         channel.socket().setKeepAlive(true);
         channel.socket().setOOBInline(false);
