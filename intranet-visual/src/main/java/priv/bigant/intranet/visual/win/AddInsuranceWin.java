@@ -1,7 +1,6 @@
 package priv.bigant.intranet.visual.win;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 
 import javax.swing.*;
 import java.util.regex.Pattern;
@@ -57,7 +56,7 @@ public class AddInsuranceWin extends JDialog {
             }
             dispose();
             //actionListener.action(hostName+".bigant.club", ipTextField.getText(), Integer.parseInt(portText.getText()));
-            actionListener.action(hostName+".mmm.mmm", ipTextField.getText(), Integer.parseInt(portText.getText()));
+            actionListener.action(hostName + ".bigant.club", ipTextField.getText(), Integer.parseInt(portText.getText()));
         });
     }
 }
