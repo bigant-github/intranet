@@ -1,22 +1,23 @@
 package priv.bigant.intranet.client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
+import priv.bigant.intrance.common.log.LogUtil;
 import priv.bigant.intrance.common.util.net.NioSelectorPool;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Logger;
 
 public class Http11ProcessorServer extends Http11Processor {
-    private static final Logger LOG = LoggerFactory.getLogger(Http11ProcessorServer.class);
+    private Logger log;
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
     private ClientConfig clientConfig;
 
     public Http11ProcessorServer(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars, ClientConfig clientConfig) {
-        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars);
+        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars, clientConfig);
+        this.log = LogUtil.getLog(clientConfig.getLogName(), this.getClass());
         this.clientConfig = clientConfig;
     }
 
@@ -44,7 +45,7 @@ public class Http11ProcessorServer extends Http11Processor {
 
     @Override
     public void close() throws IOException {
-        LOG.debug("server close..............");
+        log.fine("server close..............");
         socketWrapper.close();
     }
 }

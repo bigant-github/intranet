@@ -16,11 +16,10 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.coyote.InputBuffer;
 import priv.bigant.intrance.common.coyote.Request;
+import priv.bigant.intrance.common.log.LogUtil;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
@@ -33,6 +32,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * InputBuffer for HTTP that provides request header parsing as well as transfer encoding.
@@ -41,7 +42,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
     // -------------------------------------------------------------- Constants
 
-    private static final Logger LOG = LoggerFactory.getLogger(Http11InputBuffer.class);
+    private Logger LOG;
 
     /**
      * The string manager for this package.
@@ -116,8 +117,9 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     // ----------------------------------------------------------- Constructors
-    public Http11InputBuffer(Request request, int headerBufferSize, HttpParser httpParser) {
+    public Http11InputBuffer(Request request, int headerBufferSize, HttpParser httpParser, Config config) {
 
+        this.LOG = LogUtil.getLog(config.getLogName(), Http11InputBuffer.class);
         this.request = request;
         headers = request.getMimeHeaders();
 
@@ -258,8 +260,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
+            if (LOG.isLoggable(Level.FINE)) {
+                LOG.fine("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
             }
         }
         if (parsingRequestLinePhase == 2) {
@@ -474,8 +476,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
                 available = byteBuffer.remaining();
             }
         } catch (IOException ioe) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(sm.getString("iib.available.readFail"), ioe);
+            if (LOG.isLoggable(Level.FINE)) {
+                LOG.fine(sm.getString("iib.available.readFail") + ioe);
             }
             // Not ideal. This will indicate that data is available which should
             // trigger a read which in turn will trigger another IOException and

@@ -16,20 +16,6 @@ public class ServerConfig extends Config {
         return waitSocketTime;
     }
 
-    private ServerConfig() {
-
-    }
-
-    public static Config getConfig() {
-        if (config == null) {
-            synchronized (Config.class) {
-                if (config == null) {
-                    config = new ServerConfig();
-                }
-            }
-        }
-        return config;
-    }
 
 
     public int getHttpPort() {

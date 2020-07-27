@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.util.http.parser;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
@@ -37,8 +35,6 @@ import java.io.Reader;
 public class HttpParser {
 
     private static final StringManager sm = StringManager.getManager(HttpParser.class);
-
-    private static final Logger log = LoggerFactory.getLogger(HttpParser.class);
 
     private static final int ARRAY_SIZE = 128;
 
@@ -123,8 +119,6 @@ public class HttpParser {
                 char c = prop.charAt(i);
                 if (c == '{' || c == '}' || c == '|') {
                     REQUEST_TARGET_ALLOW[c] = true;
-                } else {
-                    log.warn(sm.getString("http.invalidRequestTargetCharacter", Character.valueOf(c)));
                 }
             }
         }

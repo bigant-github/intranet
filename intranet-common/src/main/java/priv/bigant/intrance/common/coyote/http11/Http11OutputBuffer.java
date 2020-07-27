@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.coyote.HttpResponseStatus;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
@@ -33,7 +31,6 @@ import java.nio.ByteBuffer;
  */
 public class Http11OutputBuffer implements HttpOutputBuffer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Http11OutputBuffer.class);
     /**
      * Associated Coyote response.
      */
@@ -140,9 +137,6 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
         if (headerBuffer.position() > 0) {
             // Sending the response header buffer
             headerBuffer.flip();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(new String(headerBuffer.array()));
-            }
             try {
                 socketWrapper.write(isBlocking(), headerBuffer);
             } finally {

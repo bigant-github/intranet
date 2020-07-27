@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.coyote.http11;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.coyote.InputBuffer;
 import priv.bigant.intrance.common.coyote.Response;
@@ -38,9 +36,6 @@ import java.nio.charset.StandardCharsets;
  * InputBuffer for HTTP that provides response header parsing as well as transfer encoding.
  */
 public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBufferHandler {
-
-    // -------------------------------------------------------------- Constants
-    private static final Logger log = LoggerFactory.getLogger(Http11ResponseInputBuffer.class);
 
     /**
      * The string manager for this package.
@@ -354,9 +349,6 @@ public class Http11ResponseInputBuffer implements InputBuffer, ApplicationBuffer
 
             parsingRequestLineStart = byteBuffer.position();
             parsingRequestLinePhase = 2;
-            if (log.isDebugEnabled()) {
-                log.debug("Received [" + new String(byteBuffer.array(), byteBuffer.position(), byteBuffer.remaining(), StandardCharsets.ISO_8859_1) + "]");
-            }
         }
 
         if (parsingRequestLinePhase == 2) {

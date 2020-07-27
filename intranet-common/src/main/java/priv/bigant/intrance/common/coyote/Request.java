@@ -21,11 +21,9 @@ import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
 import priv.bigant.intrance.common.util.buf.UDecoder;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
-import priv.bigant.intrance.common.util.http.Parameters;
 import priv.bigant.intrance.common.util.http.ServerCookies;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,8 +62,6 @@ public final class Request {
     // ----------------------------------------------------------- Constructors
 
     public Request() {
-        parameters.setQuery(queryMB);
-        parameters.setURLDecoder(urlDecoder);
     }
 
 
@@ -128,7 +124,6 @@ public final class Request {
     private boolean expectation = false;
 
     private final ServerCookies serverCookies = new ServerCookies(INITIAL_COOKIE_SIZE);
-    private final Parameters parameters = new Parameters();
 
     private final MessageBytes remoteUser = MessageBytes.newInstance();
     private boolean remoteUserNeedsAuthorization = false;
@@ -385,7 +380,6 @@ public final class Request {
         boolean sendfile = true;
 
         serverCookies.recycle();
-        parameters.recycle();
         pathParameters.clear();
 
         uriMB.recycle();

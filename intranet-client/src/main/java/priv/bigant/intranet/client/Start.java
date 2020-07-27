@@ -3,23 +3,19 @@ package priv.bigant.intranet.client;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.Config;
-import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
-import priv.bigant.intrance.common.manager.ConnectorManager;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Created by GaoHan on 2018/5/23.
  */
 public class Start {
 
-    private final static Logger LOG = LoggerFactory.getLogger(Start.class);
+    private final static Logger LOG = Logger.getLogger(Start.class.getName());
 
     public static void main(String[] args) throws Exception {
         ClientConfig config = createdConfig();
@@ -27,30 +23,6 @@ public class Start {
         domain.connect();
         domain.startListener();
         //start(config);
-    }
-
-    public static void start(ClientConfig config) {
-        ConnectorThread serviceConnectorThread;
-        HttpProcessor httpProcessor = new HttpProcessor(config);
-
-        try {
-            serviceConnectorThread = new ConnectorThread(httpProcessor, "clientHttpIntranetServiceProcess-thread");
-            serviceConnectorThread.start();
-        } catch (IOException e) {
-            LOG.error("http处理器启动失败");
-            return;
-        }
-
-        ClientCommunication clientCommunication = new ClientCommunication(serviceConnectorThread, config);
-        try {
-            clientCommunication.createCommunicationProcess();
-            clientCommunication.connect();
-            new CommunicationListener(clientCommunication, config.getListenerTime()).start();
-        } catch (Exception e) {
-            LOG.error("通信器连接失败", e);
-            ConnectorManager.showdownAll();
-
-        }
     }
 
     /**
@@ -68,7 +40,7 @@ public class Start {
             properties = new Properties();
             properties.load(inputStream);
         } catch (IOException e) {
-            LOG.error("加载配置文件错误", e);
+            LOG.severe("加载配置文件错误" + e.getMessage());
             throw e;
         }
 
@@ -77,11 +49,10 @@ public class Start {
             System.getProperties().putAll(properties);
             BeanUtils.copyProperties(clientConfig, properties);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            LOG.error("加载配置文件错误", e);
+            LOG.severe("加载配置文件错误" + e.getMessage());
             throw e;
         }
         LOG.info("请求穿透域名" + clientConfig.getHostName() + "本地端口" + clientConfig.getHostName());
-        Config.config = clientConfig;
         return clientConfig;
     }
 }

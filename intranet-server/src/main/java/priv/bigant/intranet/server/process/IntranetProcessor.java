@@ -1,8 +1,9 @@
 package priv.bigant.intranet.server.process;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.HttpSocketManager;
+import priv.bigant.intrance.common.ProcessBase;
+import priv.bigant.intrance.common.ServerConnector;
+import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intrance.common.communication.CommunicationRequest.CommunicationRequestHttpAdd;
@@ -22,17 +23,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class IntranetProcessor extends ProcessBase {
 
-    public static final Logger LOG = LoggerFactory.getLogger(IntranetProcessor.class);
     private ThreadPoolExecutor executor;
+    private ServerConfig serverConfig;
 
-    public IntranetProcessor() {
-        ServerConfig serverConfig = (ServerConfig) Config.getConfig();
+    public IntranetProcessor(ServerConfig config) {
+        this.serverConfig = config;
         this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
-    }
-
-    public IntranetProcessor(int corePoolSize, int maximumPoolSize, int keepAliveTime) {
-        ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.executor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
 

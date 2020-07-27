@@ -1,8 +1,8 @@
 package priv.bigant.intrance.common.communication;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.ChannelStream;
+import priv.bigant.intrance.common.Config;
+import priv.bigant.intrance.common.log.LogUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,12 +10,14 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 客户端与服务端通信的工具
  */
 public class Communication {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Communication.class);
+    private Logger log;
 
     protected byte[] bytes = new byte[1024];
     protected ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
@@ -37,25 +39,23 @@ public class Communication {
         return socketChannel;
     }
 
-    public Communication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
-        this(socketChannel);
+    public Communication(SocketChannel socketChannel, CommunicationDispose communicationDispose, Config config) throws IOException {
+        this(socketChannel, config);
         this.communicationDispose = communicationDispose;
     }
 
-    public Communication(SocketChannel socketChannel) throws IOException {
+    public Communication(SocketChannel socketChannel, Config config) throws IOException {
         this.socketChannel = socketChannel;
         this.channelStream = new ChannelStream(socketChannel, 1024);
-    }
-
-    public Communication() {
-
+        this.log = LogUtil.getLog(config.getLogName(), this.getClass());
     }
 
     public synchronized void close() {
         try {
-            socketChannel.close();
+            if (socketChannel != null) socketChannel.close();
+            if (channelStream != null) channelStream.close();
         } catch (IOException e) {
-            LOGGER.error("communication 关闭失败");
+            log.severe("communication 关闭失败");
         }
         socketChannel = null;
     }
@@ -70,8 +70,8 @@ public class Communication {
         byteBuffer.clear();
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
             byteBuffer.flip();
         }
         int write = socketChannel.write(byteBuffer);
@@ -84,13 +84,14 @@ public class Communication {
      * @param communicationReturn
      * @throws IOException
      */
-    public static void writeN(CommunicationReturn communicationReturn, SocketChannel socketChannel) throws IOException {
+    public static void writeN(CommunicationReturn communicationReturn, SocketChannel socketChannel, Config config) throws IOException {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
         byteBuffer.clear();
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
+        Logger log = LogUtil.getLog(config.getLogName(), Communication.class);
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
             byteBuffer.flip();
         }
         socketChannel.write(byteBuffer);
@@ -150,7 +151,9 @@ public class Communication {
      */
     public synchronized void disposeRequests() throws IOException {
         while (channelStream.hasNext()) {
-            communicationDispose.invoke(readRequest(), this);
+            CommunicationRequest request = readRequest();
+            log.fine(request.toString());
+            communicationDispose.invoke(request, this);
         }
     }
 
@@ -160,7 +163,9 @@ public class Communication {
     public synchronized void disposeRequest() throws IOException {
         if (!channelStream.hasNext())
             throw new NullPointerException("未找到request");
-        communicationDispose.invoke(readRequest(), this);
+        CommunicationRequest request = readRequest();
+        log.fine(request.toString());
+        communicationDispose.invoke(request, this);
 
     }
 
@@ -172,10 +177,10 @@ public class Communication {
         try {
             CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
             writeN(CommunicationRequest.createCommunicationRequest(communicationRequestTest));
-            LOGGER.debug("isClose false");
+            log.fine("isClose false");
             return false;
         } catch (Exception se) {
-            LOGGER.debug("isClose true");
+            log.fine("isClose true");
             return true;
         }
     }

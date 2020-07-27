@@ -57,4 +57,8 @@ public class ChannelStream {
     public void setSocketChannel(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
     }
+
+    public void close() throws IOException {
+        socketChannel.close();
+    }
 }

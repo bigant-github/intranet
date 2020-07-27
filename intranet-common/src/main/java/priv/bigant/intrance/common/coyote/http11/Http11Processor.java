@@ -18,12 +18,11 @@ package priv.bigant.intrance.common.coyote.http11;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.AbstractProcessor;
 import priv.bigant.intrance.common.coyote.HttpResponseStatus;
+import priv.bigant.intrance.common.log.LogUtil;
 import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.Ascii;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
@@ -38,12 +37,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.lang.System.arraycopy;
 
 public abstract class Http11Processor extends AbstractProcessor {
 
-    private static final Logger log = LoggerFactory.getLogger(Http11Processor.class);
+    private Logger log;
 
     /**
      * 接收端
@@ -114,13 +115,14 @@ public abstract class Http11Processor extends AbstractProcessor {
 
     private int maxHttpHeaderSize;
 
-    public Http11Processor(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars) {
+    public Http11Processor(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars, Config config) {
 
         super();
-        config = Config.getConfig();
+        this.config = config;
+        this.log = LogUtil.getLog(config.getLogName(), Http11Processor.class);
         HttpParser httpParser = new HttpParser(relaxedPathChars, relaxedQueryChars);
 
-        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, httpParser);
+        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, httpParser, config);
         request.setInputBuffer(inputBuffer);
 
         responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, httpParser);
@@ -191,7 +193,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
         do {
             if (request.isConnection() && response.isConnection()) {
-                log.debug("http keep alive" + (keepCount++));
+                log.fine("http keep alive" + (keepCount++));
                 responseInputBuffer.nextRequest();
                 inputBuffer.nextRequest();
             }
@@ -223,11 +225,11 @@ public abstract class Http11Processor extends AbstractProcessor {
             } catch (SocketTimeoutException e) {
                 break;
             } catch (IOException e) {
-                log.debug("Error parsing HTTP response header", e);
+                log.fine("Error parsing HTTP response header" + e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                log.debug("Error parsing HTTP response header", t);
+                log.fine("Error parsing HTTP response header" + t);
             }
 
 
@@ -278,23 +280,23 @@ public abstract class Http11Processor extends AbstractProcessor {
             } catch (SocketTimeoutException e) {
                 break;
             } catch (IOException e) {
-                log.debug("Error parsing HTTP response header", e);
+                log.fine("Error parsing HTTP response header"+ e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                log.debug("Error parsing HTTP response header", t);
+                log.fine("Error parsing HTTP response header"+t);
             }
 
-            log.debug(request.requestURI().getString() + "响应完成");
+            log.fine(request.requestURI().getString() + "响应完成");
             try {
                 NioChannel socket = (NioChannel) socketWrapper.getSocket();
                 mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
             } catch (IOException e) {
-                log.error("response mutual error", e);
+                log.severe("response mutual error"+e);
                 break;
             }
         } while (request.isConnection() && response.isConnection() && !isPaused());
-        log.debug("http 完成");
+        log.fine("http 完成");
         close();
     }
 
@@ -320,8 +322,8 @@ public abstract class Http11Processor extends AbstractProcessor {
         byteBuffer.position(0);
         int sum = byteBuffer.limit();
         socketChannel.write(byteBuffer);
-        if (log.isDebugEnabled()) {
-            log.debug("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
         }
         if (chunked) {
             byte[] subArray = null;
@@ -330,12 +332,12 @@ public abstract class Http11Processor extends AbstractProcessor {
                 thisBuffer.limit(thisBuffer.capacity());//展开内存
                 int read = socketWrapperBase.read(true, thisBuffer);
                 sum += read;
-                log.debug("sun: " + sum);
+                log.fine("sun: " + sum);
                 if (read < 2048) {
-                    log.debug("debug");
+                    log.fine("debug");
                 }
                 if (read < 0) {
-                    log.debug("read chunked to -1");
+                    log.fine("read chunked to -1");
                     break;
                 }
                 thisBuffer.flip();
@@ -369,8 +371,8 @@ public abstract class Http11Processor extends AbstractProcessor {
                 bodySize += read;
                 thisBuffer.flip();
                 socketChannel.write(thisBuffer);
-                if (log.isDebugEnabled()) {
-                    log.debug("write:" + new String(thisBuffer.array(), 0, read));
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("write:" + new String(thisBuffer.array(), 0, read));
                 }
             }
         }

@@ -1,10 +1,11 @@
 package priv.bigant.intranet.client.ex;
 
-import java.io.IOException;
-
-public class ServerConnectException extends IOException {
+public class ServerConnectException extends RuntimeException {
     public ServerConnectException(String message, Throwable cause) {
         super(message, cause);
     }
 
+    public ServerConnectException(String message) {
+        super(message);
+    }
 }

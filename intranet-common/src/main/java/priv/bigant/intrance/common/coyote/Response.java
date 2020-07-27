@@ -21,7 +21,6 @@ import priv.bigant.intrance.common.util.buf.ByteChunk;
 import priv.bigant.intrance.common.util.buf.MessageBytes;
 import priv.bigant.intrance.common.util.buf.UDecoder;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
-import priv.bigant.intrance.common.util.http.Parameters;
 import priv.bigant.intrance.common.util.http.ServerCookies;
 
 import java.io.IOException;
@@ -48,9 +47,6 @@ public final class Response {
 
     // ----------------------------------------------------------- Constructors
 
-    public Response() {
-        parameters.setURLDecoder(urlDecoder);
-    }
 
 
     // ----------------------------------------------------- Instance Variables
@@ -102,10 +98,8 @@ public final class Response {
     private boolean expectation = false;
 
     private final ServerCookies serverCookies = new ServerCookies(INITIAL_COOKIE_SIZE);
-    private final Parameters parameters = new Parameters();
 
     private final MessageBytes remoteUser = MessageBytes.newInstance();
-    private boolean remoteUserNeedsAuthorization = false;
     private final MessageBytes authType = MessageBytes.newInstance();
     private final HashMap<String, Object> attributes = new HashMap<>();
 
@@ -291,14 +285,13 @@ public final class Response {
         sendfile = true;
 
         serverCookies.recycle();
-        parameters.recycle();
         pathParameters.clear();
 
         protoMB.recycle();
 
 
         remoteUser.recycle();
-        remoteUserNeedsAuthorization = false;
+        boolean remoteUserNeedsAuthorization = false;
         authType.recycle();
         attributes.clear();
 

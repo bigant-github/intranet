@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.util.net;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -29,6 +27,7 @@ import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 
 /**
@@ -43,7 +42,7 @@ public class NioSelectorPool {
     public NioSelectorPool() {
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(NioSelectorPool.class);
+    private static final Logger LOG = Logger.getLogger(NioSelectorPool.class.getName());
 
     protected static final boolean SHARED = Boolean.parseBoolean(System.getProperty("org.apache.tomcat.util.net.NioSelectorShared", "true"));
 
@@ -267,7 +266,7 @@ public class NioSelectorPool {
                     } else {
                         //keyCount = selector.selectNow();
                         keyCount = selector.select(readTimeout);
-                        LOG.debug("select read:" + keyCount + "readTimeout:" + readTimeout);
+                        LOG.fine("select read:" + keyCount + "readTimeout:" + readTimeout);
                     }
                 }
                 if (readTimeout > 0 && (selector == null || keyCount == 0))
@@ -278,9 +277,9 @@ public class NioSelectorPool {
                     int i = selector.selectNow();
                     ByteBuffer allocate = ByteBuffer.allocate(1024);
                     int read1 = socket.read(allocate);
-                    LOG.debug("socket time out selectNum:" + i + " read:" + read1 + " array:" + Arrays.toString(allocate.array()) + " string:" + new String(allocate.array()));
+                    LOG.fine("socket time out selectNum:" + i + " read:" + read1 + " array:" + Arrays.toString(allocate.array()) + " string:" + new String(allocate.array()));
                 } catch (Exception e) {
-                    LOG.error("asd");
+                    LOG.severe("asd");
                 }
                 throw new SocketTimeoutException();
             }

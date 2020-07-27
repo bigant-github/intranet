@@ -1,6 +1,5 @@
 package priv.bigant.intranet.visual.win;
 
-import priv.bigant.intrance.common.Config;
 import priv.bigant.intranet.client.ClientConfig;
 import priv.bigant.intranet.client.Domain;
 
@@ -28,9 +27,9 @@ public class MainWin extends JFrame {
                 clientConfig.setHostName(hostName);
                 clientConfig.setLocalHost(ip);
                 clientConfig.setLocalPort(port);
-                Config.config = clientConfig;
+                clientConfig.setLogName(hostName);
                 Domain domain = new Domain(clientConfig);
-                tabbedPane.add(hostName, new InsuranceWin(domain, x -> tabbedPane.remove(x)).getContent());
+                tabbedPane.add(hostName, new InsuranceWin(clientConfig, domain, x -> tabbedPane.remove(x)).getCon());
             });
         });
 

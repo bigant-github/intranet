@@ -1,28 +1,29 @@
 package priv.bigant.intranet.server.communication;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.SocketBean;
-import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.communication.HttpCommunication;
+import priv.bigant.intrance.common.log.LogUtil;
 import priv.bigant.intranet.server.ServerConfig;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Stack;
+import java.util.logging.Logger;
 
 public class CacheCommunication extends HttpCommunication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CacheCommunication.class);
+    private Logger LOG;
     private ServerConfig serverConfig;
     private Stack<SocketBean> socketStack;
 
 
-    public CacheCommunication(SocketChannel socketChannel) throws IOException {
-        super(socketChannel);
-        serverConfig = (ServerConfig) Config.getConfig();
+    public CacheCommunication(SocketChannel socketChannel, ServerConfig config) throws IOException {
+        super(socketChannel, config);
+        this.serverConfig = config;
         socketStack = new Stack<>();
+        this.LOG = LogUtil.getLog(config.getLogName(), CacheCommunication.class);
+
     }
 
     /**
@@ -38,10 +39,10 @@ public class CacheCommunication extends HttpCommunication {
                 if (pop != null) {
                     boolean b = pop.sendUrgentData();
                     if (!b) {
-                        LOG.warn("http 连接器已关闭 。。。。。。。。。。。。。。。。。。。。。。。。");
+                        LOG.warning("http 连接器已关闭 。。。。。。。。。。。。。。。。。。。。。。。。");
                         continue;
                     }
-                    LOG.debug("获取到http连接 :" + pop.getId() + "剩余" + socketStack.size());
+                    LOG.fine("获取到http连接 :" + pop.getId() + "剩余" + socketStack.size());
                     return pop;
                 } else {
                     return null;
@@ -55,10 +56,10 @@ public class CacheCommunication extends HttpCommunication {
      * 获取socketBean 还回socketBean
      */
     public synchronized void putSocketBean(SocketBean socketBean) {
-        LOG.debug("归还http连接 :" + socketBean.getId());
-        LOG.debug("before num :" + socketStack.size());
+        LOG.fine("归还http连接 :" + socketBean.getId());
+        LOG.fine("before num :" + socketStack.size());
         socketStack.push(socketBean);
-        LOG.debug("after num :" + socketStack.size());
+        LOG.fine("after num :" + socketStack.size());
     }
 
     @Override

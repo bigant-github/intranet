@@ -1,33 +1,32 @@
 package priv.bigant.intranet.client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Connector;
 import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationEnum;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
+import priv.bigant.intrance.common.log.LogUtil;
 import priv.bigant.intranet.client.ex.ServerConnectException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import static priv.bigant.intrance.common.communication.CommunicationRequest.createCommunicationRequest;
 
 public class Domain implements Connector {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Domain.class);
-
     private ClientConfig clientConfig;
 
     private ServerConnector.ConnectorThread httpConnect;
     private ServerConnector.ConnectorThread communicationConnect;
-
+    private CommunicationProcessor communicationProcessor;
     private Communication communication;
-
     private DomainListener domainListener;
+    private Consumer<CommunicationRequest.CommunicationRequestHttpReturn.Status> returnError;
 
     public Domain(ClientConfig clientConfig) {
         this.clientConfig = clientConfig;
@@ -50,7 +49,7 @@ public class Domain implements Connector {
 
     public void startHttpProcessor() throws IOException {
         HttpProcessor httpProcessor = new HttpProcessor(clientConfig);
-        httpConnect = new ServerConnector.ConnectorThread(httpProcessor, "clientHttpIntranetServiceProcess-thread");
+        httpConnect = new ServerConnector.ConnectorThread(httpProcessor, "clientHttpIntranetServiceProcess-thread", clientConfig);
         httpConnect.start();
     }
 
@@ -60,9 +59,12 @@ public class Domain implements Connector {
         channel.socket().setOOBInline(false);
         channel.configureBlocking(false);
 
-        this.communication = new Communication(channel, new CommunicationProcessor.ClientCommunicationDispose(httpConnect));
-        CommunicationProcessor communicationProcessor = new CommunicationProcessor(communication);
-        communicationConnect = new ServerConnector.ConnectorThread(communicationProcessor, "clientCommunication");
+        this.communication = new Communication(channel, new CommunicationProcessor.ClientCommunicationDispose(httpConnect, clientConfig, x -> {
+            if (returnError != null) returnError.accept(x);
+        }), clientConfig);
+        this.communicationProcessor = new CommunicationProcessor(communication, clientConfig);
+
+        communicationConnect = new ServerConnector.ConnectorThread(communicationProcessor, "clientCommunication", clientConfig);
         communicationConnect.register(channel, SelectionKey.OP_READ);//注册事件
         communicationConnect.start();
 
@@ -74,9 +76,11 @@ public class Domain implements Connector {
 
     @Override
     public void showdown() {
+
         communicationConnect.showdown();
         httpConnect.showdown();
-        domainListener.showdown();
+
+        if (domainListener != null) domainListener.showdown();
     }
 
     @Override
@@ -100,17 +104,26 @@ public class Domain implements Connector {
         return communication;
     }
 
+    public void setReturnError(Consumer<CommunicationRequest.CommunicationRequestHttpReturn.Status> returnError) {
+        this.returnError = returnError;
+    }
+
+    public Consumer<CommunicationRequest.CommunicationRequestHttpReturn.Status> getReturnError() {
+        return returnError;
+    }
+
     /**
      * 主进程监听器
      */
     public static class DomainListener extends Thread {
-        private final static Logger LOGGER = LoggerFactory.getLogger(DomainListener.class);
+        private Logger log;
         private ClientConfig clientConfig;
         private Domain domain;
         private boolean isRun = true;
 
         public DomainListener(ClientConfig clientConfig, Domain domain) {
             super("DomainListener");
+            this.log = LogUtil.getLog(clientConfig.getLogName(), this.getClass());
             this.clientConfig = clientConfig;
             this.domain = domain;
         }
@@ -119,14 +132,14 @@ public class Domain implements Connector {
         public void run() {
             while (true) {
                 if (domain.getCommunication().isClose()) {
-                    LOGGER.info("CommunicationListener 连接已断开");
+                    log.info("CommunicationListener 连接已断开");
                     try {
                         if (isRun) domain.connect();
                     } catch (Exception e) {
-                        LOGGER.error("连接失败", e);
+                        log.severe("连接失败" + e.getMessage());
                     }
                 } else {
-                    LOGGER.info("CommunicationListener 连接正常");
+                    log.info("CommunicationListener 连接正常");
                 }
                 try {
                     sleep(clientConfig.getListenerTime());

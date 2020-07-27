@@ -56,8 +56,8 @@ public class AddInsuranceWin extends JDialog {
                 return;
             }
             dispose();
-            actionListener.action(hostName+".bigant.club", ipTextField.getText(), Integer.parseInt(portText.getText()));
-
+            //actionListener.action(hostName+".bigant.club", ipTextField.getText(), Integer.parseInt(portText.getText()));
+            actionListener.action(hostName+".mmm.mmm", ipTextField.getText(), Integer.parseInt(portText.getText()));
         });
     }
 }

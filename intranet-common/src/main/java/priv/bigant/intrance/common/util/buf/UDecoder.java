@@ -16,8 +16,6 @@
  */
 package priv.bigant.intrance.common.util.buf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.CharConversionException;
@@ -34,8 +32,6 @@ import java.io.IOException;
 public final class UDecoder {
 
     private static final StringManager sm = StringManager.getManager(UDecoder.class);
-
-    private static final Logger log = LoggerFactory.getLogger(UDecoder.class);
 
     public static final boolean ALLOW_ENCODED_SLASH =
             Boolean.parseBoolean(System.getProperty("org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH", "false"));

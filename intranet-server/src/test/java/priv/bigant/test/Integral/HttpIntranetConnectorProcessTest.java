@@ -17,9 +17,9 @@ public class HttpIntranetConnectorProcessTest {
 
     @Test
     public void start() throws IOException {
-        ServerConfig config = (ServerConfig) ServerConfig.getConfig();
-        CommunicationProcessor httpIntranetConnectorProcess = new CommunicationProcessor();
-        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999);
+        ServerConfig config = new ServerConfig();
+        CommunicationProcessor httpIntranetConnectorProcess = new CommunicationProcessor(config);
+        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999, config);
         testHttpIntranetConnectorProcess.start();
         System.in.read();
     }
@@ -27,7 +27,7 @@ public class HttpIntranetConnectorProcessTest {
     @Test
     public void send() throws Exception {
         SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("localhost", 9999));
-        Communication communication = new Communication(socketChannel);
+        Communication communication = new Communication(socketChannel, null);
         CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
         for (int i = 0; i < 1000; i++) {
             communication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestTest));

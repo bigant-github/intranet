@@ -1,9 +1,8 @@
 package priv.bigant.intrance.common;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.coyote.AbstractProcessor;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
+import priv.bigant.intrance.common.log.LogUtil;
 import priv.bigant.intrance.common.util.collections.SynchronizedStack;
 import priv.bigant.intrance.common.util.net.NioChannel;
 import priv.bigant.intrance.common.util.net.NioSelectorPool;
@@ -18,13 +17,14 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 /**
  * http Nio 处理中心
  */
 public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
-    public static final Logger LOG = LoggerFactory.getLogger(HttpIntranetServiceProcessAbs.class);
+    public Logger LOG;
     /**
      * http 线程池
      */
@@ -34,9 +34,10 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
     private Config config;
 
-    public HttpIntranetServiceProcessAbs() {
-        this.config = Config.getConfig();
-        this.executor = new ThreadPoolExecutor(config.getHttpProcessCoreSize(), config.getHttpProcessMaxSize(), Config.getConfig().getHttpProcessWaitTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
+    public HttpIntranetServiceProcessAbs(Config config) {
+        this.LOG = LogUtil.getLog(config.getLogName(), HttpIntranetServiceProcessAbs.class);
+        this.config = config;
+        this.executor = new ThreadPoolExecutor(config.getHttpProcessCoreSize(), config.getHttpProcessMaxSize(), config.getHttpProcessWaitTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
     @Override
@@ -44,21 +45,21 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
         executor.shutdown();
     }
 
-    public abstract Http11Processor createHttp11Processor();
+    public abstract Http11Processor createHttp11Processor(Config config);
 
     @Override
     public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         //selectionKey.interestOps(selectionKey.interestOps() & (~selectionKey.readyOps()));
         selectionKey.cancel();
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-        LOG.debug("HttpIntranetServiceProcessAbs read " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
+        LOG.fine("HttpIntranetServiceProcessAbs read " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
         executor.execute(new ReadProcessThread(socketChannel));
     }
 
     @Override
     public void accept(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
-        LOG.debug("HttpIntranetServiceProcessAbs accept " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
+        LOG.fine("HttpIntranetServiceProcessAbs accept " + socketChannel + "      " + socketChannel.socket().getInputStream().available());
         socketChannel.configureBlocking(false);
         connectorThread.register(socketChannel, SelectionKey.OP_READ);
         //executor.execute(new ReadProcessThread(socketChannel));
@@ -77,7 +78,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
             try {
                 AbstractProcessor pop = recycledProcessors.pop();
                 if (pop == null) {
-                    pop = createHttp11Processor();
+                    pop = createHttp11Processor(config);
                 }
 
                 //TODO
@@ -86,14 +87,14 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
                 pop.service(nioSocketWrapper);
 
             } catch (Exception e) {
-                LOG.error("service error", e);
+                LOG.severe("service error" + e);
             }
         }
     }
 
     public static class RecycledProcessors extends SynchronizedStack<AbstractProcessor> {
 
-        private static final Logger LOG = LoggerFactory.getLogger(RecycledProcessors.class);
+        private static final Logger LOG = Logger.getLogger(RecycledProcessors.class.getName());
         protected final AtomicInteger size = new AtomicInteger(0);
 
         public RecycledProcessors() {
@@ -113,7 +114,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
                     size.incrementAndGet();
                 }
             }
-            LOG.debug("回收 process 当前数量：" + size);
+            LOG.fine("回收 process 当前数量：" + size);
             return result;
         }
 
@@ -124,7 +125,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
             if (result != null) {
                 size.decrementAndGet();
             }
-            LOG.debug("从回收站中获取 process 当前数量：" + size);
+            LOG.fine("从回收站中获取 process 当前数量：" + size);
             return result;
         }
 
@@ -136,7 +137,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
             }
             super.clear();
             size.set(0);
-            LOG.debug("清空 process 当前数量");
+            LOG.fine("清空 process 当前数量");
 
         }
     }

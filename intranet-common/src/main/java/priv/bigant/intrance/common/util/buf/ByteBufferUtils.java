@@ -16,20 +16,18 @@
  */
 package priv.bigant.intrance.common.util.buf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.util.compat.JreCompat;
-import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 
 public class ByteBufferUtils {
 
-    private static final Logger log = LoggerFactory.getLogger(ByteBufferUtils.class);
+    private static final Logger log = Logger.getLogger(ByteBufferUtils.class.getName());
 
     private static final Object unsafe;
     private static final Method cleanerMethod;
@@ -53,7 +51,7 @@ public class ByteBufferUtils {
             } catch (IllegalAccessException | IllegalArgumentException
                     | InvocationTargetException | NoSuchMethodException | SecurityException
                     | ClassNotFoundException | NoSuchFieldException e) {
-                log.warn("byteBufferUtils.cleaner");
+                log.warning("byteBufferUtils.cleaner");
                 unsafeLocal = null;
                 invokeCleanerMethodLocal = null;
             }
@@ -66,7 +64,7 @@ public class ByteBufferUtils {
                 cleanMethodLocal.invoke(cleanerObject);
             } catch (NoSuchMethodException | SecurityException | IllegalAccessException |
                     IllegalArgumentException | InvocationTargetException e) {
-                log.warn("byteBufferUtils.cleaner");
+                log.warning("byteBufferUtils.cleaner");
                 cleanerMethodLocal = null;
                 cleanMethodLocal = null;
             }
