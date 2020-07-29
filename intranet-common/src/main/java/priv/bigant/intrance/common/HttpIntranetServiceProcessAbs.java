@@ -88,6 +88,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
             } catch (Exception e) {
                 LOG.severe("service error" + e);
+                e.printStackTrace();
             }
         }
     }

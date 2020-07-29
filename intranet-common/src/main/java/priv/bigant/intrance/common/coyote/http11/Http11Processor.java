@@ -293,6 +293,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                 mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
             } catch (IOException e) {
                 log.severe("response mutual error"+e);
+                e.printStackTrace();
                 break;
             }
         } while (request.isConnection() && response.isConnection() && !isPaused());
@@ -359,10 +360,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                     arraycopy(subArray, position, subArray, 0, 5 - position);
                     arraycopy(thisBuffer.array(), 0, subArray, 5 - position, position);
                 }
-                System.out.println(read);
-                System.out.println(Arrays.toString(subArray));
             } while (!Arrays.equals(subArray, chunkedEndByte));
-            System.out.println(new String(thisBuffer.array(), "utf-8"));
         } else {
             while (bodySize < contentLength) {
                 thisBuffer.position(0);

@@ -6,6 +6,7 @@ import priv.bigant.intranet.server.process.CommunicationProcessor;
 import priv.bigant.intranet.server.process.HttpProcessor;
 import priv.bigant.intranet.server.process.IntranetProcessor;
 
+
 public class Start {
     public static void main(String[] args) {
         ServerConfig config = new ServerConfig();

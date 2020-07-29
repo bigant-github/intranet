@@ -56,6 +56,7 @@ public class Communication {
             if (channelStream != null) channelStream.close();
         } catch (IOException e) {
             log.severe("communication 关闭失败");
+            e.printStackTrace();
         }
         socketChannel = null;
     }
@@ -70,12 +71,11 @@ public class Communication {
         byteBuffer.clear();
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
-        if (log.isLoggable(Level.FINE)) {
-            log.fine("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
-            byteBuffer.flip();
-        }
         int write = socketChannel.write(byteBuffer);
-        System.out.println(write);
+        if (log.isLoggable(Level.FINE)) {
+            byteBuffer.flip();
+            log.fine("write {size:" + write + ",value:" + StandardCharsets.UTF_8.decode(byteBuffer).toString() + "}");
+        }
     }
 
     /**

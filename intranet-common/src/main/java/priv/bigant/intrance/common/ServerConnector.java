@@ -1,12 +1,12 @@
 package priv.bigant.intrance.common;
 
 import priv.bigant.intrance.common.log.LogUtil;
-import priv.bigant.intrance.common.manager.ConnectorManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.*;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ServerConnector implements Connector {
@@ -108,7 +108,11 @@ public class ServerConnector implements Connector {
                 } catch (IOException e) {
                     i = 0;
                     LOG.severe(process.getName() + " process 监控线程 select error" + e);
+                    e.printStackTrace();
+                } catch (ClosedSelectorException e) {
+                    continue;
                 }
+
                 if (i < 1)
                     continue;
                 Iterator<SelectionKey> selectionKeys = selector.selectedKeys().iterator();
@@ -123,10 +127,12 @@ public class ServerConnector implements Connector {
                         } else if (selectionKey.isReadable()) {
                             process.read(this, selectionKey);
                         }
-                    } catch (Exception e) {
+                    } catch (ClosedSelectorException | CancelledKeyException e) {
+                        LOG.log(Level.FINE, process.getName() + " 处理器处理事件失败 ", e);
                         selectionKey.cancel();
-                        ConnectorManager.showdownAll();
-                        LOG.severe(process.getName() + " process 监控线程 处理器处理事件失败" + e);
+                    } catch (Exception e) {
+                        LOG.log(Level.SEVERE, process.getName() + " 处理器处理事件失败 ", e);
+                        selectionKey.cancel();
                     }
 
                 }

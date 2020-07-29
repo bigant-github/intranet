@@ -127,6 +127,7 @@ public class ServerCommunication extends HttpCommunication {
                     serverCommunication.createSocketBean();
             } catch (Exception e) {
                 LOG.severe("连接失败" + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

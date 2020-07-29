@@ -20,6 +20,7 @@ public class Start {
     public static void main(String[] args) throws Exception {
         ClientConfig config = createdConfig();
         Domain domain = new Domain(config);
+        domain.setReturnError(x -> domain.showdown());
         domain.connect();
         domain.startListener();
         //start(config);
@@ -41,6 +42,7 @@ public class Start {
             properties.load(inputStream);
         } catch (IOException e) {
             LOG.severe("加载配置文件错误" + e.getMessage());
+            e.printStackTrace();
             throw e;
         }
 
@@ -50,6 +52,7 @@ public class Start {
             BeanUtils.copyProperties(clientConfig, properties);
         } catch (IllegalAccessException | InvocationTargetException e) {
             LOG.severe("加载配置文件错误" + e.getMessage());
+            e.printStackTrace();
             throw e;
         }
         LOG.info("请求穿透域名" + clientConfig.getHostName() + "本地端口" + clientConfig.getHostName());

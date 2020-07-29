@@ -32,11 +32,12 @@ public class InsuranceWin {
 
         console = new JTextArea();
         console.setEditable(false);
-        consolePlane.add(new JScrollPane(console));
+        JScrollPane scroll = new JScrollPane(console);
+        consolePlane.add(scroll);
         console.setLineWrap(true);
 
         logger = Logger.getLogger(clientConfig.getHostName());
-        logger.addHandler(new ConsoleHandler(console));
+        logger.addHandler(new ConsoleHandler(console, scroll));
         logger.setUseParentHandlers(false);
         logger.setLevel(Level.FINE);
 
@@ -73,11 +74,13 @@ public class InsuranceWin {
 
     class ConsoleHandler extends Handler {
         private JTextArea console;
+        private JScrollPane scroll;
         String lineSeparator = java.security.AccessController.doPrivileged(
                 new sun.security.action.GetPropertyAction("line.separator"));
 
-        public ConsoleHandler(JTextArea console) {
+        public ConsoleHandler(JTextArea console, JScrollPane scroll) {
             this.console = console;
+            this.scroll = scroll;
         }
 
         @Override
@@ -94,6 +97,8 @@ public class InsuranceWin {
             console.append(message);
             console.append(lineSeparator);
             console.paintImmediately(console.getBounds());
+            JScrollBar sbar = scroll.getVerticalScrollBar();
+            sbar.setValue(sbar.getMaximum());
         }
 
         @Override

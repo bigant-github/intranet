@@ -280,6 +280,7 @@ public class NioSelectorPool {
                     LOG.fine("socket time out selectNum:" + i + " read:" + read1 + " array:" + Arrays.toString(allocate.array()) + " string:" + new String(allocate.array()));
                 } catch (Exception e) {
                     LOG.severe("asd");
+                    e.printStackTrace();
                 }
                 throw new SocketTimeoutException();
             }

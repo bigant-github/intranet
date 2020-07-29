@@ -130,13 +130,14 @@ public class Domain implements Connector {
 
         @Override
         public void run() {
-            while (true) {
+            while (isRun) {
                 if (domain.getCommunication().isClose()) {
                     log.info("CommunicationListener 连接已断开");
                     try {
                         if (isRun) domain.connect();
                     } catch (Exception e) {
                         log.severe("连接失败" + e.getMessage());
+                        e.printStackTrace();
                     }
                 } else {
                     log.info("CommunicationListener 连接正常");

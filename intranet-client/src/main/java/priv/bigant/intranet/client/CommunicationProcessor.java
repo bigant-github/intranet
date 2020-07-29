@@ -113,6 +113,7 @@ public class CommunicationProcessor extends ProcessBase {
                 serviceConnector.register(socketChannel, SelectionKey.OP_READ);
             } catch (Exception e) {
                 log.severe("add http socket error" + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
