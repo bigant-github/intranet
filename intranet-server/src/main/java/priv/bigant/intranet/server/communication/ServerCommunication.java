@@ -7,17 +7,16 @@ import priv.bigant.intranet.server.ServerConfig;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
  * 与客户段的交换器
  */
 public class ServerCommunication extends HttpCommunication {
-
     private static final Logger LOG = Logger.getLogger(ServerCommunication.class.getName());
-    public static final Map<String, SocketBean> MAP = new HashMap<>();
+    public static final Map<String, SocketBean> MAP = new ConcurrentHashMap<>();
     private ServerConfig serverConfig;
 
     public ServerCommunication(SocketChannel socketChannel, ServerConfig serverConfig) throws IOException {
@@ -31,8 +30,11 @@ public class ServerCommunication extends HttpCommunication {
         String id = super.createSocketBean();
         while ((time + serverConfig.getWaitSocketTime()) > System.currentTimeMillis()) {
             SocketBean socketBean = MAP.get(id);
-            if (socketBean != null)
+            if (socketBean != null) {
+                MAP.remove(id);
                 return socketBean;
+            }
+
         }
         LOG.fine("getSocketBean TIMEOUT: createTime=" + time + "    endTime=" + System.currentTimeMillis());
         return null;

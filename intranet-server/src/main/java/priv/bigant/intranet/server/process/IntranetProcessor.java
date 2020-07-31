@@ -47,7 +47,7 @@ public class IntranetProcessor extends ProcessBase {
         selectionKey.cancel();
 
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-        CommunicationRequest communicationRequest = Communication.readRequest(socketChannel);
+        CommunicationRequest communicationRequest = Communication.readRequest(socketChannel, serverConfig.getLogName());
 
         if (communicationRequest == null)
             return;

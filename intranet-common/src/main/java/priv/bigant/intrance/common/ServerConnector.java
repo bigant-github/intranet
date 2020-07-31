@@ -123,8 +123,10 @@ public class ServerConnector implements Connector {
 
                     try {
                         if (selectionKey.isAcceptable()) {
+                            LOG.finer(getName() + " accept");
                             process.accept(this, selectionKey);
                         } else if (selectionKey.isReadable()) {
+                            LOG.finer(getName() + " read");
                             process.read(this, selectionKey);
                         }
                     } catch (ClosedSelectorException | CancelledKeyException e) {

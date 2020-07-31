@@ -1,3 +1,4 @@
+/*
 package priv.bigant.intranet.visual.win;
 
 import priv.bigant.intranet.client.ClientConfig;
@@ -29,7 +30,7 @@ public class MainWin extends JFrame {
                 clientConfig.setLocalPort(port);
                 clientConfig.setLogName(hostName);
                 Domain domain = new Domain(clientConfig);
-                tabbedPane.add(hostName, new InsuranceWin(clientConfig, domain, x -> tabbedPane.remove(x)).getCon());
+                tabbedPane.add(hostName, new InsuranceWin(clientConfig, domain).getCon());
             });
         });
 
@@ -45,14 +46,18 @@ public class MainWin extends JFrame {
         setBounds(10, 10, 570, 390);
         setVisible(true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                /*addButton = new JButton("链接");
+                */
+/*addButton = new JButton("链接");
         this.add(addButton);
 
-*/
-        /*JDesktopPane desktopPane = new JDesktopPane();
+*//*
+
+        */
+/*JDesktopPane desktopPane = new JDesktopPane();
         JInternalFrame internalFrame = createInternalFrame();
         desktopPane.add(internalFrame);
-        this.add(desktopPane);*/
+        this.add(desktopPane);*//*
+
     }
 
     private static JInternalFrame createInternalFrame() {
@@ -82,13 +87,15 @@ public class MainWin extends JFrame {
         // 设置内部窗口的内容面板
         internalFrame.setContentPane(panel);
 
-        /*
+        */
+/*
          * 对于内部窗口，还可以不需要手动设置内容面板，直接把窗口当做普通面板使用，
          * 即直接设置布局，然后通过 add 添加组件，如下代码:
          *     internalFrame.setLayout(new FlowLayout());
          *     internalFrame.add(new JLabel("Label001"));
          *     internalFrame.add(new JButton("JButton001"));
-         */
+         *//*
+
 
         // 显示内部窗口
         internalFrame.setVisible(true);
@@ -99,3 +106,4 @@ public class MainWin extends JFrame {
 }
 
 
+*/

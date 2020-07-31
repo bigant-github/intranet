@@ -23,7 +23,7 @@ public class Communication {
     protected ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
     protected SocketChannel socketChannel;
     protected ChannelStream channelStream;
-
+    private Config config;
     private CommunicationDispose communicationDispose;
 
     /**
@@ -39,14 +39,15 @@ public class Communication {
         return socketChannel;
     }
 
-    public Communication(SocketChannel socketChannel, CommunicationDispose communicationDispose, Config config) throws IOException {
+    public Communication(SocketChannel socketChannel, CommunicationDispose communicationDispose, Config config) {
         this(socketChannel, config);
         this.communicationDispose = communicationDispose;
     }
 
-    public Communication(SocketChannel socketChannel, Config config) throws IOException {
+    public Communication(SocketChannel socketChannel, Config config) {
         this.socketChannel = socketChannel;
-        this.channelStream = new ChannelStream(socketChannel, 1024);
+        this.channelStream = new ChannelStream(socketChannel, 1024, config.getLogName());
+        this.config = config;
         this.log = LogUtil.getLog(config.getLogName(), this.getClass());
     }
 
@@ -111,8 +112,8 @@ public class Communication {
      *
      * @throws IOException
      */
-    public static CommunicationRequest readRequest(SocketChannel socketChannel) throws IOException {
-        return readRequest(new ChannelStream(socketChannel, 1024));
+    public static CommunicationRequest readRequest(SocketChannel socketChannel, String logName) throws IOException {
+        return readRequest(new ChannelStream(socketChannel, 1024, logName));
     }
 
     public static CommunicationRequest readRequest(ChannelStream channelStream) throws IOException {

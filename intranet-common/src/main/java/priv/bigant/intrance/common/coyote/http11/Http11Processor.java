@@ -287,7 +287,6 @@ public abstract class Http11Processor extends AbstractProcessor {
                 log.fine("Error parsing HTTP response header"+t);
             }
 
-            log.fine(request.requestURI().getString() + "响应完成");
             try {
                 NioChannel socket = (NioChannel) socketWrapper.getSocket();
                 mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
@@ -324,7 +323,7 @@ public abstract class Http11Processor extends AbstractProcessor {
         int sum = byteBuffer.limit();
         socketChannel.write(byteBuffer);
         if (log.isLoggable(Level.FINE)) {
-            log.fine("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
+            log.finest("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
         }
         if (chunked) {
             byte[] subArray = null;

@@ -1,22 +1,24 @@
 package priv.bigant.intrance.common;
 
+import priv.bigant.intrance.common.log.LogUtil;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.logging.Logger;
 
 public class ChannelStream {
 
     private SocketChannel socketChannel;
     private ByteBuffer byteBuffer;
-
+    private Logger log;
     private boolean isFirst = true;
 
-    public ChannelStream(SocketChannel socketChannel, int bufferSize) throws IOException {
+    public ChannelStream(SocketChannel socketChannel, int bufferSize, String logName) {
+        this.log = LogUtil.getLog(logName, this.getClass());
         this.socketChannel = socketChannel;
         this.byteBuffer = ByteBuffer.allocateDirect(bufferSize);
-
     }
-
 
 
     public char readChar() throws IOException {
@@ -38,6 +40,7 @@ public class ChannelStream {
         byteBuffer.clear();
         int read = socketChannel.read(byteBuffer);
         byteBuffer.flip();
+        log.finer("ChannelStream fill size " + read);
         return read;
     }
 

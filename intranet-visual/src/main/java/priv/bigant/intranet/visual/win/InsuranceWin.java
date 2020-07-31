@@ -1,48 +1,44 @@
 package priv.bigant.intranet.visual.win;
 
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import priv.bigant.intranet.client.ClientConfig;
 import priv.bigant.intranet.client.Domain;
 import priv.bigant.intranet.client.ex.ServerConnectException;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
-import java.util.function.Consumer;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public class InsuranceWin {
+public class InsuranceWin/* extends JFrame */ {
     private JButton showdownBtn;
     private JPanel con;
     private JTextArea console;
     private JPanel consolePlane;
-    private Domain domain;
-    private ClientConfig clientConfig;
-    private Logger logger;
+    private JButton clearLogBtn;
+    private JComboBox<String> logLevelBox;
+    private ClientConfig clientConfig = new ClientConfig();
+    private Domain domain = new Domain(clientConfig);
+
+    private Logger logger = Logger.getLogger("");
 
     public InsuranceWin() {
+        //init();
+        //setContentPane(con);
+        //new AddInsuranceWin(this, clientConfig);
+        domain.setReturnError(x -> showdown());
     }
 
-    public InsuranceWin(ClientConfig clientConfig, Domain domain, Consumer<JPanel> closeAction) {
-        this();
-        this.domain = domain;
-        this.clientConfig = clientConfig;
+    public JPanel getCon() {
+        return con;
+    }
 
-
-        console = new JTextArea();
-        console.setEditable(false);
-        JScrollPane scroll = new JScrollPane(console);
-        consolePlane.add(scroll);
-        console.setLineWrap(true);
-
-        logger = Logger.getLogger(clientConfig.getHostName());
-        logger.addHandler(new ConsoleHandler(console, scroll));
-        logger.setUseParentHandlers(false);
-        logger.setLevel(Level.FINE);
-
-        domain.setReturnError(x -> showdown());
-
+    public void initConnectBtn() {
         showdownBtn.addActionListener(x -> {
             if (showdownBtn.getText().equals("链接")) {
                 connect();
@@ -52,11 +48,105 @@ public class InsuranceWin {
         });
     }
 
+    public void init() {
+        WindowListener windowListener = new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                domain.showdown();
+            }
+
+            @Override
+            public void windowIconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+
+            }
+        };
+        /*getContentPane().setBackground(Color.black);
+        setBounds(60, 100, 1000, 1000);//设置位置大小
+        setVisible(true);//可视性设置
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//设置按x后的操作.[这个是关闭整个程序,将会关闭所有窗口]
+        addWindowListener(windowListener);*/
+        initLog();
+        initConnectBtn();
+    }
+
+    public void initLog() {
+        console = new JTextArea();
+        console.setEditable(false);
+        JScrollPane scroll = new JScrollPane(console);
+        consolePlane.add(scroll);
+        console.setLineWrap(true);
+        ConsoleHandler.console = console;
+        ConsoleHandler.scroll = scroll;
+
+        logLevelBox.setSelectedItem("一般");
+
+
+        logLevelBox.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                setLogLevel();
+            }
+        });
+
+        clearLogBtn.addActionListener(e -> console.setText(""));
+
+    }
+
+
+    private void setLogLevel() {
+        String level = logLevelBox.getSelectedItem().toString();
+        switch (level) {
+            case "严重":
+                logger.setLevel(Level.SEVERE);
+                break;
+            case "警示":
+                logger.setLevel(Level.WARNING);
+                break;
+            case "详细":
+                logger.setLevel(Level.FINE);
+                break;
+            case "超详细":
+                logger.setLevel(Level.FINER);
+                break;
+            case "最详细":
+                logger.setLevel(Level.FINEST);
+                break;
+            default:
+                logger.setLevel(Level.INFO);
+        }
+
+    }
+
 
     private void connect() {
         try {
             logger.info("链接中");
             domain.connect();
+            domain.startListener();
             showdownBtn.setText("断开");
         } catch (IOException | ServerConnectException e) {
             JOptionPane.showMessageDialog(con, e.getMessage(), "服务器链接失败", JOptionPane.ERROR_MESSAGE);
@@ -68,48 +158,60 @@ public class InsuranceWin {
         showdownBtn.setText("链接");
     }
 
-    public JPanel getCon() {
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        con = new JPanel();
+        con.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
+        con.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, true));
+        showdownBtn = new JButton();
+        showdownBtn.setText("链接");
+        panel1.add(showdownBtn, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label1 = new JLabel();
+        label1.setText("日志级别");
+        panel1.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        clearLogBtn = new JButton();
+        clearLogBtn.setText("清空日志");
+        panel1.add(clearLogBtn, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        logLevelBox = new JComboBox();
+        final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+        defaultComboBoxModel1.addElement("严重");
+        defaultComboBoxModel1.addElement("警示");
+        defaultComboBoxModel1.addElement("一般");
+        defaultComboBoxModel1.addElement("详细");
+        defaultComboBoxModel1.addElement("超详细");
+        defaultComboBoxModel1.addElement("最详细");
+        logLevelBox.setModel(defaultComboBoxModel1);
+        panel1.add(logLevelBox, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        consolePlane = new JPanel();
+        consolePlane.setLayout(new CardLayout(0, 0));
+        con.add(consolePlane, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
         return con;
     }
 
-    class ConsoleHandler extends Handler {
-        private JTextArea console;
-        private JScrollPane scroll;
-        String lineSeparator = java.security.AccessController.doPrivileged(
-                new sun.security.action.GetPropertyAction("line.separator"));
-
-        public ConsoleHandler(JTextArea console, JScrollPane scroll) {
-            this.console = console;
-            this.scroll = scroll;
-        }
-
-        @Override
-        public void publish(LogRecord record) {
-            println(record.getMessage());
-        }
-
-        public void print(String message) {
-            console.append(message);
-            console.paintImmediately(console.getBounds());
-        }
-
-        public void println(String message) {
-            console.append(message);
-            console.append(lineSeparator);
-            console.paintImmediately(console.getBounds());
-            JScrollBar sbar = scroll.getVerticalScrollBar();
-            sbar.setValue(sbar.getMaximum());
-        }
-
-        @Override
-        public void flush() {
-
-        }
-
-        @Override
-        public void close() throws SecurityException {
-
-        }
+    public Domain getDomain() {
+        return domain;
     }
 }
 
