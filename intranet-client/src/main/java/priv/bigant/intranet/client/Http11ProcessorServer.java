@@ -11,14 +11,12 @@ import java.nio.channels.SocketChannel;
 import java.util.logging.Logger;
 
 public class Http11ProcessorServer extends Http11Processor {
-    private Logger log;
-    private NioSelectorPool nioSelectorPool = new NioSelectorPool();
-    private ClientConfig clientConfig;
+    private static final Logger LOG = LogUtil.getLog();
+    private final NioSelectorPool nioSelectorPool = new NioSelectorPool();
+    private static final ClientConfig clientConfig = ClientConfig.getClientConfig();
 
-    public Http11ProcessorServer(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars, ClientConfig clientConfig) {
-        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars, clientConfig);
-        this.log = LogUtil.getLog(clientConfig.getLogName(), this.getClass());
-        this.clientConfig = clientConfig;
+    public Http11ProcessorServer(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars) {
+        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars);
     }
 
     @Override
@@ -45,7 +43,7 @@ public class Http11ProcessorServer extends Http11Processor {
 
     @Override
     public void close() throws IOException {
-        log.fine("server close..............");
+        LOG.fine("server close..............");
         socketWrapper.close();
     }
 }

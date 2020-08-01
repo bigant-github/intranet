@@ -18,8 +18,7 @@ import java.util.logging.Logger;
 public class CommunicationProcessor extends ProcessBase {
 
 
-    private Communication clientCommunication;
-    private ClientConfig clientConfig;
+    private final Communication clientCommunication;
 
 
     public CommunicationProcessor(Communication clientCommunication, ConnectorThread serviceConnector) {
@@ -29,7 +28,6 @@ public class CommunicationProcessor extends ProcessBase {
 
     public CommunicationProcessor(Communication clientCommunication, ClientConfig clientConfig) {
         this.clientCommunication = clientCommunication;
-        this.clientConfig = clientConfig;
     }
 
     public void showdown() {
@@ -60,13 +58,12 @@ public class CommunicationProcessor extends ProcessBase {
      * 统一处理请求
      */
     public static class ClientCommunicationDispose extends CommunicationDispose {
-        private ClientConfig clientConfig;
-        private Logger log;
-        private ConnectorThread serviceConnector;
+        private final ClientConfig clientConfig;
+        private static final Logger log = LogUtil.getLog();
+        private final ConnectorThread serviceConnector;
         private Consumer<CommunicationRequestHttpReturn.Status> returnError;
 
         public ClientCommunicationDispose(ConnectorThread serviceConnector, ClientConfig clientConfig) {
-            this.log = LogUtil.getLog(clientConfig.getLogName(), this.getClass());
             this.serviceConnector = serviceConnector;
             this.clientConfig = clientConfig;
         }
@@ -82,10 +79,10 @@ public class CommunicationProcessor extends ProcessBase {
             CommunicationRequestHttpReturn communicationRequestHttpReturn = communicationRequest.toJavaObject(CommunicationRequestHttpReturn.class);
             switch (communicationRequestHttpReturn.getStatus()) {
                 case SUCCESS:
-                    log.info("连接成功");
+                    log.info(clientConfig.getHostName() + "连接成功");
                     break;
                 case DOMAIN_OCCUPIED:
-                    log.severe("域名已被占用");
+                    log.severe(clientConfig.getHostName() + "域名已被占用");
                     if (returnError != null) returnError.accept(CommunicationRequestHttpReturn.Status.DOMAIN_OCCUPIED);
             }
 

@@ -6,14 +6,13 @@ import priv.bigant.intranet.server.process.CommunicationProcessor;
 import priv.bigant.intranet.server.process.HttpProcessor;
 import priv.bigant.intranet.server.process.IntranetProcessor;
 
-import java.util.logging.Logger;
 
 
 public class Start {
     public static void main(String[] args) {
-        ServerConfig config = new ServerConfig();
+        ServerConfig config = ServerConfig.getSeverConfig();
         CommunicationProcessor httpIntranetConnectorProcess = new CommunicationProcessor(config);
-        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("CommunicationProcessor", httpIntranetConnectorProcess, config.getIntranetPort(),config);
+        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("CommunicationProcessor", httpIntranetConnectorProcess, config.getIntranetPort(), config);
         testHttpIntranetConnectorProcess.start();
 
         IntranetProcessor intranetProcessor = new IntranetProcessor(config);

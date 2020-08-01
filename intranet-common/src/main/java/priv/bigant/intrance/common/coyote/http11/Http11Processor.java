@@ -44,7 +44,7 @@ import static java.lang.System.arraycopy;
 
 public abstract class Http11Processor extends AbstractProcessor {
 
-    private Logger log;
+    private static final Logger LOG = LogUtil.getLog();
 
     /**
      * 接收端
@@ -111,18 +111,15 @@ public abstract class Http11Processor extends AbstractProcessor {
     private String server = "BigAnt";
 
 
-    private Config config;
+    private static final Config config = Config.getConfig();
 
-    private int maxHttpHeaderSize;
+    private final int maxHttpHeaderSize;
 
-    public Http11Processor(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars, Config config) {
-
+    public Http11Processor(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars) {
         super();
-        this.config = config;
-        this.log = LogUtil.getLog(config.getLogName(), Http11Processor.class);
         HttpParser httpParser = new HttpParser(relaxedPathChars, relaxedQueryChars);
 
-        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, httpParser, config);
+        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, httpParser);
         request.setInputBuffer(inputBuffer);
 
         responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, httpParser);
@@ -193,7 +190,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
         do {
             if (request.isConnection() && response.isConnection()) {
-                log.fine("http keep alive" + (keepCount++));
+                LOG.fine("http keep alive" + (keepCount++));
                 responseInputBuffer.nextRequest();
                 inputBuffer.nextRequest();
             }
@@ -225,11 +222,11 @@ public abstract class Http11Processor extends AbstractProcessor {
             } catch (SocketTimeoutException e) {
                 break;
             } catch (IOException e) {
-                log.fine("Error parsing HTTP response header" + e);
+                LOG.fine("Error parsing HTTP response header" + e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                log.fine("Error parsing HTTP response header" + t);
+                LOG.fine("Error parsing HTTP response header" + t);
             }
 
 
@@ -280,23 +277,23 @@ public abstract class Http11Processor extends AbstractProcessor {
             } catch (SocketTimeoutException e) {
                 break;
             } catch (IOException e) {
-                log.fine("Error parsing HTTP response header"+ e);
+                LOG.fine("Error parsing HTTP response header"+ e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                log.fine("Error parsing HTTP response header"+t);
+                LOG.fine("Error parsing HTTP response header"+t);
             }
 
             try {
                 NioChannel socket = (NioChannel) socketWrapper.getSocket();
                 mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
             } catch (IOException e) {
-                log.severe("response mutual error"+e);
+                LOG.severe("response mutual error"+e);
                 e.printStackTrace();
                 break;
             }
         } while (request.isConnection() && response.isConnection() && !isPaused());
-        log.fine("http 完成");
+        LOG.fine("http 完成");
         close();
     }
 
@@ -322,8 +319,8 @@ public abstract class Http11Processor extends AbstractProcessor {
         byteBuffer.position(0);
         int sum = byteBuffer.limit();
         socketChannel.write(byteBuffer);
-        if (log.isLoggable(Level.FINE)) {
-            log.finest("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.finest("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
         }
         if (chunked) {
             byte[] subArray = null;
@@ -332,12 +329,12 @@ public abstract class Http11Processor extends AbstractProcessor {
                 thisBuffer.limit(thisBuffer.capacity());//展开内存
                 int read = socketWrapperBase.read(true, thisBuffer);
                 sum += read;
-                log.fine("sun: " + sum);
+                LOG.fine("sun: " + sum);
                 if (read < 2048) {
-                    log.fine("debug");
+                    LOG.fine("debug");
                 }
                 if (read < 0) {
-                    log.fine("read chunked to -1");
+                    LOG.fine("read chunked to -1");
                     break;
                 }
                 thisBuffer.flip();
@@ -368,8 +365,8 @@ public abstract class Http11Processor extends AbstractProcessor {
                 bodySize += read;
                 thisBuffer.flip();
                 socketChannel.write(thisBuffer);
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine("write:" + new String(thisBuffer.array(), 0, read));
+                if (LOG.isLoggable(Level.FINE)) {
+                    LOG.fine("write:" + new String(thisBuffer.array(), 0, read));
                 }
             }
         }

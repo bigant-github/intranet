@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  * 客户端与服务端通信的工具
  */
 public class Communication {
-    private Logger log;
+    private static final Logger LOG = LogUtil.getLog();
 
     protected byte[] bytes = new byte[1024];
     protected ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
@@ -48,7 +48,6 @@ public class Communication {
         this.socketChannel = socketChannel;
         this.channelStream = new ChannelStream(socketChannel, 1024, config.getLogName());
         this.config = config;
-        this.log = LogUtil.getLog(config.getLogName(), this.getClass());
     }
 
     public synchronized void close() {
@@ -56,7 +55,7 @@ public class Communication {
             if (socketChannel != null) socketChannel.close();
             if (channelStream != null) channelStream.close();
         } catch (IOException e) {
-            log.severe("communication 关闭失败");
+            LOG.severe("communication 关闭失败");
             e.printStackTrace();
         }
         socketChannel = null;
@@ -73,9 +72,9 @@ public class Communication {
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
         int write = socketChannel.write(byteBuffer);
-        if (log.isLoggable(Level.FINE)) {
+        if (LOG.isLoggable(Level.FINE)) {
             byteBuffer.flip();
-            log.fine("write {size:" + write + ",value:" + StandardCharsets.UTF_8.decode(byteBuffer).toString() + "}");
+            LOG.fine("write {size:" + write + ",value:" + StandardCharsets.UTF_8.decode(byteBuffer).toString() + "}");
         }
     }
 
@@ -90,7 +89,7 @@ public class Communication {
         byteBuffer.clear();
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
-        Logger log = LogUtil.getLog(config.getLogName(), Communication.class);
+        Logger log = LogUtil.getLog();
         if (log.isLoggable(Level.FINE)) {
             log.fine("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
             byteBuffer.flip();
@@ -153,7 +152,7 @@ public class Communication {
     public synchronized void disposeRequests() throws IOException {
         while (channelStream.hasNext()) {
             CommunicationRequest request = readRequest();
-            log.fine(request.toString());
+            LOG.fine(request.toString());
             communicationDispose.invoke(request, this);
         }
     }
@@ -165,7 +164,7 @@ public class Communication {
         if (!channelStream.hasNext())
             throw new NullPointerException("未找到request");
         CommunicationRequest request = readRequest();
-        log.fine(request.toString());
+        LOG.fine(request.toString());
         communicationDispose.invoke(request, this);
 
     }
@@ -178,10 +177,10 @@ public class Communication {
         try {
             CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
             writeN(CommunicationRequest.createCommunicationRequest(communicationRequestTest));
-            log.fine("isClose false");
+            LOG.fine("isClose false");
             return false;
         } catch (Exception se) {
-            log.fine("isClose true");
+            LOG.fine("isClose true");
             return true;
         }
     }

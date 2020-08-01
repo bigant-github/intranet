@@ -64,7 +64,7 @@ public class ServerConnector implements Connector {
      * nio process 监控线程
      */
     public static class ConnectorThread extends Thread implements Connector {
-        private Logger LOG;
+        private static final Logger LOG = LogUtil.getLog();
         private Selector selector;
         private Process process;
         private Boolean stopStatus = false;
@@ -73,7 +73,6 @@ public class ServerConnector implements Connector {
             super(name);
             this.process = process;
             this.selector = Selector.open();
-            this.LOG = LogUtil.getLog(config.getLogName(), ConnectorThread.class);
         }
 
         public void register(SelectableChannel selectableChannel, int ops, Object attn) throws ClosedChannelException {

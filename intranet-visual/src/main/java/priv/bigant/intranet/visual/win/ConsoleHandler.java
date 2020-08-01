@@ -1,15 +1,18 @@
 package priv.bigant.intranet.visual.win;
 
+import org.apache.commons.lang3.ObjectUtils;
 import sun.security.action.GetPropertyAction;
 
 import javax.swing.*;
 import java.security.AccessController;
+import java.util.Objects;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 public class ConsoleHandler extends Handler {
-    public static JTextArea console;
-    public static JScrollPane scroll;
+    private static JTextArea console;
+    private static JScrollPane scroll;
+    private static boolean flag = false;
     String lineSeparator = AccessController.doPrivileged(
             new GetPropertyAction("line.separator"));
 
@@ -25,7 +28,12 @@ public class ConsoleHandler extends Handler {
 
     @Override
     public void publish(LogRecord record) {
-        println(record.getMessage());
+        if (flag) {
+            println(record.getMessage());
+        } else {
+            System.out.println(record.getMessage());
+        }
+
     }
 
     public void print(String message) {
@@ -37,8 +45,8 @@ public class ConsoleHandler extends Handler {
         console.append(message);
         console.append(lineSeparator);
         console.paintImmediately(console.getBounds());
-        JScrollBar sbar = scroll.getVerticalScrollBar();
-        sbar.setValue(sbar.getMaximum());
+        JScrollBar bar = scroll.getVerticalScrollBar();
+        bar.setValue(bar.getMaximum());
     }
 
     @Override
@@ -49,5 +57,14 @@ public class ConsoleHandler extends Handler {
     @Override
     public void close() throws SecurityException {
 
+    }
+
+    public static void init(JTextArea c, JScrollPane s) {
+        if (!ObjectUtils.allNotNull(c, s)) {
+            throw new NullPointerException("param is null");
+        }
+        console = c;
+        scroll = s;
+        flag = true;
     }
 }

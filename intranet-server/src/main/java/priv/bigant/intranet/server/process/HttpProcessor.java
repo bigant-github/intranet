@@ -10,12 +10,12 @@ import priv.bigant.intranet.server.Http11ProcessorServer;
  */
 public class HttpProcessor extends HttpIntranetServiceProcessAbs {
     public HttpProcessor(Config config) {
-        super(config);
+        super();
     }
 
     @Override
-    public Http11Processor createHttp11Processor(Config config) {
-        return new Http11ProcessorServer(8 * 1024, null, null, config);
+    public Http11Processor createHttp11Processor() {
+        return new Http11ProcessorServer(8 * 1024, null, null);
     }
 
     @Override

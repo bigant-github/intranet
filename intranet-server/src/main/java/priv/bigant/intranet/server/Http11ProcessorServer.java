@@ -14,12 +14,11 @@ import java.util.logging.Logger;
 public class Http11ProcessorServer extends Http11Processor {
     private HttpCommunication httpCommunication;
     private SocketBean receiver;
-    private Logger LOG;
-    private NioSelectorPool nioSelectorPool = new NioSelectorPool();
+    private static final Logger LOG = LogUtil.getLog();
+    private final NioSelectorPool nioSelectorPool = new NioSelectorPool();
 
-    public Http11ProcessorServer(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars, Config config) {
-        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars, config);
-        this.LOG = LogUtil.getLog(config.getLogName(), Http11ProcessorServer.class);
+    public Http11ProcessorServer(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars) {
+        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars);
     }
 
     @Override

@@ -24,7 +24,8 @@ import java.util.logging.Logger;
  */
 public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
-    public Logger LOG;
+    public static final Logger LOG = LogUtil.getLog();
+    ;
     /**
      * http 线程池
      */
@@ -32,11 +33,9 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
     private RecycledProcessors recycledProcessors = new RecycledProcessors();
     private NioSelectorPool nioSelectorPool = new NioSelectorPool();
-    private Config config;
+    private static final Config config = Config.getConfig();
 
-    public HttpIntranetServiceProcessAbs(Config config) {
-        this.LOG = LogUtil.getLog(config.getLogName(), HttpIntranetServiceProcessAbs.class);
-        this.config = config;
+    public HttpIntranetServiceProcessAbs() {
         this.executor = new ThreadPoolExecutor(config.getHttpProcessCoreSize(), config.getHttpProcessMaxSize(), config.getHttpProcessWaitTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
@@ -45,7 +44,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
         executor.shutdown();
     }
 
-    public abstract Http11Processor createHttp11Processor(Config config);
+    public abstract Http11Processor createHttp11Processor();
 
     @Override
     public void read(ServerConnector.ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
@@ -69,7 +68,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
 
         private SocketChannel socketChannel;
 
-        public ReadProcessThread(SocketChannel socketChannel) throws IOException {
+        public ReadProcessThread(SocketChannel socketChannel) {
             this.socketChannel = socketChannel;
         }
 
@@ -78,7 +77,7 @@ public abstract class HttpIntranetServiceProcessAbs extends ProcessBase {
             try {
                 AbstractProcessor pop = recycledProcessors.pop();
                 if (pop == null) {
-                    pop = createHttp11Processor(config);
+                    pop = createHttp11Processor();
                 }
 
                 //TODO

@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class CacheCommunication extends HttpCommunication {
 
-    private Logger LOG;
+    private static final Logger LOG = LogUtil.getLog();
     private ServerConfig serverConfig;
     private Stack<SocketBean> socketStack;
 
@@ -22,8 +22,6 @@ public class CacheCommunication extends HttpCommunication {
         super(socketChannel, config);
         this.serverConfig = config;
         socketStack = new Stack<>();
-        this.LOG = LogUtil.getLog(config.getLogName(), CacheCommunication.class);
-
     }
 
     /**

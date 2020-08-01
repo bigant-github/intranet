@@ -18,6 +18,10 @@ public class ClientConfig extends Config {
 
     private int listenerTime = 5000;
 
+    private ClientConfig() {
+
+    }
+
     public int getListenerTime() {
         return listenerTime;
     }
@@ -48,6 +52,17 @@ public class ClientConfig extends Config {
 
     public void setLocalPort(int localPort) {
         this.localPort = localPort;
+    }
+
+    public static ClientConfig getClientConfig() {
+        if (!(config instanceof ClientConfig)) {
+            synchronized (Config.class) {
+                if (config == null) {
+                    config = new ClientConfig();
+                }
+            }
+        }
+        return (ClientConfig) config;
     }
 
 }

@@ -11,11 +11,13 @@ public class ServerConfig extends Config {
     private int keepAliveTime = 1000;
     private int waitSocketTime = 200000;
 
+    private ServerConfig() {
+
+    }
 
     public int getWaitSocketTime() {
         return waitSocketTime;
     }
-
 
 
     public int getHttpPort() {
@@ -34,5 +36,15 @@ public class ServerConfig extends Config {
         return keepAliveTime;
     }
 
+    public static ServerConfig getSeverConfig() {
+        if (!(config instanceof ServerConfig)) {
+            synchronized (Config.class) {
+                if (config == null) {
+                    config = new ServerConfig();
+                }
+            }
+        }
+        return (ServerConfig) config;
+    }
 
 }

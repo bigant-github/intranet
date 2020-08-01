@@ -19,7 +19,7 @@ import static priv.bigant.intrance.common.communication.CommunicationRequest.cre
 
 public class Domain implements Connector {
 
-    private ClientConfig clientConfig;
+    private static final ClientConfig clientConfig = ClientConfig.getClientConfig();
 
     private ServerConnector.ConnectorThread httpConnect;
     private ServerConnector.ConnectorThread communicationConnect;
@@ -28,9 +28,6 @@ public class Domain implements Connector {
     private DomainListener domainListener;
     private Consumer<CommunicationRequest.CommunicationRequestHttpReturn.Status> returnError;
 
-    public Domain(ClientConfig clientConfig) {
-        this.clientConfig = clientConfig;
-    }
 
     public void connect() throws ServerConnectException, IOException {
 
@@ -48,7 +45,7 @@ public class Domain implements Connector {
     }
 
     public void startHttpProcessor() throws IOException {
-        HttpProcessor httpProcessor = new HttpProcessor(clientConfig);
+        HttpProcessor httpProcessor = new HttpProcessor();
         httpConnect = new ServerConnector.ConnectorThread(httpProcessor, "clientHttpIntranetServiceProcess-thread", clientConfig);
         httpConnect.start();
     }
@@ -116,14 +113,15 @@ public class Domain implements Connector {
      * 主进程监听器
      */
     public static class DomainListener extends Thread {
-        private Logger log;
+        private static final Logger LOG = LogUtil.getLog();
+
         private ClientConfig clientConfig;
         private Domain domain;
         private boolean isRun = true;
 
         public DomainListener(ClientConfig clientConfig, Domain domain) {
             super("DomainListener");
-            this.log = LogUtil.getLog(clientConfig.getLogName(), this.getClass());
+
             this.clientConfig = clientConfig;
             this.domain = domain;
         }
@@ -132,15 +130,15 @@ public class Domain implements Connector {
         public void run() {
             while (isRun) {
                 if (domain.getCommunication().isClose()) {
-                    log.info("CommunicationListener 连接已断开");
+                    LOG.info("CommunicationListener 连接已断开");
                     try {
                         if (isRun) domain.connect();
                     } catch (Exception e) {
-                        log.severe("连接失败" + e.getMessage());
+                        LOG.severe("连接失败" + e.getMessage());
                         e.printStackTrace();
                     }
                 } else {
-                    log.info("CommunicationListener 连接正常");
+                    LOG.info("CommunicationListener 连接正常");
                 }
                 try {
                     sleep(clientConfig.getListenerTime());

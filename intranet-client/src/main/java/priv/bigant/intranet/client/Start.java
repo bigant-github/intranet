@@ -19,7 +19,7 @@ public class Start {
 
     public static void main(String[] args) throws Exception {
         ClientConfig config = createdConfig();
-        Domain domain = new Domain(config);
+        Domain domain = new Domain();
         domain.setReturnError(x -> domain.showdown());
         domain.connect();
         domain.startListener();
@@ -32,7 +32,7 @@ public class Start {
      * @return
      */
     public static ClientConfig createdConfig() throws IOException, InvocationTargetException, IllegalAccessException {
-        ClientConfig clientConfig = new ClientConfig();
+        ClientConfig clientConfig = ClientConfig.getClientConfig();
         String configFile = System.getProperty("configFile");//通过启动参数指定配置文件位置
         if (StringUtils.isBlank(configFile))
             configFile = System.getProperty("user.dir") + "/conf.properties";

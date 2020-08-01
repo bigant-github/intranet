@@ -1,17 +1,15 @@
 package priv.bigant.intrance.common.log;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.logging.Logger;
 
 public class LogUtil {
 
-    public static Logger getLog(String name, Class clazz) {
+    public static final String LOG_NAME = "BigAnt-Log";
 
-        if (StringUtils.isEmpty(name)) return Logger.getLogger(clazz.getName());
+    private static final Logger LOG = Logger.getLogger(LOG_NAME);
 
-        else return Logger.getLogger(name);
-
+    public static Logger getLog() {
+        return LOG;
     }
 
 

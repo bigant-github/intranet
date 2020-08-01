@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 public abstract class HttpCommunication extends Communication {
 
-    private Logger LOG;
+    private static final Logger LOG = LogUtil.getLog();
     private String host;
 
     public String getHost() {
@@ -29,7 +29,7 @@ public abstract class HttpCommunication extends Communication {
 
     public HttpCommunication(SocketChannel socketChannel, CommunicationDispose communicationDispose, Config config) throws IOException {
         super(socketChannel, communicationDispose, config);
-        this.LOG = LogUtil.getLog(config.getLogName(), HttpCommunication.class);
+
     }
 
     /**

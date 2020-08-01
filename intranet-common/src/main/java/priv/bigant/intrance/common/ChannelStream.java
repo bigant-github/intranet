@@ -11,11 +11,10 @@ public class ChannelStream {
 
     private SocketChannel socketChannel;
     private ByteBuffer byteBuffer;
-    private Logger log;
+    private static final Logger log = LogUtil.getLog();
     private boolean isFirst = true;
 
     public ChannelStream(SocketChannel socketChannel, int bufferSize, String logName) {
-        this.log = LogUtil.getLog(logName, this.getClass());
         this.socketChannel = socketChannel;
         this.byteBuffer = ByteBuffer.allocateDirect(bufferSize);
     }

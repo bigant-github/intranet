@@ -10,7 +10,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.regex.Pattern;
 
-public class AddInsuranceWin extends JDialog {
+public class ConfigWin extends JDialog {
     private JPanel contentPane;
     private JTextField hostNameField;
     private JTextField ipTextField;
@@ -55,7 +55,7 @@ public class AddInsuranceWin extends JDialog {
                 JOptionPane.showMessageDialog(this, "客户端端口格式不正确", "客户端端口错误", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            clientConfig.setHostName(hostName);
+            clientConfig.setHostName(hostName + ".bigant.club");
             clientConfig.setLocalPort(Integer.parseInt(port));
             clientConfig.setLocalHost(ip);
             setVisible(false);
@@ -63,12 +63,13 @@ public class AddInsuranceWin extends JDialog {
     }
 
 
-    public AddInsuranceWin(JFrame jFrame, ClientConfig clientConfig) {
+    public ConfigWin(JFrame jFrame, ClientConfig clientConfig) {
         super(jFrame, "配置", false);
         this.clientConfig = clientConfig;
         init();
         setContentPane(contentPane);
         pack();
+        setDefaultCloseOperation(HIDE_ON_CLOSE);
         setVisible(true);
     }
 

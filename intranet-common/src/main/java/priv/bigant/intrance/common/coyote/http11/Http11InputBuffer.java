@@ -42,7 +42,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
     // -------------------------------------------------------------- Constants
 
-    private Logger LOG;
+    private static final Logger LOG = LogUtil.getLog();
 
     /**
      * The string manager for this package.
@@ -117,9 +117,9 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     // ----------------------------------------------------------- Constructors
-    public Http11InputBuffer(Request request, int headerBufferSize, HttpParser httpParser, Config config) {
+    public Http11InputBuffer(Request request, int headerBufferSize, HttpParser httpParser) {
 
-        this.LOG = LogUtil.getLog(config.getLogName(), Http11InputBuffer.class);
+
         this.request = request;
         headers = request.getMimeHeaders();
 
