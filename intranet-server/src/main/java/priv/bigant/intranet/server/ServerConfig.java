@@ -4,7 +4,7 @@ import priv.bigant.intrance.common.Config;
 
 public class ServerConfig extends Config {
     private int socketTimeOut = 5000;
-    private int httpPort = 8087;
+    private int httpPort = 80;
 
     private int corePoolSize = 5;
     private int maximumPoolSize = 30;

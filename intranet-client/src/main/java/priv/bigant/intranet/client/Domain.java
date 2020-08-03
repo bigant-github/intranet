@@ -73,10 +73,8 @@ public class Domain implements Connector {
 
     @Override
     public void showdown() {
-
-        communicationConnect.showdown();
-        httpConnect.showdown();
-
+        if (communicationConnect != null) communicationConnect.showdown();
+        if (httpConnect != null) httpConnect.showdown();
         if (domainListener != null) domainListener.showdown();
     }
 

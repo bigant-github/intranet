@@ -5,7 +5,7 @@ import priv.bigant.intrance.common.Config;
 public class ClientConfig extends Config {
 
     /**
-     * 服务器地址
+     * 请求穿透域名
      */
     private String hostName;
 
@@ -17,6 +17,19 @@ public class ClientConfig extends Config {
     private String localHost;
 
     private int listenerTime = 5000;
+
+    /**
+     * 二级域名 自定义部署时有用
+     */
+    private String defaultHost = ".bigant.club";
+
+    public String getDefaultHost() {
+        return defaultHost;
+    }
+
+    public void setDefaultHost(String defaultHost) {
+        this.defaultHost = defaultHost;
+    }
 
     private ClientConfig() {
 

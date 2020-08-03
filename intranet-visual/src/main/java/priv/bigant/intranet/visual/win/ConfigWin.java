@@ -16,6 +16,7 @@ public class ConfigWin extends JDialog {
     private JTextField ipTextField;
     private JTextField portText;
     private JButton 提交Button;
+    private JLabel defaultHostLab;
     private ClientConfig clientConfig;
     private ActionListener action;
 
@@ -24,6 +25,12 @@ public class ConfigWin extends JDialog {
     }
 
     public void initContext() {
+        if (StringUtils.isEmpty(clientConfig.getDefaultHost())) {
+            defaultHostLab.setVisible(false);
+        } else {
+            defaultHostLab.setText(clientConfig.getDefaultHost());
+        }
+
         提交Button.addActionListener(e -> {
             String hostName = hostNameField.getText();
             if (StringUtils.isEmpty(hostName)) {
@@ -55,7 +62,7 @@ public class ConfigWin extends JDialog {
                 JOptionPane.showMessageDialog(this, "客户端端口格式不正确", "客户端端口错误", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            clientConfig.setHostName(hostName + ".bigant.club");
+            clientConfig.setHostName(hostName + (StringUtils.isNotEmpty(clientConfig.getDefaultHost()) ? clientConfig.getDefaultHost() : ""));
             clientConfig.setLocalPort(Integer.parseInt(port));
             clientConfig.setLocalHost(ip);
             setVisible(false);
@@ -99,9 +106,9 @@ public class ConfigWin extends JDialog {
         final JPanel panel2 = new JPanel();
         panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel1.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        final JLabel label2 = new JLabel();
-        label2.setText("bigant.club");
-        panel2.add(label2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        defaultHostLab = new JLabel();
+        defaultHostLab.setText("bigant.club");
+        panel2.add(defaultHostLab, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         hostNameField = new JTextField();
         panel2.add(hostNameField, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JPanel panel3 = new JPanel();
@@ -110,15 +117,15 @@ public class ConfigWin extends JDialog {
         ipTextField = new JTextField();
         ipTextField.setText("192.168.201.90");
         panel3.add(ipTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        final JLabel label3 = new JLabel();
-        label3.setText("  ：");
-        panel3.add(label3, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label2 = new JLabel();
+        label2.setText("  ：");
+        panel3.add(label2, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         portText = new JTextField();
         portText.setText("80");
         panel3.add(portText, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        final JLabel label4 = new JLabel();
-        label4.setText("   本地地址");
-        panel3.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label3 = new JLabel();
+        label3.setText("   本地地址");
+        panel3.add(label3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
         panel4.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         contentPane.add(panel4, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));

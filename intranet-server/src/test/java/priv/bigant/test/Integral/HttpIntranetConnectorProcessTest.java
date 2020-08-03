@@ -17,7 +17,7 @@ public class HttpIntranetConnectorProcessTest {
 
     @Test
     public void start() throws IOException {
-        ServerConfig config = new ServerConfig();
+        ServerConfig config = ServerConfig.getSeverConfig();
         CommunicationProcessor httpIntranetConnectorProcess = new CommunicationProcessor(config);
         ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999, config);
         testHttpIntranetConnectorProcess.start();
