@@ -31,7 +31,7 @@ public class ResponseTest {
 
         Response response = new Response();
         HttpParser httpParser = new HttpParser(null, null);
-        Http11ResponseInputBuffer http11ResponseInputBuffer = new Http11ResponseInputBuffer(response, 1026, false, httpParser);
+        Http11ResponseInputBuffer http11ResponseInputBuffer = new Http11ResponseInputBuffer(response, 1026, httpParser);
 
         /*Request response = new Request();
         HttpParser httpParser = new HttpParser(null, null);

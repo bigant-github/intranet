@@ -5,7 +5,7 @@ import priv.bigant.intrance.common.ServerConnector;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intranet.server.ServerConfig;
-import priv.bigant.intranet.server.process.CommunicationProcess;
+import priv.bigant.intranet.server.process.CommunicationProcessor;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -17,9 +17,9 @@ public class HttpIntranetConnectorProcessTest {
 
     @Test
     public void start() throws IOException {
-        ServerConfig config = (ServerConfig) ServerConfig.getConfig();
-        CommunicationProcess httpIntranetConnectorProcess = new CommunicationProcess();
-        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999);
+        ServerConfig config = ServerConfig.getSeverConfig();
+        CommunicationProcessor httpIntranetConnectorProcess = new CommunicationProcessor(config);
+        ServerConnector testHttpIntranetConnectorProcess = new ServerConnector("信息交换器", httpIntranetConnectorProcess, 9999, config);
         testHttpIntranetConnectorProcess.start();
         System.in.read();
     }
@@ -27,7 +27,7 @@ public class HttpIntranetConnectorProcessTest {
     @Test
     public void send() throws Exception {
         SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("localhost", 9999));
-        Communication communication = new Communication(socketChannel);
+        Communication communication = new Communication(socketChannel, null);
         CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
         for (int i = 0; i < 1000; i++) {
             communication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestTest));

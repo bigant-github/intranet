@@ -16,9 +16,6 @@
  */
 package priv.bigant.intrance.common.util.buf;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -33,9 +30,6 @@ import java.util.TreeMap;
  * @author Remy Maucherat
  */
 public class StringCache {
-
-
-    private static final Logger log = LoggerFactory.getLogger(StringCache.class);
 
 
     // ------------------------------------------------------- Static Variables
@@ -191,11 +185,7 @@ public class StringCache {
                         bcCount = 0;
                         bcStats.clear();
                         bcCache = tempbcCache;
-                        if (log.isDebugEnabled()) {
-                            long t2 = System.currentTimeMillis();
-                            log.debug("ByteCache generation time: " +
-                                    (t2 - t1) + "ms");
-                        }
+
                     } else {
                         bcCount++;
                         // Allocate new ByteEntry for the lookup
@@ -308,11 +298,7 @@ public class StringCache {
                         ccCount = 0;
                         ccStats.clear();
                         ccCache = tempccCache;
-                        if (log.isDebugEnabled()) {
-                            long t2 = System.currentTimeMillis();
-                            log.debug("CharCache generation time: " +
-                                    (t2 - t1) + "ms");
-                        }
+
                     } else {
                         ccCount++;
                         // Allocate new CharEntry for the lookup

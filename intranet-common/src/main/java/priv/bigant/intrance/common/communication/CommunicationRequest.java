@@ -29,7 +29,7 @@ public class CommunicationRequest extends CommunicationReturn {
         super.jsonObject = jsonObject;
     }
 
-    public static CommunicationRequest createCommunicationRequest(CommunicationP communicationP) throws Exception {
+    public static CommunicationRequest createCommunicationRequest(CommunicationP communicationP) {
         CommunicationRequest communicationRequest = new CommunicationRequest();
         communicationRequest.add(communicationP);
         return communicationRequest;

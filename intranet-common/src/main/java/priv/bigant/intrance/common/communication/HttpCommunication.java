@@ -1,17 +1,18 @@
 package priv.bigant.intrance.common.communication;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.HttpSocketManager;
 import priv.bigant.intrance.common.SocketBean;
+import priv.bigant.intrance.common.log.LogUtil;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public abstract class HttpCommunication extends Communication {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HttpCommunication.class);
+    private static final Logger LOG = LogUtil.getLog();
     private String host;
 
     public String getHost() {
@@ -22,12 +23,13 @@ public abstract class HttpCommunication extends Communication {
         this.host = host;
     }
 
-    public HttpCommunication(SocketChannel socketChannel) throws IOException {
-        super(socketChannel);
+    public HttpCommunication(SocketChannel socketChannel, Config config) throws IOException {
+        super(socketChannel, config);
     }
 
-    public HttpCommunication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
-        super(socketChannel, communicationDispose);
+    public HttpCommunication(SocketChannel socketChannel, CommunicationDispose communicationDispose, Config config) throws IOException {
+        super(socketChannel, communicationDispose, config);
+
     }
 
     /**
@@ -55,7 +57,7 @@ public abstract class HttpCommunication extends Communication {
         HttpSocketManager.addKey(id, host);
         try {
             super.writeN(communicationRequest);
-            LOG.debug(host + "新建http连接");
+            LOG.fine(host + "新建http连接");
         } catch (IOException e) {
             e.printStackTrace();
         }

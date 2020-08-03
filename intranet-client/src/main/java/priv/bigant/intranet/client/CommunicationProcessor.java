@@ -1,48 +1,45 @@
 package priv.bigant.intranet.client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.Config;
-import priv.bigant.intrance.common.Connector;
 import priv.bigant.intrance.common.ProcessBase;
 import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
 import priv.bigant.intrance.common.communication.Communication;
 import priv.bigant.intrance.common.communication.CommunicationDispose;
 import priv.bigant.intrance.common.communication.CommunicationRequest;
 import priv.bigant.intrance.common.communication.CommunicationRequest.CommunicationRequestHttpReturn;
+import priv.bigant.intrance.common.log.LogUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 
-public class CommunicationProcess extends ProcessBase {
+public class CommunicationProcessor extends ProcessBase {
 
 
-    private static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
-    private ClientCommunication clientCommunication;
-    private Connector connector;
+    private final Communication clientCommunication;
 
-    public CommunicationProcess(ClientCommunication clientCommunication, ConnectorThread serviceConnector) {
+
+    public CommunicationProcessor(Communication clientCommunication, ConnectorThread serviceConnector) {
         this.clientCommunication = clientCommunication;
-        clientCommunication.setCommunicationDispose(new ClientCommunicationDispose(serviceConnector, this));
+        //clientCommunication.setCommunicationDispose(new ClientCommunicationDispose(serviceConnector));
+    }
+
+    public CommunicationProcessor(Communication clientCommunication, ClientConfig clientConfig) {
+        this.clientCommunication = clientCommunication;
     }
 
     public void showdown() {
-        connector.showdown();
+        if (!clientCommunication.isClose()) {
+            clientCommunication.close();
+        }
     }
 
-    public Connector getConnector() {
-        return connector;
-    }
-
-    public void setConnector(Connector connector) {
-        this.connector = connector;
-    }
 
     @Override
     public void read(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
-        clientCommunication.disposeRequests();
+        clientCommunication.disposeRequest();
     }
 
 
@@ -61,34 +58,34 @@ public class CommunicationProcess extends ProcessBase {
      * 统一处理请求
      */
     public static class ClientCommunicationDispose extends CommunicationDispose {
-        private ClientConfig clientConfig;
-        private static final Logger LOG = LoggerFactory.getLogger(ClientCommunicationDispose.class);
-        private CommunicationProcess communicationProcess;
-        private ConnectorThread serviceConnector;
+        private final ClientConfig clientConfig;
+        private static final Logger log = LogUtil.getLog();
+        private final ConnectorThread serviceConnector;
+        private Consumer<CommunicationRequestHttpReturn.Status> returnError;
 
-        public ClientCommunicationDispose(ConnectorThread serviceConnector, CommunicationProcess communicationProcess) {
+        public ClientCommunicationDispose(ConnectorThread serviceConnector, ClientConfig clientConfig) {
             this.serviceConnector = serviceConnector;
-            this.communicationProcess = communicationProcess;
-            clientConfig = (ClientConfig) Config.getConfig();
+            this.clientConfig = clientConfig;
+        }
+
+        public ClientCommunicationDispose(ConnectorThread serviceConnector, ClientConfig clientConfig, Consumer<CommunicationRequestHttpReturn.Status> returnError) {
+            this(serviceConnector, clientConfig);
+            this.returnError = returnError;
         }
 
         @Override
         protected void httpReturn(CommunicationRequest communicationRequest, Communication communication) {
-            try {
-                CommunicationRequestHttpReturn communicationRequestHttpReturn = communicationRequest.toJavaObject(CommunicationRequestHttpReturn.class);
-                switch (communicationRequestHttpReturn.getStatus()) {
-                    case SUCCESS:
-                        LOG.info("连接成功");
-                        break;
-                    case DOMAIN_OCCUPIED:
-                        communicationProcess.showdown();
-                        LOG.error("域名已被占用");
-                        break;
-                }
-            } catch (Exception e) {
-                communicationProcess.showdown();
-                LOG.error("连接失败", e);
+
+            CommunicationRequestHttpReturn communicationRequestHttpReturn = communicationRequest.toJavaObject(CommunicationRequestHttpReturn.class);
+            switch (communicationRequestHttpReturn.getStatus()) {
+                case SUCCESS:
+                    log.info("链接成功 输入   " + clientConfig.getHostName() + " 即可对应地址  " + clientConfig.getLocalHost() + ":" + clientConfig.getLocalPort());
+                    break;
+                case DOMAIN_OCCUPIED:
+                    log.severe(clientConfig.getHostName() + "域名已被占用");
+                    if (returnError != null) returnError.accept(CommunicationRequestHttpReturn.Status.DOMAIN_OCCUPIED);
             }
+
         }
 
         @Override
@@ -108,13 +105,12 @@ public class CommunicationProcess extends ProcessBase {
             try {
                 socketChannel = SocketChannel.open(new InetSocketAddress(clientConfig.getHostName(), clientConfig.getHttpAcceptPort()));
                 socketChannel.socket().setKeepAlive(true);
-
-                Communication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd), socketChannel);
-
+                Communication.writeN(CommunicationRequest.createCommunicationRequest(communicationRequestHttpAdd), socketChannel, clientConfig);
                 socketChannel.configureBlocking(false);
                 serviceConnector.register(socketChannel, SelectionKey.OP_READ);
             } catch (Exception e) {
-                LOG.error("add http socket error", e);
+                log.severe("add http socket error" + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

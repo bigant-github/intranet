@@ -1,9 +1,8 @@
 package priv.bigant.intrance.common.communication;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.ChannelStream;
+import priv.bigant.intrance.common.Config;
+import priv.bigant.intrance.common.log.LogUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,18 +10,20 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 客户端与服务端通信的工具
  */
-public class Communication extends Thread {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Communication.class);
+public class Communication {
+    private static final Logger LOG = LogUtil.getLog();
 
     protected byte[] bytes = new byte[1024];
     protected ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
     protected SocketChannel socketChannel;
     protected ChannelStream channelStream;
-
+    private Config config;
     private CommunicationDispose communicationDispose;
 
     /**
@@ -38,44 +39,26 @@ public class Communication extends Thread {
         return socketChannel;
     }
 
-    public Communication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
-        this(socketChannel);
+    public Communication(SocketChannel socketChannel, CommunicationDispose communicationDispose, Config config) {
+        this(socketChannel, config);
         this.communicationDispose = communicationDispose;
     }
 
-    public Communication(SocketChannel socketChannel) throws IOException {
+    public Communication(SocketChannel socketChannel, Config config) {
         this.socketChannel = socketChannel;
-        this.channelStream = new ChannelStream(socketChannel, 1024);
-    }
-
-    public Communication() {
-
+        this.channelStream = new ChannelStream(socketChannel, 1024, config.getLogName());
+        this.config = config;
     }
 
     public synchronized void close() {
         try {
-            socketChannel.close();
+            if (socketChannel != null) socketChannel.close();
+            if (channelStream != null) channelStream.close();
         } catch (IOException e) {
-            LOGGER.error("communication 关闭失败");
+            LOG.severe("communication 关闭失败");
+            e.printStackTrace();
         }
         socketChannel = null;
-    }
-
-    @Deprecated
-    public synchronized byte[] readN() throws IOException {
-        byteBuffer.clear();
-
-        int readNum = socketChannel.read(byteBuffer);
-        if (readNum < 0)
-            throw new IOException("read -1");
-
-        byte[] subArray = ArrayUtils.subarray(byteBuffer.array(), 0, readNum);
-        byteBuffer.flip();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("读取到数据 :" + new String(subArray, StandardCharsets.UTF_8));
-        }
-
-        return subArray;
     }
 
     /**
@@ -88,12 +71,11 @@ public class Communication extends Thread {
         byteBuffer.clear();
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
-            byteBuffer.flip();
-        }
         int write = socketChannel.write(byteBuffer);
-        System.out.println(write);
+        if (LOG.isLoggable(Level.FINE)) {
+            byteBuffer.flip();
+            LOG.fine("write {size:" + write + ",value:" + StandardCharsets.UTF_8.decode(byteBuffer).toString() + "}");
+        }
     }
 
     /**
@@ -102,13 +84,14 @@ public class Communication extends Thread {
      * @param communicationReturn
      * @throws IOException
      */
-    public static void writeN(CommunicationReturn communicationReturn, SocketChannel socketChannel) throws IOException {
+    public static void writeN(CommunicationReturn communicationReturn, SocketChannel socketChannel, Config config) throws IOException {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
         byteBuffer.clear();
         byteBuffer.put(communicationReturn.toByte());
         byteBuffer.flip();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
+        Logger log = LogUtil.getLog();
+        if (log.isLoggable(Level.FINE)) {
+            log.fine("write :" + StandardCharsets.UTF_8.decode(byteBuffer).toString());
             byteBuffer.flip();
         }
         socketChannel.write(byteBuffer);
@@ -128,8 +111,8 @@ public class Communication extends Thread {
      *
      * @throws IOException
      */
-    public static CommunicationRequest readRequest(SocketChannel socketChannel) throws IOException {
-        return readRequest(new ChannelStream(socketChannel, 1024));
+    public static CommunicationRequest readRequest(SocketChannel socketChannel, String logName) throws IOException {
+        return readRequest(new ChannelStream(socketChannel, 1024, logName));
     }
 
     public static CommunicationRequest readRequest(ChannelStream channelStream) throws IOException {
@@ -168,7 +151,9 @@ public class Communication extends Thread {
      */
     public synchronized void disposeRequests() throws IOException {
         while (channelStream.hasNext()) {
-            communicationDispose.invoke(readRequest(), this);
+            CommunicationRequest request = readRequest();
+            LOG.fine(request.toString());
+            communicationDispose.invoke(request, this);
         }
     }
 
@@ -178,12 +163,10 @@ public class Communication extends Thread {
     public synchronized void disposeRequest() throws IOException {
         if (!channelStream.hasNext())
             throw new NullPointerException("未找到request");
-        communicationDispose.invoke(readRequest(), this);
+        CommunicationRequest request = readRequest();
+        LOG.fine(request.toString());
+        communicationDispose.invoke(request, this);
 
-    }
-
-    public synchronized CommunicationResponse readResponse() throws IOException {
-        return CommunicationResponse.createCommunicationResponse(readN());
     }
 
 
@@ -194,10 +177,10 @@ public class Communication extends Thread {
         try {
             CommunicationRequest.CommunicationRequestTest communicationRequestTest = new CommunicationRequest.CommunicationRequestTest();
             writeN(CommunicationRequest.createCommunicationRequest(communicationRequestTest));
-            LOGGER.debug("isClose false");
+            LOG.fine("isClose false");
             return false;
         } catch (Exception se) {
-            LOGGER.debug("isClose true");
+            LOG.fine("isClose true");
             return true;
         }
     }

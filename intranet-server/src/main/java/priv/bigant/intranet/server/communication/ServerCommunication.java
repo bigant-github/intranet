@@ -1,36 +1,27 @@
 package priv.bigant.intranet.server.communication;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.HttpSocketManager;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.communication.*;
 import priv.bigant.intranet.server.ServerConfig;
-import priv.bigant.intranet.server.process.CommunicationProcess;
 
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * 与客户段的交换器
  */
 public class ServerCommunication extends HttpCommunication {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ServerCommunication.class);
-    public static final Map<String, SocketBean> MAP = new HashMap<>();
+    private static final Logger LOG = Logger.getLogger(ServerCommunication.class.getName());
+    public static final Map<String, SocketBean> MAP = new ConcurrentHashMap<>();
     private ServerConfig serverConfig;
 
-    public ServerCommunication(SocketChannel socketChannel) throws IOException {
-        super(socketChannel, ServerCommunicationDispose.getInstance());
-        serverConfig = (ServerConfig) Config.getConfig();
-    }
-
-    public ServerCommunication(SocketChannel socketChannel, CommunicationDispose communicationDispose) throws IOException {
-        super(socketChannel, communicationDispose);
-        serverConfig = (ServerConfig) Config.getConfig();
+    public ServerCommunication(SocketChannel socketChannel, ServerConfig serverConfig) throws IOException {
+        super(socketChannel, ServerCommunicationDispose.getInstance(), serverConfig);
+        this.serverConfig = serverConfig;
     }
 
     @Override
@@ -39,10 +30,13 @@ public class ServerCommunication extends HttpCommunication {
         String id = super.createSocketBean();
         while ((time + serverConfig.getWaitSocketTime()) > System.currentTimeMillis()) {
             SocketBean socketBean = MAP.get(id);
-            if (socketBean != null)
+            if (socketBean != null) {
+                MAP.remove(id);
                 return socketBean;
+            }
+
         }
-        LOG.debug("getSocketBean TIMEOUT: createTime=" + time + "    endTime=" + System.currentTimeMillis());
+        LOG.fine("getSocketBean TIMEOUT: createTime=" + time + "    endTime=" + System.currentTimeMillis());
         return null;
     }
 
@@ -50,7 +44,7 @@ public class ServerCommunication extends HttpCommunication {
     public void putSocketBean(SocketBean socketBean) {
         String id = socketBean.getId();
         MAP.put(id, socketBean);
-        LOG.debug("put socket id:" + id);
+        LOG.fine("put socket id:" + id);
     }
 
     @Override
@@ -96,7 +90,7 @@ public class ServerCommunication extends HttpCommunication {
     }
 
     static class ReadProcessThread implements Runnable {
-        final Logger LOG = LoggerFactory.getLogger(ReadProcessThread.class);
+        final Logger LOG = Logger.getLogger(ReadProcessThread.class.getName());
         private ServerCommunication serverCommunication;
         private CommunicationRequest.CommunicationRequestHttpFirst communicationRequestHttpFirst;
 
@@ -134,7 +128,8 @@ public class ServerCommunication extends HttpCommunication {
                 for (int a = 0; a < 10; a++)
                     serverCommunication.createSocketBean();
             } catch (Exception e) {
-                LOG.error("连接失败", e);
+                LOG.severe("连接失败" + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

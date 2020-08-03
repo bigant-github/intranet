@@ -9,8 +9,10 @@ import java.net.StandardSocketOptions;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 
-public abstract class Config {
+public class Config {
     protected static Config config;
+
+    private String logName;
     /**
      * 服务器端口
      */
@@ -32,6 +34,18 @@ public abstract class Config {
     private int httpProcessReadBufferSize = 2048;
     private int httpProcessWriteBufferSize = 2048;
     private int communicationByteBufferSize = 1024;
+
+    protected Config() {
+
+    }
+
+    public String getLogName() {
+        return logName;
+    }
+
+    public void setLogName(String name) {
+        logName = name;
+    }
 
     public int getIntranetPort() {
         return intranetPort;
@@ -81,9 +95,6 @@ public abstract class Config {
         this.httpProcessMaxSize = httpProcessMaxSize;
     }
 
-    protected Config() {
-
-    }
 
     /**
      * Enable/disable socket processor cache, this bounded cache stores SocketProcessor objects to reduce GC Default is
@@ -461,9 +472,6 @@ public abstract class Config {
         this.bufferSize = bufferSize;
     }
 
-    public static Config getConfig() {
-        return config;
-    }
 
     public int getHttpAcceptPort() {
         return httpAcceptPort;
@@ -479,5 +487,16 @@ public abstract class Config {
 
     public void setHttpProcessWaitTime(int httpProcessWaitTime) {
         this.httpProcessWaitTime = httpProcessWaitTime;
+    }
+
+    public static Config getConfig() {
+        if (config == null) {
+            synchronized (Config.class) {
+                if (config == null) {
+                    config = new Config();
+                }
+            }
+        }
+        return config;
     }
 }

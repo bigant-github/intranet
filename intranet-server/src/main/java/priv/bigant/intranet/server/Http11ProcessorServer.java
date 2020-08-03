@@ -1,23 +1,24 @@
 package priv.bigant.intranet.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.HttpSocketManager;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.communication.HttpCommunication;
 import priv.bigant.intrance.common.coyote.http11.Http11Processor;
-import priv.bigant.intrance.common.util.net.*;
+import priv.bigant.intrance.common.log.LogUtil;
+import priv.bigant.intrance.common.util.net.NioSelectorPool;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 public class Http11ProcessorServer extends Http11Processor {
     private HttpCommunication httpCommunication;
     private SocketBean receiver;
-    private static final Logger LOG = LoggerFactory.getLogger(Http11ProcessorServer.class);
-    private NioSelectorPool nioSelectorPool = new NioSelectorPool();
+    private static final Logger LOG = LogUtil.getLog();
+    private final NioSelectorPool nioSelectorPool = new NioSelectorPool();
 
-    public Http11ProcessorServer(int maxHttpHeaderSize, boolean allowHostHeaderMismatch, boolean rejectIllegalHeaderName, String relaxedPathChars, String relaxedQueryChars) {
-        super(maxHttpHeaderSize, rejectIllegalHeaderName, relaxedPathChars, relaxedQueryChars);
+    public Http11ProcessorServer(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars) {
+        super(maxHttpHeaderSize, relaxedPathChars, relaxedQueryChars);
     }
 
     @Override
@@ -25,7 +26,7 @@ public class Http11ProcessorServer extends Http11Processor {
 
         String host = super.request.getHost();
 
-        LOG.debug("获取socketBean host=" + host);
+        LOG.fine("获取socketBean host=" + host);
 
         httpCommunication = HttpSocketManager.get(host);
         if (httpCommunication == null)
@@ -57,14 +58,14 @@ public class Http11ProcessorServer extends Http11Processor {
 
     @Override
     public void close() throws IOException {
-        LOG.debug("server close.............." + httpCommunication);
+        LOG.fine("server close.............." + httpCommunication);
         socketWrapper.close();
 
         if (receiver != null) {
             receiver.skip();
             receiver.close();
             if (httpCommunication != null) {
-                LOG.debug("server close add client socket..............");
+                LOG.fine("server close add client socket..............");
                 httpCommunication.createSocketBean();
             }
         }

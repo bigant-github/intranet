@@ -4,31 +4,19 @@ import priv.bigant.intrance.common.Config;
 
 public class ServerConfig extends Config {
     private int socketTimeOut = 5000;
-    private int httpPort = 8087;
+    private int httpPort = 80;
 
     private int corePoolSize = 5;
     private int maximumPoolSize = 30;
     private int keepAliveTime = 1000;
     private int waitSocketTime = 200000;
 
-
-    public int getWaitSocketTime() {
-        return waitSocketTime;
-    }
-
     private ServerConfig() {
 
     }
 
-    public static Config getConfig() {
-        if (config == null) {
-            synchronized (Config.class) {
-                if (config == null) {
-                    config = new ServerConfig();
-                }
-            }
-        }
-        return config;
+    public int getWaitSocketTime() {
+        return waitSocketTime;
     }
 
 
@@ -48,5 +36,15 @@ public class ServerConfig extends Config {
         return keepAliveTime;
     }
 
+    public static ServerConfig getSeverConfig() {
+        if (!(config instanceof ServerConfig)) {
+            synchronized (Config.class) {
+                if (config == null) {
+                    config = new ServerConfig();
+                }
+            }
+        }
+        return (ServerConfig) config;
+    }
 
 }

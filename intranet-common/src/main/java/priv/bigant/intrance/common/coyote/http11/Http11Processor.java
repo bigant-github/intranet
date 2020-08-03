@@ -18,12 +18,11 @@ package priv.bigant.intrance.common.coyote.http11;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import priv.bigant.intrance.common.Config;
 import priv.bigant.intrance.common.SocketBean;
 import priv.bigant.intrance.common.coyote.AbstractProcessor;
 import priv.bigant.intrance.common.coyote.HttpResponseStatus;
+import priv.bigant.intrance.common.log.LogUtil;
 import priv.bigant.intrance.common.util.ExceptionUtils;
 import priv.bigant.intrance.common.util.buf.Ascii;
 import priv.bigant.intrance.common.util.buf.ByteChunk;
@@ -31,7 +30,6 @@ import priv.bigant.intrance.common.util.http.FastHttpDateFormat;
 import priv.bigant.intrance.common.util.http.MimeHeaders;
 import priv.bigant.intrance.common.util.http.parser.HttpParser;
 import priv.bigant.intrance.common.util.net.*;
-import priv.bigant.intrance.common.util.res.StringManager;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -39,17 +37,19 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.lang.System.arraycopy;
 
 public abstract class Http11Processor extends AbstractProcessor {
 
-    private static final Logger log = LoggerFactory.getLogger(Http11Processor.class);
-    private SocketBean receiver;
+    private static final Logger LOG = LogUtil.getLog();
+
     /**
-     * The string manager for this package.
+     * 接收端
      */
-    private static final StringManager sm = StringManager.getManager(Http11Processor.class);
+    private SocketBean receiver;
 
     /**
      * Input.
@@ -111,20 +111,18 @@ public abstract class Http11Processor extends AbstractProcessor {
     private String server = "BigAnt";
 
 
-    private Config config;
+    private static final Config config = Config.getConfig();
 
-    private int maxHttpHeaderSize;
+    private final int maxHttpHeaderSize;
 
-    public Http11Processor(int maxHttpHeaderSize, boolean rejectIllegalHeaderName, String relaxedPathChars, String relaxedQueryChars) {
-
+    public Http11Processor(int maxHttpHeaderSize, String relaxedPathChars, String relaxedQueryChars) {
         super();
-        config = Config.getConfig();
         HttpParser httpParser = new HttpParser(relaxedPathChars, relaxedQueryChars);
 
-        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
+        inputBuffer = new Http11InputBuffer(request, maxHttpHeaderSize, httpParser);
         request.setInputBuffer(inputBuffer);
 
-        responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, rejectIllegalHeaderName, httpParser);
+        responseInputBuffer = new Http11ResponseInputBuffer(response, maxHttpHeaderSize, httpParser);
         response.setInputBuffer(responseInputBuffer);
 
         this.maxHttpHeaderSize = maxHttpHeaderSize;
@@ -192,7 +190,7 @@ public abstract class Http11Processor extends AbstractProcessor {
 
         do {
             if (request.isConnection() && response.isConnection()) {
-                log.debug("http keep alive" + (keepCount++));
+                LOG.fine("http keep alive" + (keepCount++));
                 responseInputBuffer.nextRequest();
                 inputBuffer.nextRequest();
             }
@@ -224,11 +222,11 @@ public abstract class Http11Processor extends AbstractProcessor {
             } catch (SocketTimeoutException e) {
                 break;
             } catch (IOException e) {
-                log.debug("Error parsing HTTP response header", e);
+                LOG.fine("Error parsing HTTP response header" + e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                log.debug("Error parsing HTTP response header", t);
+                LOG.fine("Error parsing HTTP response header" + t);
             }
 
 
@@ -255,8 +253,6 @@ public abstract class Http11Processor extends AbstractProcessor {
             try {
                 if (!responseInputBuffer.parseResponseLine(keptAlive)) {//解析http请求第一行
                     if (responseInputBuffer.getParsingRequestLinePhase() == -1) {
-                        //TODO 此处为http协议升级
-                    } else if (handleIncompleteRequestLineRead()) {
                         prepareResponse(HttpResponseStatus.SC_BAD_REQUEST, "解析客户端响应失败");
                         break;
                     }
@@ -281,23 +277,23 @@ public abstract class Http11Processor extends AbstractProcessor {
             } catch (SocketTimeoutException e) {
                 break;
             } catch (IOException e) {
-                log.debug("Error parsing HTTP response header", e);
+                LOG.fine("Error parsing HTTP response header"+ e);
                 break;
             } catch (Throwable t) {
                 ExceptionUtils.handleThrowable(t);
-                log.debug("Error parsing HTTP response header", t);
+                LOG.fine("Error parsing HTTP response header"+t);
             }
 
-            log.debug(request.requestURI().getString() + "响应完成");
             try {
                 NioChannel socket = (NioChannel) socketWrapper.getSocket();
                 mutual(responseSocketWrapper, responseInputBuffer.getByteBuffer(), socket.getIOChannel(), response.isChunked(), response.getContentLength());
             } catch (IOException e) {
-                log.error("response mutual error", e);
+                LOG.severe("response mutual error"+e);
+                e.printStackTrace();
                 break;
             }
         } while (request.isConnection() && response.isConnection() && !isPaused());
-        log.debug("http 完成");
+        LOG.fine("http 完成");
         close();
     }
 
@@ -323,8 +319,8 @@ public abstract class Http11Processor extends AbstractProcessor {
         byteBuffer.position(0);
         int sum = byteBuffer.limit();
         socketChannel.write(byteBuffer);
-        if (log.isDebugEnabled()) {
-            log.debug("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.finest("write:" + new String(byteBuffer.array(), StandardCharsets.ISO_8859_1));
         }
         if (chunked) {
             byte[] subArray = null;
@@ -333,12 +329,12 @@ public abstract class Http11Processor extends AbstractProcessor {
                 thisBuffer.limit(thisBuffer.capacity());//展开内存
                 int read = socketWrapperBase.read(true, thisBuffer);
                 sum += read;
-                log.debug("sun: " + sum);
+                LOG.fine("sun: " + sum);
                 if (read < 2048) {
-                    log.debug("debug");
+                    LOG.fine("debug");
                 }
                 if (read < 0) {
-                    log.debug("read chunked to -1");
+                    LOG.fine("read chunked to -1");
                     break;
                 }
                 thisBuffer.flip();
@@ -360,10 +356,7 @@ public abstract class Http11Processor extends AbstractProcessor {
                     arraycopy(subArray, position, subArray, 0, 5 - position);
                     arraycopy(thisBuffer.array(), 0, subArray, 5 - position, position);
                 }
-                System.out.println(read);
-                System.out.println(Arrays.toString(subArray));
             } while (!Arrays.equals(subArray, chunkedEndByte));
-            System.out.println(new String(thisBuffer.array(), "utf-8"));
         } else {
             while (bodySize < contentLength) {
                 thisBuffer.position(0);
@@ -372,8 +365,8 @@ public abstract class Http11Processor extends AbstractProcessor {
                 bodySize += read;
                 thisBuffer.flip();
                 socketChannel.write(thisBuffer);
-                if (log.isDebugEnabled()) {
-                    log.debug("write:" + new String(thisBuffer.array(), 0, read));
+                if (LOG.isLoggable(Level.FINE)) {
+                    LOG.fine("write:" + new String(thisBuffer.array(), 0, read));
                 }
             }
         }

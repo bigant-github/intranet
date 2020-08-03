@@ -1,11 +1,9 @@
 package priv.bigant.intranet.server.process;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import priv.bigant.intrance.common.*;
+import priv.bigant.intrance.common.ProcessBase;
 import priv.bigant.intrance.common.ServerConnector.ConnectorThread;
-import priv.bigant.intranet.server.communication.ServerCommunication;
 import priv.bigant.intranet.server.ServerConfig;
+import priv.bigant.intranet.server.communication.ServerCommunication;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -16,19 +14,27 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class CommunicationProcess extends ProcessBase {
+/**
+ * 用于与客户端交互处理器
+ */
+public class CommunicationProcessor extends ProcessBase {
 
-    public static final Logger LOG = LoggerFactory.getLogger(CommunicationProcess.class);
     private ThreadPoolExecutor executor;
+    private ServerConfig serverConfig;
 
-    public CommunicationProcess() {
-        ServerConfig serverConfig = (ServerConfig) Config.getConfig();
-        this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+    public CommunicationProcessor(ServerConfig config) {
+        this.serverConfig = config;
+        this.executor = new ThreadPoolExecutor(serverConfig.getCorePoolSize(), serverConfig.getMaximumPoolSize(), serverConfig.getKeepAliveTime(), TimeUnit.MILLISECONDS, new SynchronousQueue<>());
     }
 
     @Override
     public String getName() {
         return "CommunicationProcess";
+    }
+
+    @Override
+    public void showdown() {
+
     }
 
     @Override
@@ -41,7 +47,7 @@ public class CommunicationProcess extends ProcessBase {
     public void accept(ConnectorThread connectorThread, SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = ((ServerSocketChannel) selectionKey.channel()).accept();
         socketChannel.configureBlocking(false);
-        connectorThread.register(socketChannel, SelectionKey.OP_READ, new ServerCommunication(socketChannel));
+        connectorThread.register(socketChannel, SelectionKey.OP_READ, new ServerCommunication(socketChannel, serverConfig));
     }
 
 

@@ -11,6 +11,7 @@
         <module>intranet-common</module>
         <module>intranet-client</module>
         <module>intranet-server</module>
+        <module>intranet-visual</module>
     </modules>
 
     <dependencies>
@@ -25,18 +26,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.8.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-core -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.2.3</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
